@@ -10,58 +10,108 @@ interface Message {
   timestamp: Date;
 }
 
-const generateSmartResponse = (userMessage: string): string => {
+const generateSmartResponse = (userMessage: string, conversationHistory: string[] = []): string => {
   const msg = userMessage.toLowerCase().trim();
+  const previousMessages = conversationHistory.join(' ').toLowerCase();
   
-  // Headache/Migraine responses
+  // CONTEXTUAL PAIN LEVEL SUGGESTIONS
+  // Suggest specific pain levels based on severity words
+  if (msg.includes('horrible') || msg.includes('excruciating') || msg.includes('worst')) {
+    return "That sounds like severe pain - probably around 8 or 9 out of 10. Does that sound right? Just say the number.";
+  }
+  
+  if (msg.includes('killing me') || msg.includes('unbearable')) {
+    return "That sounds extremely painful - likely a 9 or 10. What number would you give it?";
+  }
+  
+  if (msg.includes('awful') || msg.includes('terrible')) {
+    return "That sounds quite severe - maybe a 7 or 8? What number feels right to you?";
+  }
+  
+  if (msg.includes('moderate') || msg.includes('annoying') || msg.includes('bothersome')) {
+    return "Sounds like moderate pain - perhaps around 4-6? What number would you say?";
+  }
+  
+  if (msg.includes('slight') || msg.includes('minor') || msg.includes('little bit')) {
+    return "Even mild pain is worth tracking. Maybe around 2-3? What number feels right?";
+  }
+  
+  // SMART TIMING RECOGNITION
+  // Don't ask "when did it start" if timing already mentioned
+  if (msg.match(/(\d+)\s*(hour|minute|day)s?\s*ago/) || 
+      msg.includes('this morning') || msg.includes('last night') || 
+      msg.includes('started') || msg.includes('woke me up')) {
+    
+    if (!previousMessages.includes('trigger')) {
+      return "Thanks for the timing info. Have you noticed what might have triggered this? Stress, lack of sleep, dehydration, bright lights?";
+    } else {
+      return "Got it. How are you managing the pain right now?";
+    }
+  }
+  
+  // MEDICATION INTELLIGENCE
+  // If they say medication isn't helping, don't ask if it helped
+  if ((msg.includes('took') || msg.includes('had')) && 
+      (msg.includes('but') || msg.includes('still') || msg.includes("doesn't") || msg.includes("not helping"))) {
+    return "I'll note that the medication isn't providing relief. Do you have other medications your doctor has prescribed for situations like this?";
+  }
+  
+  // If medication mentioned without "but still hurts"
+  if (msg.includes('took') || msg.includes('medication') || msg.includes('advil') || msg.includes('tylenol') || msg.includes('ibuprofen')) {
+    return "Good to know about the medication. Has it started to help reduce the pain?";
+  }
+  
+  // PAIN LEVEL NUMBER RESPONSES
+  if (msg.match(/\b([7-9]|10)\b/)) {
+    const painLevel = msg.match(/\b([7-9]|10)\b/)![0];
+    return `Pain level ${painLevel}/10 - that's quite severe. When did this level of pain start? Was it sudden or gradual?`;
+  }
+  
+  if (msg.match(/\b([4-6])\b/)) {
+    const painLevel = msg.match(/\b([4-6])\b/)![0];
+    return `${painLevel}/10 - moderate pain that's definitely impacting your day. How long has it been at this level?`;
+  }
+  
+  if (msg.match(/\b([1-3])\b/)) {
+    const painLevel = msg.match(/\b([1-3])\b/)![0];
+    return `${painLevel}/10 - thankful it's on the milder side. Is this typical for you or unusual?`;
+  }
+  
+  // TRIGGER RESPONSES
+  if (msg.includes('stress') || msg.includes('work') || msg.includes('anxiety')) {
+    return "Stress is a common trigger. I'll note that. Are you able to do any relaxation techniques right now, or do you need to focus on the pain first?";
+  }
+  
+  if (msg.includes('sleep') || msg.includes('tired') || msg.includes('insomnia')) {
+    return "Poor sleep often triggers headaches. How many hours did you get last night? Rest might help if you can manage it.";
+  }
+  
+  if (msg.includes('dehydrated') || msg.includes('water') || msg.includes('thirsty')) {
+    return "Dehydration is a big trigger. If you can, try sipping some water slowly. Sometimes that helps more than we expect.";
+  }
+  
+  // RELIEF AND POSITIVE RESPONSES
+  if (msg.includes('better') || msg.includes('improving') || msg.includes('helping')) {
+    return "That's great to hear! Are you doing anything specific that seems to be helping? Worth noting for future episodes.";
+  }
+  
+  if (msg.includes('fine') || msg.includes('good') || msg.includes('no pain')) {
+    return "Wonderful! It's just as important to track pain-free days. They help us see patterns and what's working well.";
+  }
+  
+  // HEADACHE/MIGRAINE INITIAL RESPONSE
   if (msg.includes('headache') || msg.includes('migraine')) {
-    return "I'm sorry you're dealing with head pain. On a scale of 0-10, how severe is it right now?";
+    return "I'm sorry you're dealing with head pain. Can you describe the intensity? Use words like mild, moderate, severe, or give me a number 0-10?";
   }
   
-  // Severe pain indicators
-  if (msg.includes('terrible') || msg.includes('awful') || msg.includes('unbearable') || msg.includes('killing me')) {
-    return "That sounds really intense. Let me help you track this properly. Can you rate the pain from 0-10?";
-  }
-  
-  // Mild pain indicators
-  if (msg.includes('little') || msg.includes('slight') || msg.includes('minor') || msg.includes('bit')) {
-    return "I understand it's bothering you. Even mild pain is worth tracking. What number would you give it from 0-10?";
-  }
-  
-  // Pain level numbers mentioned
-  if (msg.match(/\b([0-9]|10)\b/)) {
-    const painLevel = msg.match(/\b([0-9]|10)\b/)![0];
-    return `Got it, pain level ${painLevel}/10. When did this pain start? Was it gradual or sudden?`;
-  }
-  
-  // Location mentions
-  if (msg.includes('forehead') || msg.includes('temples') || msg.includes('behind my eyes')) {
-    return "Thank you for the details about the location. That helps a lot. How long has it been bothering you?";
-  }
-  
-  // Time-related
-  if (msg.includes('started') || msg.includes('began') || msg.includes('morning') || msg.includes('afternoon')) {
-    return "Thanks for that timing information. Have you noticed any triggers? Things like stress, lack of sleep, or certain foods?";
-  }
-  
-  // Medication mentions
-  if (msg.includes('took') || msg.includes('medication') || msg.includes('pill') || msg.includes('ibuprofen') || msg.includes('tylenol')) {
-    return "Good to know about the medication. Has it helped reduce the pain at all?";
-  }
-  
-  // Trigger mentions
-  if (msg.includes('stress') || msg.includes('tired') || msg.includes('dehydrated') || msg.includes('bright lights')) {
-    return "That's a helpful insight about potential triggers. I'll note that down. How are you feeling now compared to when it started?";
-  }
-  
-  // Default supportive responses
-  const defaultResponses = [
-    "I'm here to help. Can you tell me more about what you're experiencing?",
-    "Thank you for sharing that. What else can you tell me about how you're feeling?",
-    "I understand. Every detail helps me track your pain better. What would you like to add?"
+  // ENHANCED DEFAULT RESPONSES
+  const contextualDefaults = [
+    "I want to make sure I capture this properly. Can you tell me more about the pain you're experiencing?",
+    "Every detail helps create a better picture. What else is important for me to know?",
+    "Thank you for sharing that. How would you describe what you're feeling right now?"
   ];
   
-  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+  return contextualDefaults[Math.floor(Math.random() * contextualDefaults.length)];
 };
 
 export function TodaySection() {
@@ -105,9 +155,10 @@ export function TodaySection() {
 
     // Generate AI response after a short delay
     setTimeout(() => {
+      const conversationHistory = messages.map(msg => msg.content);
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: generateSmartResponse(inputValue),
+        content: generateSmartResponse(inputValue, conversationHistory),
         sender: 'ai',
         timestamp: new Date()
       };
