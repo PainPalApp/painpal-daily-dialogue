@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format } from "date-fns";
+import { PainScale } from "@/components/PainScale";
 
 export function TodaySection() {
   const [date, setDate] = useState<Date>(new Date());
@@ -71,37 +72,7 @@ export function TodaySection() {
 
         {/* Main Content */}
         <div className="bg-card rounded-lg border border-border p-8">
-          <div className="text-center space-y-6">
-            <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto">
-              <svg
-                className="h-8 w-8 text-accent-foreground"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                />
-              </svg>
-            </div>
-            
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-foreground">
-                Ready to track your wellness journey?
-              </h3>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                AI conversation will go here. Share how you're feeling, track your symptoms, 
-                and get personalized insights to help manage your health better.
-              </p>
-            </div>
-
-            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              Start Conversation
-            </Button>
-          </div>
+          <PainScale />
         </div>
       </div>
     </div>
