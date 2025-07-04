@@ -3,6 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
 
+// Chart.js type declarations
+declare global {
+  interface Window {
+    Chart: any;
+    painChart: any;
+  }
+}
+
 interface Message {
   id: string;
   content: string;
@@ -114,6 +122,186 @@ const generateSmartResponse = (userMessage: string, conversationHistory: string[
   return contextualDefaults[Math.floor(Math.random() * contextualDefaults.length)];
 };
 
+const MiniInsightsCard = () => {
+  const [painHistory, setPainHistory] = useState([]);
+  const [showChart, setShowChart] = useState(false);
+
+  const createMiniChart = (painData: any[]) => {
+    const canvas = document.getElementById('painTrendChart') as HTMLCanvasElement;
+    if (!canvas || !window.Chart) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Prepare last 7 days of data
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const dayData = painData.find(entry => entry.date === dateStr);
+      last7Days.push({
+        date: `${date.getMonth() + 1}/${date.getDate()}`,
+        pain: dayData?.painLevel || null
+      });
+    }
+    
+    // Destroy existing chart if it exists
+    if (window.painChart) {
+      window.painChart.destroy();
+    }
+    
+    window.painChart = new window.Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: last7Days.map(d => d.date),
+        datasets: [{
+          data: last7Days.map(d => d.pain),
+          borderColor: '#3B82F6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: '#3B82F6',
+          pointBorderColor: '#1E40AF',
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          spanGaps: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context) => context.raw ? `Pain: ${context.raw}/10` : 'No pain recorded'
+            }
+          }
+        },
+        scales: {
+          y: {
+            min: 0,
+            max: 10,
+            ticks: { 
+              color: '#9CA3AF', 
+              font: { size: 10 },
+              stepSize: 2
+            },
+            grid: { color: 'rgba(156, 163, 175, 0.1)' }
+          },
+          x: {
+            ticks: { 
+              color: '#9CA3AF', 
+              font: { size: 10 }
+            },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  };
+
+  useEffect(() => {
+    // Load pain data from localStorage
+    const storedData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
+    setPainHistory(storedData);
+    
+    // Show chart if we have enough data points
+    if (storedData.length >= 3) {
+      setShowChart(true);
+      setTimeout(() => createMiniChart(storedData), 100);
+    }
+
+    // Listen for data updates
+    const handleDataUpdate = () => {
+      const updatedData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
+      setPainHistory(updatedData);
+      if (updatedData.length >= 3) {
+        setShowChart(true);
+        setTimeout(() => createMiniChart(updatedData), 100);
+      }
+    };
+    
+    window.addEventListener('painDataUpdated', handleDataUpdate);
+    return () => window.removeEventListener('painDataUpdated', handleDataUpdate);
+  }, []);
+
+  // No data state
+  if (painHistory.length === 0) {
+    return (
+      <div className="mini-insights-card">
+        <div className="insights-header">
+          <h3 className="insights-title">🔍 Start Tracking to See Insights</h3>
+        </div>
+        <div className="no-data-content">
+          <p className="no-data-text">Once you track a few pain episodes, you'll see patterns and trends here.</p>
+          <div className="sample-stats">
+            <div className="stat-preview">
+              <span className="stat-number-preview">--</span>
+              <span className="stat-label">Avg Pain</span>
+            </div>
+            <div className="stat-preview">
+              <span className="stat-number-preview">--</span>
+              <span className="stat-label">Episodes</span>
+            </div>
+            <div className="stat-preview">
+              <span className="stat-number-preview">--</span>
+              <span className="stat-label">Triggers</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate stats from actual data
+  const recentEntries = painHistory.slice(-7);
+  const painLevels = recentEntries.filter(e => e.painLevel && e.painLevel > 0).map(e => e.painLevel);
+  const avgPain = painLevels.length > 0 ? painLevels.reduce((sum, p) => sum + p, 0) / painLevels.length : 0;
+  const totalEpisodes = painLevels.length;
+  const allTriggers = recentEntries.flatMap(e => e.triggers || []);
+  const uniqueTriggers = [...new Set(allTriggers)].length;
+
+  return (
+    <div className="mini-insights-card">
+      <div className="insights-header">
+        <h3 className="insights-title">📊 Your Recent Pain Tracking</h3>
+        <span className="insights-period">Last 7 days</span>
+      </div>
+      
+      {showChart && (
+        <div className="mini-chart-container">
+          <canvas id="painTrendChart" width="280" height="80"></canvas>
+        </div>
+      )}
+      
+      <div className="stats-row">
+        <div className="stat-item">
+          <span className="stat-number">{avgPain > 0 ? avgPain.toFixed(1) : '0'}</span>
+          <span className="stat-label">Avg Pain</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-number">{totalEpisodes}</span>
+          <span className="stat-label">Episodes</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-number">{uniqueTriggers}</span>
+          <span className="stat-label">Triggers</span>
+        </div>
+      </div>
+      
+      <button 
+        className="view-insights-btn"
+        onClick={() => {/* Navigate to Insights tab */}}
+      >
+        View Full Insights →
+      </button>
+    </div>
+  );
+};
+
 export function TodaySection() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -180,6 +368,9 @@ export function TodaySection() {
   return (
     <div className="flex-1 bg-background flex flex-col h-full">
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
+        {/* Mini Insights Card */}
+        <MiniInsightsCard />
+        
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="space-y-4">

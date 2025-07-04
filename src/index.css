@@ -87,3 +87,141 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Mini Insights Card Styles */
+.mini-insights-card {
+  background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 16px 16px 8px 16px;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.insights-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.insights-title {
+  color: hsl(var(--foreground));
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.insights-period {
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.mini-chart-container {
+  height: 80px;
+  margin: 16px 0;
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  margin: 16px 0;
+  padding: 12px 0;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.stat-item {
+  text-align: center;
+  flex: 1;
+}
+
+.stat-number {
+  display: block;
+  font-size: 24px;
+  font-weight: bold;
+  color: #3B82F6;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.view-insights-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: none;
+}
+
+.view-insights-btn:hover {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.no-data-content {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.no-data-text {
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.sample-stats {
+  display: flex;
+  justify-content: space-around;
+  opacity: 0.4;
+}
+
+.stat-preview {
+  text-align: center;
+}
+
+.stat-number-preview {
+  display: block;
+  font-size: 24px;
+  font-weight: bold;
+  color: hsl(var(--muted));
+  margin-bottom: 4px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .mini-insights-card {
+    margin: 12px;
+    padding: 16px;
+  }
+  
+  .insights-title {
+    font-size: 16px;
+  }
+  
+  .mini-chart-container {
+    height: 70px;
+  }
+  
+  .stat-number {
+    font-size: 20px;
+  }
+}
