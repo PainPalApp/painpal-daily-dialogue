@@ -18,6 +18,148 @@ interface Message {
   timestamp: Date;
 }
 
+// Data structure for pain entries
+const createPainEntry = (data: any = {}) => ({
+  id: Date.now(),
+  date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+  timestamp: new Date().toISOString(),
+  painLevel: data.painLevel || null,
+  location: data.location || [],
+  triggers: data.triggers || [],
+  medications: data.medications || [],
+  notes: data.notes || '',
+  symptoms: data.symptoms || [],
+  status: 'active'
+});
+
+// Save pain data to localStorage
+const savePainData = (extractedData: any) => {
+  const existingData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Check if entry for today exists
+  const todayIndex = existingData.findIndex((entry: any) => entry.date === today);
+  
+  if (todayIndex >= 0) {
+    // Update today's entry with new information
+    existingData[todayIndex] = { 
+      ...existingData[todayIndex], 
+      ...extractedData,
+      timestamp: new Date().toISOString() // Update timestamp
+    };
+  } else {
+    // Create new entry for today
+    const newEntry = createPainEntry(extractedData);
+    existingData.push(newEntry);
+  }
+  
+  localStorage.setItem('painTrackingData', JSON.stringify(existingData));
+  
+  // Trigger insights update
+  const event = new CustomEvent('painDataUpdated', { detail: existingData });
+  window.dispatchEvent(event);
+  
+  return existingData;
+};
+
+// Extract pain data from chat messages
+const extractPainDataFromMessages = (messages: Message[]) => {
+  const userMessages = messages.filter(msg => msg.sender === 'user');
+  const allText = userMessages.map(msg => msg.content || '').join(' ').toLowerCase();
+  
+  const painData = {
+    painLevel: null as number | null,
+    location: [] as string[],
+    triggers: [] as string[],
+    medications: [] as any[],
+    notes: userMessages.map(msg => msg.content || '').join('; '),
+    symptoms: [] as string[]
+  };
+  
+  // Extract pain level (look for numbers 0-10)
+  const painMatch = allText.match(/\b([0-9]|10)\b/);
+  if (painMatch) {
+    painData.painLevel = parseInt(painMatch[0]);
+  }
+  
+  // Extract locations
+  if (allText.includes('forehead')) painData.location.push('forehead');
+  if (allText.includes('temples')) painData.location.push('temples');
+  if (allText.includes('behind') && allText.includes('eyes')) painData.location.push('behind eyes');
+  if (allText.includes('back of head')) painData.location.push('back of head');
+  if (allText.includes('neck')) painData.location.push('neck');
+  if (allText.includes('whole head')) painData.location.push('whole head');
+  
+  // Extract triggers
+  if (allText.includes('stress')) painData.triggers.push('stress');
+  if (allText.includes('sleep') || allText.includes('tired')) painData.triggers.push('poor sleep');
+  if (allText.includes('dehydrat')) painData.triggers.push('dehydration');
+  if (allText.includes('bright light')) painData.triggers.push('bright lights');
+  if (allText.includes('screen')) painData.triggers.push('screen time');
+  if (allText.includes('food') || allText.includes('skipped meal')) painData.triggers.push('diet');
+  if (allText.includes('weather')) painData.triggers.push('weather');
+  if (allText.includes('hormone')) painData.triggers.push('hormones');
+  
+  // Extract medications
+  if (allText.includes('ibuprofen') || allText.includes('advil')) {
+    painData.medications.push({
+      name: 'ibuprofen',
+      effective: !allText.includes('still') && !allText.includes('not helping')
+    });
+  }
+  if (allText.includes('tylenol') || allText.includes('acetaminophen')) {
+    painData.medications.push({
+      name: 'tylenol',
+      effective: !allText.includes('still') && !allText.includes('not helping')
+    });
+  }
+  if (allText.includes('aspirin')) {
+    painData.medications.push({
+      name: 'aspirin',
+      effective: !allText.includes('still') && !allText.includes('not helping')
+    });
+  }
+  
+  // Extract symptoms
+  if (allText.includes('nausea')) painData.symptoms.push('nausea');
+  if (allText.includes('dizzy')) painData.symptoms.push('dizziness');
+  if (allText.includes('sensitive') && allText.includes('light')) painData.symptoms.push('light sensitivity');
+  if (allText.includes('sensitive') && allText.includes('sound')) painData.symptoms.push('sound sensitivity');
+  
+  return painData;
+};
+
+// Get pain history for reports/insights
+const getPainHistory = (days = 30) => {
+  const data = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+  
+  return data.filter((entry: any) => new Date(entry.date) >= cutoffDate);
+};
+
+// Debug function to check stored data
+const debugPainData = () => {
+  const data = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
+  console.log('Current pain tracking data:', data);
+  return data;
+};
+
+// Add to window for testing
+declare global {
+  interface Window {
+    debugPainData: () => any;
+    clearPainData: () => void;
+  }
+}
+
+window.debugPainData = debugPainData;
+window.clearPainData = () => {
+  localStorage.removeItem('painTrackingData');
+  window.dispatchEvent(new CustomEvent('painDataUpdated'));
+  console.log('Pain data cleared');
+};
+
 const generateSmartResponse = (userMessage: string, conversationHistory: string[] = []): string => {
   const msg = userMessage.toLowerCase().trim();
   const previousMessages = conversationHistory.join(' ').toLowerCase();
@@ -128,7 +270,10 @@ const MiniInsightsCard = () => {
 
   const createMiniChart = (painData: any[]) => {
     const canvas = document.getElementById('painTrendChart') as HTMLCanvasElement;
-    if (!canvas || !window.Chart) return;
+    if (!canvas || !window.Chart) {
+      console.log('Chart canvas not found or Chart.js not loaded');
+      return;
+    }
     
     const ctx = canvas.getContext('2d');
     
@@ -142,9 +287,12 @@ const MiniInsightsCard = () => {
       const dayData = painData.find(entry => entry.date === dateStr);
       last7Days.push({
         date: `${date.getMonth() + 1}/${date.getDate()}`,
-        pain: dayData?.painLevel || null
+        pain: dayData?.painLevel || null,
+        hasData: !!dayData
       });
     }
+    
+    console.log('Chart data:', last7Days);
     
     // Destroy existing chart if it exists
     if (window.painChart) {
@@ -162,10 +310,10 @@ const MiniInsightsCard = () => {
           borderWidth: 2,
           fill: true,
           tension: 0.3,
-          pointBackgroundColor: '#3B82F6',
+          pointBackgroundColor: last7Days.map(d => d.hasData ? '#3B82F6' : 'transparent'),
           pointBorderColor: '#1E40AF',
-          pointRadius: 3,
-          pointHoverRadius: 5,
+          pointRadius: last7Days.map(d => d.hasData ? 4 : 0),
+          pointHoverRadius: 6,
           spanGaps: true
         }]
       },
@@ -203,25 +351,25 @@ const MiniInsightsCard = () => {
     });
   };
 
-  useEffect(() => {
-    // Load pain data from localStorage
+  const loadPainData = () => {
     const storedData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
     setPainHistory(storedData);
     
-    // Show chart if we have enough data points
-    if (storedData.length >= 3) {
+    // Show chart if we have data
+    if (storedData.length > 0) {
       setShowChart(true);
-      setTimeout(() => createMiniChart(storedData), 100);
+      // Small delay to ensure canvas is rendered
+      setTimeout(() => createMiniChart(storedData), 200);
     }
+  };
 
+  useEffect(() => {
+    loadPainData();
+    
     // Listen for data updates
-    const handleDataUpdate = () => {
-      const updatedData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
-      setPainHistory(updatedData);
-      if (updatedData.length >= 3) {
-        setShowChart(true);
-        setTimeout(() => createMiniChart(updatedData), 100);
-      }
+    const handleDataUpdate = (event) => {
+      console.log('Pain data updated, refreshing insights...');
+      loadPainData();
     };
     
     window.addEventListener('painDataUpdated', handleDataUpdate);
@@ -338,7 +486,8 @@ export function TodaySection() {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInputValue('');
 
     // Generate AI response after a short delay
@@ -350,7 +499,34 @@ export function TodaySection() {
         sender: 'ai',
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiResponse]);
+      
+      const finalMessages = [...updatedMessages, aiResponse];
+      setMessages(finalMessages);
+      
+      // Extract and save pain data if relevant
+      const extractedData = extractPainDataFromMessages(finalMessages);
+      
+      // Save if we extracted meaningful data
+      if (extractedData.painLevel !== null || 
+          extractedData.triggers.length > 0 || 
+          extractedData.medications.length > 0 ||
+          inputValue.toLowerCase().includes('headache') ||
+          inputValue.toLowerCase().includes('migraine') ||
+          inputValue.toLowerCase().includes('pain')) {
+        
+        const savedData = savePainData(extractedData);
+        console.log('Pain data saved:', extractedData);
+        
+        // Optional: Show subtle confirmation
+        setTimeout(() => {
+          setMessages(prev => [...prev, {
+            id: (Date.now() + 2).toString(),
+            content: '✅ Data saved to your tracking history',
+            sender: 'ai',
+            timestamp: new Date()
+          }]);
+        }, 1500);
+      }
     }, 1000);
   };
 
