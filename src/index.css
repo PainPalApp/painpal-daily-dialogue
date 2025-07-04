@@ -96,18 +96,15 @@ All colors MUST be HSL.
   margin: 16px 16px 8px 16px;
   border: 1px solid hsl(var(--border));
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 10px;
-  z-index: 100;
+  /* REMOVED: position: sticky */
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
 }
 
-.mini-insights-card.minimized {
-  padding: 12px 20px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, hsl(var(--card) / 0.95) 0%, hsl(var(--background) / 0.95) 100%);
-  backdrop-filter: blur(15px);
+.mini-insights-card.compact {
+  /* Subtle compact state without sticky issues */
+  padding: 16px 20px;
+  margin: 12px 16px 6px 16px;
 }
 
 .insights-header {
