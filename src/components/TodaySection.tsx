@@ -264,110 +264,154 @@ const generateSmartResponse = (userMessage: string, conversationHistory: string[
   return contextualDefaults[Math.floor(Math.random() * contextualDefaults.length)];
 };
 
-const MiniInsightsCard = () => {
-  const [painHistory, setPainHistory] = useState([]);
-  const [showChart, setShowChart] = useState(false);
-
-  const createMiniChart = (painData: any[]) => {
-    const canvas = document.getElementById('painTrendChart') as HTMLCanvasElement;
-    if (!canvas || !window.Chart) {
-      console.log('Chart canvas not found or Chart.js not loaded');
-      return;
+const createChart = (painData: any[], viewMode: string) => {
+  const canvas = document.getElementById('painTrendChart') as HTMLCanvasElement;
+  if (!canvas || !window.Chart) {
+    console.log('Chart canvas not found or Chart.js not loaded');
+    return;
+  }
+  
+  const ctx = canvas.getContext('2d');
+  
+  let chartData = [];
+  
+  if (viewMode === 'day') {
+    // Today's hourly timeline (if multiple entries exist)
+    const today = new Date().toISOString().split('T')[0];
+    const todayEntries = painData.filter(entry => entry.date === today);
+    
+    if (todayEntries.length === 1) {
+      // Single entry - show as single point
+      chartData = [{
+        label: 'Now',
+        pain: todayEntries[0].painLevel
+      }];
+    } else {
+      // Multiple entries - show timeline
+      chartData = todayEntries.map((entry, index) => ({
+        label: new Date(entry.timestamp).toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit' 
+        }),
+        pain: entry.painLevel
+      }));
     }
     
-    const ctx = canvas.getContext('2d');
-    
-    // Prepare last 7 days of data
-    const last7Days = [];
+  } else {
+    // Week view - last 7 days
+    chartData = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
       
       const dayData = painData.find(entry => entry.date === dateStr);
-      last7Days.push({
-        date: `${date.getMonth() + 1}/${date.getDate()}`,
-        pain: dayData?.painLevel || null,
-        hasData: !!dayData
+      chartData.push({
+        label: `${date.getMonth() + 1}/${date.getDate()}`,
+        pain: dayData?.painLevel || null
       });
     }
-    
-    console.log('Chart data:', last7Days);
-    
-    // Destroy existing chart if it exists
-    if (window.painChart) {
-      window.painChart.destroy();
-    }
-    
-    window.painChart = new window.Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: last7Days.map(d => d.date),
-        datasets: [{
-          data: last7Days.map(d => d.pain),
-          borderColor: '#3B82F6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.3,
-          pointBackgroundColor: last7Days.map(d => d.hasData ? '#3B82F6' : 'transparent'),
-          pointBorderColor: '#1E40AF',
-          pointRadius: last7Days.map(d => d.hasData ? 4 : 0),
-          pointHoverRadius: 6,
-          spanGaps: true
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (context) => context.raw ? `Pain: ${context.raw}/10` : 'No pain recorded'
-            }
-          }
-        },
-        scales: {
-          y: {
-            min: 0,
-            max: 10,
-            ticks: { 
-              color: '#9CA3AF', 
-              font: { size: 10 },
-              stepSize: 2
-            },
-            grid: { color: 'rgba(156, 163, 175, 0.1)' }
-          },
-          x: {
-            ticks: { 
-              color: '#9CA3AF', 
-              font: { size: 10 }
-            },
-            grid: { display: false }
+  }
+  
+  console.log('Chart data:', chartData);
+  
+  // Destroy existing chart if it exists
+  if (window.painChart) {
+    window.painChart.destroy();
+  }
+  
+  window.painChart = new window.Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartData.map(d => d.label),
+      datasets: [{
+        data: chartData.map(d => d.pain),
+        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        borderWidth: 2,
+        fill: viewMode === 'week',
+        tension: 0.3,
+        pointBackgroundColor: '#3B82F6',
+        pointBorderColor: '#1E40AF',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        spanGaps: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => context.raw ? `Pain: ${context.raw}/10` : 'No pain recorded'
           }
         }
+      },
+      scales: {
+        y: {
+          min: 0,
+          max: 10,
+          ticks: { 
+            color: '#9CA3AF', 
+            font: { size: 10 },
+            stepSize: viewMode === 'day' ? 1 : 2
+          },
+          grid: { color: 'rgba(156, 163, 175, 0.1)' }
+        },
+        x: {
+          ticks: { 
+            color: '#9CA3AF', 
+            font: { size: 9 },
+            maxRotation: viewMode === 'day' ? 45 : 0
+          },
+          grid: { display: false }
+        }
       }
-    });
-  };
+    }
+  });
+};
+
+const MiniInsightsCard = () => {
+  const [painHistory, setPainHistory] = useState([]);
+  const [showChart, setShowChart] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [viewMode, setViewMode] = useState('week'); // 'day' or 'week'
+  const [scrollY, setScrollY] = useState(0);
+
+  // Handle scroll behavior
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
+      
+      // Minimize when scrolling down, expand when scrolling up or at top
+      if (currentScrollY > 100 && currentScrollY > scrollY) {
+        setIsMinimized(true);
+      } else if (currentScrollY < scrollY || currentScrollY < 50) {
+        setIsMinimized(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [scrollY]);
 
   const loadPainData = () => {
     const storedData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
     setPainHistory(storedData);
     
-    // Show chart if we have data
     if (storedData.length > 0) {
       setShowChart(true);
-      // Small delay to ensure canvas is rendered
-      setTimeout(() => createMiniChart(storedData), 200);
+      setTimeout(() => createChart(storedData, viewMode), 200);
     }
   };
 
   useEffect(() => {
     loadPainData();
     
-    // Listen for data updates
-    const handleDataUpdate = (event) => {
+    const handleDataUpdate = () => {
       console.log('Pain data updated, refreshing insights...');
       loadPainData();
     };
@@ -375,6 +419,36 @@ const MiniInsightsCard = () => {
     window.addEventListener('painDataUpdated', handleDataUpdate);
     return () => window.removeEventListener('painDataUpdated', handleDataUpdate);
   }, []);
+
+  // Recreate chart when view mode changes
+  useEffect(() => {
+    if (painHistory.length > 0) {
+      setTimeout(() => createChart(painHistory, viewMode), 100);
+    }
+  }, [viewMode, painHistory]);
+
+  // Calculate stats
+  const getStatsForPeriod = () => {
+    if (painHistory.length === 0) return { avg: 0, episodes: 0, triggers: 0 };
+    
+    const relevantEntries = viewMode === 'day' 
+      ? painHistory.filter(e => e.date === new Date().toISOString().split('T')[0])
+      : painHistory.slice(-7);
+    
+    const painLevels = relevantEntries.filter(e => e.painLevel && e.painLevel > 0).map(e => e.painLevel);
+    const avgPain = painLevels.length > 0 ? painLevels.reduce((sum, p) => sum + p, 0) / painLevels.length : 0;
+    const totalEpisodes = painLevels.length;
+    const allTriggers = relevantEntries.flatMap(e => e.triggers || []);
+    const uniqueTriggers = [...new Set(allTriggers)].length;
+    
+    return {
+      avg: avgPain,
+      episodes: totalEpisodes,
+      triggers: uniqueTriggers
+    };
+  };
+
+  const stats = getStatsForPeriod();
 
   // No data state
   if (painHistory.length === 0) {
@@ -404,48 +478,73 @@ const MiniInsightsCard = () => {
     );
   }
 
-  // Calculate stats from actual data
-  const recentEntries = painHistory.slice(-7);
-  const painLevels = recentEntries.filter(e => e.painLevel && e.painLevel > 0).map(e => e.painLevel);
-  const avgPain = painLevels.length > 0 ? painLevels.reduce((sum, p) => sum + p, 0) / painLevels.length : 0;
-  const totalEpisodes = painLevels.length;
-  const allTriggers = recentEntries.flatMap(e => e.triggers || []);
-  const uniqueTriggers = [...new Set(allTriggers)].length;
-
   return (
-    <div className="mini-insights-card">
+    <div className={`mini-insights-card ${isMinimized ? 'minimized' : ''}`}>
       <div className="insights-header">
-        <h3 className="insights-title">📊 Your Recent Pain Tracking</h3>
-        <span className="insights-period">Last 7 days</span>
+        <h3 className="insights-title">
+          📊 Your Recent Pain Tracking
+          {isMinimized && <span className="quick-stat">Avg: {stats.avg.toFixed(1)}/10</span>}
+        </h3>
+        
+        {!isMinimized && (
+          <div className="view-toggle">
+            <button 
+              className={`toggle-btn ${viewMode === 'day' ? 'active' : ''}`}
+              onClick={() => setViewMode('day')}
+            >
+              Today
+            </button>
+            <button 
+              className={`toggle-btn ${viewMode === 'week' ? 'active' : ''}`}
+              onClick={() => setViewMode('week')}
+            >
+              Week
+            </button>
+          </div>
+        )}
+        
+        {isMinimized && (
+          <button 
+            className="expand-btn"
+            onClick={() => setIsMinimized(false)}
+          >
+            ↕️
+          </button>
+        )}
       </div>
       
-      {showChart && (
+      {!isMinimized && showChart && (
         <div className="mini-chart-container">
           <canvas id="painTrendChart" width="280" height="80"></canvas>
+          <p className="chart-description">
+            {viewMode === 'day' ? 'Today\'s timeline' : 'Last 7 days'}
+          </p>
         </div>
       )}
       
-      <div className="stats-row">
+      <div className={`stats-row ${isMinimized ? 'minimized-stats' : ''}`}>
         <div className="stat-item">
-          <span className="stat-number">{avgPain > 0 ? avgPain.toFixed(1) : '0'}</span>
+          <span className="stat-number">{stats.avg > 0 ? stats.avg.toFixed(1) : '0'}</span>
           <span className="stat-label">Avg Pain</span>
         </div>
         <div className="stat-item">
-          <span className="stat-number">{totalEpisodes}</span>
+          <span className="stat-number">{stats.episodes}</span>
           <span className="stat-label">Episodes</span>
         </div>
         <div className="stat-item">
-          <span className="stat-number">{uniqueTriggers}</span>
+          <span className="stat-number">{stats.triggers}</span>
           <span className="stat-label">Triggers</span>
         </div>
       </div>
       
-      <button 
-        className="view-insights-btn"
-        onClick={() => {/* Navigate to Insights tab */}}
-      >
-        View Full Insights →
-      </button>
+      {!isMinimized && (
+        <button 
+          className="view-insights-btn"
+          onClick={() => {/* Navigate to Insights tab */}}
+        >
+          View Full Insights →
+        </button>
+      )}
     </div>
   );
 };
