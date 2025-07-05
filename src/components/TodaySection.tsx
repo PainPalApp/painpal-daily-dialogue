@@ -460,9 +460,19 @@ const MiniInsightsCard = () => {
     
     if (storedData.length > 0) {
       setShowChart(true);
-      setTimeout(() => createChart(storedData, viewMode), 200);
     }
   };
+
+  // Debounced chart update to prevent flickering
+  useEffect(() => {
+    if (painHistory.length > 0 && showChart) {
+      const timeoutId = setTimeout(() => {
+        createChart(painHistory, viewMode);
+      }, 150);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [painHistory, viewMode]);
 
   useEffect(() => {
     loadPainData();
@@ -475,13 +485,6 @@ const MiniInsightsCard = () => {
     window.addEventListener('painDataUpdated', handleDataUpdate);
     return () => window.removeEventListener('painDataUpdated', handleDataUpdate);
   }, []);
-
-  // Recreate chart when view mode changes
-  useEffect(() => {
-    if (painHistory.length > 0) {
-      setTimeout(() => createChart(painHistory, viewMode), 100);
-    }
-  }, [viewMode, painHistory]);
 
   // IMPROVED stats calculation for TODAY vs WEEK
   const getStatsForPeriod = () => {
