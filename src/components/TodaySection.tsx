@@ -325,15 +325,19 @@ const updateChart = (painData: any[], viewMode: string) => {
   // Store current view mode
   window.currentViewMode = viewMode;
   
-  // If chart exists and same view mode, update instead of recreate
+  // If chart exists and same view mode, update data only
   if (window.painChart && window.lastViewMode === viewMode) {
     updateChartData(painData, viewMode);
     return;
   }
   
-  // Only destroy if changing view modes or no chart exists
-  if (window.painChart && window.lastViewMode !== viewMode) {
-    window.painChart.destroy();
+  // Always destroy existing chart before creating new one
+  if (window.painChart) {
+    try {
+      window.painChart.destroy();
+    } catch (e) {
+      console.warn('Chart destruction failed:', e);
+    }
     window.painChart = null;
   }
   
