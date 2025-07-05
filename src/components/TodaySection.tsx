@@ -264,7 +264,99 @@ const generateSmartResponse = (userMessage: string, conversationHistory: string[
   return contextualDefaults[Math.floor(Math.random() * contextualDefaults.length)];
 };
 
-const updateOrCreateChart = (painData: any[], viewMode: string) => {
+const updateChart = (painData: any[], viewMode: string) => {
+  if (!window.painChart) {
+    createChart(painData, viewMode);
+    return;
+  }
+
+  let chartData = [];
+  
+  if (viewMode === 'today') {
+    const today = new Date().toISOString().split('T')[0];
+    const todayEntries = painData.filter(entry => entry.date === today);
+    
+    if (todayEntries.length === 0) {
+      chartData = [
+        { label: '6AM', pain: null, time: 6 },
+        { label: '12PM', pain: null, time: 12 },
+        { label: '6PM', pain: null, time: 18 },
+        { label: 'Now', pain: null, time: new Date().getHours() }
+      ];
+    } else {
+      chartData = todayEntries.map((entry) => {
+        const entryTime = new Date(entry.timestamp);
+        return {
+          label: entryTime.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit' 
+          }),
+          pain: entry.painLevel,
+          time: entryTime.getHours() + entryTime.getMinutes() / 60,
+          duration: entry.duration || null
+        };
+      });
+      
+      const now = new Date();
+      const lastEntry = chartData[chartData.length - 1];
+      if (!lastEntry || now.getTime() - new Date(todayEntries[todayEntries.length - 1].timestamp).getTime() > 30 * 60 * 1000) {
+        chartData.push({
+          label: 'Now',
+          pain: null,
+          time: now.getHours() + now.getMinutes() / 60,
+          duration: null
+        });
+      }
+    }
+  } else {
+    chartData = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const dayData = painData.find(entry => entry.date === dateStr);
+      chartData.push({
+        label: `${date.getMonth() + 1}/${date.getDate()}`,
+        pain: dayData?.painLevel || null
+      });
+    }
+  }
+  
+  const isWeekSingleEntry = viewMode === 'week' && chartData.filter(d => d.pain !== null).length === 1;
+  
+  // Check if chart type needs to change
+  const currentType = window.painChart.config.type;
+  const newType = isWeekSingleEntry ? 'doughnut' : 'line';
+  
+  if (currentType !== newType) {
+    // Need to recreate chart with different type
+    createChart(painData, viewMode);
+    return;
+  }
+  
+  // Update existing chart data smoothly
+  try {
+    window.painChart.data.labels = isWeekSingleEntry ? 
+      ['Pain Level', 'Pain-Free'] : 
+      chartData.map(d => d.label);
+    
+    if (isWeekSingleEntry) {
+      const painValue = chartData.find(d => d.pain !== null)?.pain || 0;
+      window.painChart.data.datasets[0].data = [painValue, 10 - painValue];
+    } else {
+      window.painChart.data.datasets[0].data = chartData.map(d => d.pain);
+    }
+    
+    // Smooth update with animation
+    window.painChart.update('active');
+  } catch (error) {
+    console.warn('Chart update failed, recreating:', error);
+    createChart(painData, viewMode);
+  }
+};
+
+const createChart = (painData: any[], viewMode: string) => {
   const canvas = document.getElementById('painTrendChart') as HTMLCanvasElement;
   if (!canvas || !window.Chart) {
     console.log('Chart canvas not found or Chart.js not loaded');
@@ -479,7 +571,7 @@ const MiniInsightsCard = () => {
   useEffect(() => {
     if (painHistory.length > 0 && showChart) {
       const timeoutId = setTimeout(() => {
-        updateOrCreateChart(painHistory, viewMode);
+        updateChart(painHistory, viewMode);
       }, 150);
       
       return () => clearTimeout(timeoutId);
