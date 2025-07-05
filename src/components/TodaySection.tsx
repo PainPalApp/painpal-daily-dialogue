@@ -2,45 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  TimeScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  Filler
-} from 'chart.js';
-import 'chartjs-adapter-date-fns';
-
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  TimeScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  Filler
-);
-
-// Make Chart available globally
-window.Chart = ChartJS;
-
-// Chart.js type declarations
-declare global {
-  interface Window {
-    Chart: any;
-    painChart: any;
-  }
-}
+import { PainChart } from "@/components/PainChart";
 
 interface Message {
   id: string;
@@ -295,377 +257,10 @@ const generateSmartResponse = (userMessage: string, conversationHistory: string[
   return contextualDefaults[Math.floor(Math.random() * contextualDefaults.length)];
 };
 
-// Store current view mode globally
-declare global {
-  interface Window {
-    Chart: any;
-    painChart: any;
-    currentViewMode: string;
-    lastViewMode: string;
-  }
-}
-
-const getTodayData = (painData: any[]) => {
-  const today = new Date().toISOString().split('T')[0];
-  return painData.filter(entry => entry.date === today)
-    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-};
-
-const prepareTimelineData = (todayData: any[]) => {
-  return todayData.map(entry => ({
-    x: new Date(entry.timestamp).getTime(),
-    y: entry.painLevel,
-    duration: entry.duration || 'ongoing',
-    location: entry.location?.join(', ') || 'general',
-    description: entry.notes || ''
-  }));
-};
-
-const updateChart = (painData: any[], viewMode: string) => {
-  // Store current view mode
-  window.currentViewMode = viewMode;
-  
-  // If chart exists and same view mode, update data only
-  if (window.painChart && window.lastViewMode === viewMode) {
-    updateChartData(painData, viewMode);
-    return;
-  }
-  
-  // Always destroy existing chart before creating new one
-  if (window.painChart) {
-    try {
-      window.painChart.destroy();
-    } catch (e) {
-      console.warn('Chart destruction failed:', e);
-    }
-    window.painChart = null;
-  }
-  
-  window.lastViewMode = viewMode;
-  createChart(painData, viewMode);
-};
-
-const updateChartData = (painData: any[], viewMode: string) => {
-  if (!window.painChart) {
-    createChart(painData, viewMode);
-    return;
-  }
-
-  try {
-    if (viewMode === 'today') {
-      const todayData = getTodayData(painData);
-      if (todayData.length > 0) {
-        const timelineData = prepareTimelineData(todayData);
-        window.painChart.data.datasets[0].data = timelineData;
-        window.painChart.update('none'); // No animation for smooth experience
-      }
-    } else {
-      // Week view update
-      let chartData = [];
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
-        
-        const dayData = painData.find(entry => entry.date === dateStr);
-        chartData.push({
-          label: `${date.getMonth() + 1}/${date.getDate()}`,
-          pain: dayData?.painLevel || null
-        });
-      }
-      
-      const isWeekSingleEntry = chartData.filter(d => d.pain !== null).length === 1;
-      
-      if (isWeekSingleEntry) {
-        const painValue = chartData.find(d => d.pain !== null)?.pain || 0;
-        window.painChart.data.datasets[0].data = [painValue, 10 - painValue];
-      } else {
-        window.painChart.data.labels = chartData.map(d => d.label);
-        window.painChart.data.datasets[0].data = chartData.map(d => d.pain);
-      }
-      
-      window.painChart.update('none');
-    }
-  } catch (error) {
-    console.warn('Chart update failed, recreating:', error);
-    createChart(painData, viewMode);
-  }
-};
-
-const createChart = (painData: any[], viewMode: string) => {
-  const canvas = document.getElementById('painTrendChart') as HTMLCanvasElement;
-  if (!canvas || !window.Chart) {
-    console.log('Chart canvas not found or Chart.js not loaded');
-    return;
-  }
-  
-  const ctx = canvas.getContext('2d');
-  const isToday = viewMode === 'today';
-  
-  if (isToday) {
-    // Timeline chart for today view
-    const todayData = getTodayData(painData);
-    
-    if (todayData.length === 0) {
-      // Show empty timeline with time markers
-      const now = new Date();
-      const timeMarkers = [
-        { x: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 6).getTime(), y: null },
-        { x: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12).getTime(), y: null },
-        { x: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 18).getTime(), y: null },
-        { x: now.getTime(), y: null }
-      ];
-      
-      window.painChart = new window.Chart(ctx, {
-        type: 'scatter',
-        data: {
-          datasets: [{
-            label: 'Pain Level',
-            data: timeMarkers,
-            borderColor: '#3B82F6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            pointRadius: 0,
-            showLine: false
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: { duration: 300, easing: 'easeInOutQuart' },
-          plugins: {
-            legend: { display: false },
-            tooltip: { enabled: false }
-          },
-          scales: {
-            x: {
-              type: 'time',
-              time: {
-                unit: 'hour',
-                displayFormats: { hour: 'HH:mm' }
-              },
-              title: {
-                display: true,
-                text: 'Time Today',
-                color: '#9CA3AF',
-                font: { size: 10 }
-              },
-              grid: { color: 'rgba(156, 163, 175, 0.2)' },
-              ticks: { color: '#9CA3AF', font: { size: 9 } }
-            },
-            y: {
-              min: 0,
-              max: 10,
-              title: {
-                display: true,
-                text: 'Pain Level (0-10)',
-                color: '#9CA3AF',
-                font: { size: 10 }
-              },
-              grid: { color: 'rgba(156, 163, 175, 0.2)' },
-              ticks: { 
-                color: '#9CA3AF', 
-                font: { size: 10 },
-                stepSize: 1
-              }
-            }
-          }
-        }
-      });
-      return;
-    }
-    
-    // Create timeline with actual data
-    const timelineData = prepareTimelineData(todayData);
-    
-    window.painChart = new window.Chart(ctx, {
-      type: 'scatter',
-      data: {
-        datasets: [{
-          label: 'Pain Level',
-          data: timelineData,
-          borderColor: '#EF4444',
-          backgroundColor: '#EF4444',
-          borderWidth: 3,
-          pointRadius: 8,
-          pointHoverRadius: 12,
-          pointBorderColor: 'white',
-          pointBorderWidth: 2,
-          showLine: true,
-          tension: 0.4,
-          fill: false
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: { duration: 300, easing: 'easeInOutQuart' },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              title: function(context) {
-                const dataPoint = context[0].raw as any;
-                const time = new Date(dataPoint.x).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                });
-                const hoursAgo = Math.floor((Date.now() - dataPoint.x) / (1000 * 60 * 60));
-                return `${time} (${hoursAgo} hours ago)`;
-              },
-              label: function(context) {
-                const dataPoint = context.raw as any;
-                return [
-                  `Pain Level: ${dataPoint.y}/10`,
-                  `Location: ${dataPoint.location}`,
-                  `Duration: ${dataPoint.duration}`,
-                  `Notes: ${dataPoint.description}`
-                ];
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            type: 'time',
-            time: {
-              unit: 'hour',
-              displayFormats: { hour: 'HH:mm' }
-            },
-            title: {
-              display: true,
-              text: 'Time Today',
-              color: '#9CA3AF',
-              font: { size: 10 }
-            },
-            grid: { color: 'rgba(156, 163, 175, 0.2)' },
-            ticks: { color: '#9CA3AF', font: { size: 9 } }
-          },
-          y: {
-            min: 0,
-            max: 10,
-            title: {
-              display: true,
-              text: 'Pain Level (0-10)',
-              color: '#9CA3AF',
-              font: { size: 10 }
-            },
-            grid: { color: 'rgba(156, 163, 175, 0.2)' },
-            ticks: { 
-              color: '#9CA3AF', 
-              font: { size: 10 },
-              stepSize: 1
-            }
-          }
-        },
-        interaction: {
-          intersect: false,
-          mode: 'index'
-        }
-      }
-    });
-    
-  } else {
-    // Week view - existing logic
-    let chartData = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      
-      const dayData = painData.find(entry => entry.date === dateStr);
-      chartData.push({
-        label: `${date.getMonth() + 1}/${date.getDate()}`,
-        pain: dayData?.painLevel || null
-      });
-    }
-    
-    const isWeekSingleEntry = chartData.filter(d => d.pain !== null).length === 1;
-    
-    window.painChart = new window.Chart(ctx, {
-      type: isWeekSingleEntry ? 'doughnut' : 'line',
-      data: isWeekSingleEntry ? {
-        labels: ['Pain Level', 'Pain-Free'],
-        datasets: [{
-          data: [chartData.find(d => d.pain !== null)?.pain || 0, 10 - (chartData.find(d => d.pain !== null)?.pain || 0)],
-          backgroundColor: ['#3B82F6', 'rgba(156, 163, 175, 0.2)'],
-          borderWidth: 0
-        }]
-      } : {
-        labels: chartData.map(d => d.label),
-        datasets: [{
-          data: chartData.map(d => d.pain),
-          borderColor: '#3B82F6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          borderWidth: 2,
-          fill: false,
-          tension: 0.3,
-          pointBackgroundColor: (context) => {
-            const point = chartData[context.dataIndex];
-            return point?.pain ? '#3B82F6' : '#9CA3AF';
-          },
-          pointBorderColor: '#1E40AF',
-          pointRadius: 4,
-          pointHoverRadius: 10,
-          spanGaps: true
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: { duration: 300, easing: 'easeInOutQuart' },
-        plugins: {
-          legend: { 
-            display: isWeekSingleEntry,
-            position: 'bottom',
-            labels: { color: '#9CA3AF', font: { size: 10 } }
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                if (isWeekSingleEntry) {
-                  return context.label === 'Pain Level' 
-                    ? `Pain: ${context.raw}/10` 
-                    : `Pain-Free: ${context.raw}/10`;
-                }
-                return context.raw ? `Pain: ${context.raw}/10` : 'No pain recorded';
-              }
-            }
-          }
-        },
-        scales: isWeekSingleEntry ? {} : {
-          y: {
-            min: 0,
-            max: 10,
-            ticks: { 
-              color: '#9CA3AF', 
-              font: { size: 10 },
-              stepSize: 1
-            },
-            grid: { color: 'rgba(156, 163, 175, 0.1)' },
-            title: {
-              display: true,
-              text: 'Pain Level',
-              color: '#9CA3AF',
-              font: { size: 10 }
-            }
-          },
-          x: {
-            ticks: { 
-              color: '#9CA3AF', 
-              font: { size: 9 }
-            },
-            grid: { display: false }
-          }
-        }
-      }
-    });
-  }
-};
 
 const MiniInsightsCard = () => {
   const [painHistory, setPainHistory] = useState([]);
-  const [showChart, setShowChart] = useState(false);
-  const [viewMode, setViewMode] = useState('today'); // DEFAULT TO TODAY
+  const [viewMode, setViewMode] = useState<'today' | 'week'>('today');
   const [isCompact, setIsCompact] = useState(false);
 
   // SIMPLIFIED scroll behavior - no sticky positioning
@@ -690,22 +285,7 @@ const MiniInsightsCard = () => {
   const loadPainData = () => {
     const storedData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
     setPainHistory(storedData);
-    
-    if (storedData.length > 0) {
-      setShowChart(true);
-    }
   };
-
-  // Debounced chart update to prevent flickering
-  useEffect(() => {
-    if (painHistory.length > 0 && showChart) {
-      const timeoutId = setTimeout(() => {
-        updateChart(painHistory, viewMode);
-      }, 150);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [painHistory, viewMode]);
 
   useEffect(() => {
     loadPainData();
@@ -727,15 +307,15 @@ const MiniInsightsCard = () => {
     
     if (viewMode === 'today') {
       const today = new Date().toISOString().split('T')[0];
-      relevantEntries = painHistory.filter(e => e.date === today);
+      relevantEntries = painHistory.filter((e: any) => e.date === today);
     } else {
       relevantEntries = painHistory.slice(-7);
     }
     
-    const painLevels = relevantEntries.filter(e => e.painLevel && e.painLevel > 0).map(e => e.painLevel);
+    const painLevels = relevantEntries.filter((e: any) => e.painLevel && e.painLevel > 0).map((e: any) => e.painLevel);
     const avgPain = painLevels.length > 0 ? painLevels.reduce((sum, p) => sum + p, 0) / painLevels.length : 0;
     const totalEpisodes = painLevels.length;
-    const allTriggers = relevantEntries.flatMap(e => e.triggers || []);
+    const allTriggers = relevantEntries.flatMap((e: any) => e.triggers || []);
     const uniqueTriggers = [...new Set(allTriggers)].length;
     
     return {
@@ -798,14 +378,16 @@ const MiniInsightsCard = () => {
         </div>
       </div>
       
-      {showChart && (
-        <div className="mini-chart-container">
-          <canvas id="painTrendChart" width="280" height={isCompact ? "60" : "80"}></canvas>
-          <p className="chart-description">
-            {viewMode === 'today' ? 'Today\'s pain level' : 'Last 7 days'}
-          </p>
-        </div>
-      )}
+      <div className="mini-chart-container">
+        <PainChart 
+          painData={painHistory} 
+          viewMode={viewMode} 
+          isCompact={isCompact}
+        />
+        <p className="chart-description">
+          {viewMode === 'today' ? 'Today\'s pain level' : 'Last 7 days'}
+        </p>
+      </div>
       
       <div className="stats-row">
         <div className="stat-item">
