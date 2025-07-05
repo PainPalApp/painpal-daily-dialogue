@@ -264,14 +264,12 @@ const generateSmartResponse = (userMessage: string, conversationHistory: string[
   return contextualDefaults[Math.floor(Math.random() * contextualDefaults.length)];
 };
 
-const createChart = (painData: any[], viewMode: string) => {
+const updateOrCreateChart = (painData: any[], viewMode: string) => {
   const canvas = document.getElementById('painTrendChart') as HTMLCanvasElement;
   if (!canvas || !window.Chart) {
     console.log('Chart canvas not found or Chart.js not loaded');
     return;
   }
-  
-  const ctx = canvas.getContext('2d');
   
   let chartData = [];
   
@@ -280,7 +278,6 @@ const createChart = (painData: any[], viewMode: string) => {
     const todayEntries = painData.filter(entry => entry.date === today);
     
     if (todayEntries.length === 0) {
-      // Show empty timeline
       chartData = [
         { label: '6AM', pain: null, time: 6 },
         { label: '12PM', pain: null, time: 12 },
@@ -288,7 +285,6 @@ const createChart = (painData: any[], viewMode: string) => {
         { label: 'Now', pain: null, time: new Date().getHours() }
       ];
     } else {
-      // Create timeline with actual data points
       chartData = todayEntries.map((entry) => {
         const entryTime = new Date(entry.timestamp);
         return {
@@ -302,7 +298,6 @@ const createChart = (painData: any[], viewMode: string) => {
         };
       });
       
-      // Add current time marker if no recent entry
       const now = new Date();
       const lastEntry = chartData[chartData.length - 1];
       if (!lastEntry || now.getTime() - new Date(todayEntries[todayEntries.length - 1].timestamp).getTime() > 30 * 60 * 1000) {
@@ -314,9 +309,7 @@ const createChart = (painData: any[], viewMode: string) => {
         });
       }
     }
-    
   } else {
-    // Week view - keep existing donut/line chart logic
     chartData = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
@@ -331,20 +324,36 @@ const createChart = (painData: any[], viewMode: string) => {
     }
   }
   
-  console.log('Chart data:', chartData);
+  const isToday = viewMode === 'today';
+  const isWeekSingleEntry = viewMode === 'week' && chartData.filter(d => d.pain !== null).length === 1;
   
-  // Destroy existing chart
+  // Update existing chart data instead of destroying
+  if (window.painChart && window.painChart.config.type === (isWeekSingleEntry ? 'doughnut' : 'line')) {
+    window.painChart.data.labels = isWeekSingleEntry ? 
+      ['Pain Level', 'Pain-Free'] : 
+      chartData.map(d => d.label);
+    
+    if (isWeekSingleEntry) {
+      const painValue = chartData.find(d => d.pain !== null)?.pain || 0;
+      window.painChart.data.datasets[0].data = [painValue, 10 - painValue];
+    } else {
+      window.painChart.data.datasets[0].data = chartData.map(d => d.pain);
+    }
+    
+    window.painChart.update('active'); // Smooth animation
+    return;
+  }
+  
+  // Destroy and recreate only if chart type needs to change
   if (window.painChart) {
     window.painChart.destroy();
   }
   
-  const isToday = viewMode === 'today';
-  const isWeekSingleEntry = viewMode === 'week' && chartData.filter(d => d.pain !== null).length === 1;
+  const ctx = canvas.getContext('2d');
   
   window.painChart = new window.Chart(ctx, {
-    type: isWeekSingleEntry ? 'doughnut' : (isToday ? 'line' : 'line'),
+    type: isWeekSingleEntry ? 'doughnut' : 'line',
     data: isWeekSingleEntry ? {
-      // Doughnut chart for single week entry
       labels: ['Pain Level', 'Pain-Free'],
       datasets: [{
         data: [chartData.find(d => d.pain !== null)?.pain || 0, 10 - (chartData.find(d => d.pain !== null)?.pain || 0)],
@@ -352,7 +361,6 @@ const createChart = (painData: any[], viewMode: string) => {
         borderWidth: 0
       }]
     } : {
-      // Line chart for both today and week
       labels: chartData.map(d => d.label),
       datasets: [{
         data: chartData.map(d => d.pain),
@@ -374,6 +382,10 @@ const createChart = (painData: any[], viewMode: string) => {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: {
+        duration: 300,
+        easing: 'easeInOutQuart'
+      },
       plugins: {
         legend: { 
           display: isWeekSingleEntry,
@@ -467,7 +479,7 @@ const MiniInsightsCard = () => {
   useEffect(() => {
     if (painHistory.length > 0 && showChart) {
       const timeoutId = setTimeout(() => {
-        createChart(painHistory, viewMode);
+        updateOrCreateChart(painHistory, viewMode);
       }, 150);
       
       return () => clearTimeout(timeoutId);
