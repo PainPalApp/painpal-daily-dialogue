@@ -342,7 +342,7 @@ const createChart = (painData: any[], viewMode: string) => {
   const isWeekSingleEntry = viewMode === 'week' && chartData.filter(d => d.pain !== null).length === 1;
   
   window.painChart = new window.Chart(ctx, {
-    type: isWeekSingleEntry ? 'doughnut' : (isToday ? 'scatter' : 'line'),
+    type: isWeekSingleEntry ? 'doughnut' : (isToday ? 'line' : 'line'),
     data: isWeekSingleEntry ? {
       // Doughnut chart for single week entry
       labels: ['Pain Level', 'Pain-Free'],
@@ -352,27 +352,18 @@ const createChart = (painData: any[], viewMode: string) => {
         borderWidth: 0
       }]
     } : {
-      // Timeline/scatter for today, line for week
+      // Line chart for both today and week
       labels: chartData.map(d => d.label),
       datasets: [{
-        data: isToday ? chartData.map(d => ({ x: d.time, y: d.pain || 0 })) : chartData.map(d => d.pain),
+        data: chartData.map(d => d.pain),
         borderColor: '#3B82F6',
-        backgroundColor: (context) => {
-          if (isToday) {
-            const point = chartData[context.dataIndex];
-            return point?.pain ? '#3B82F6' : 'rgba(156, 163, 175, 0.5)';
-          }
-          return 'rgba(59, 130, 246, 0.1)';
-        },
-        borderWidth: isToday ? 0 : 2,
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        borderWidth: 2,
         fill: !isToday,
         tension: 0.3,
         pointBackgroundColor: (context) => {
-          if (isToday) {
-            const point = chartData[context.dataIndex];
-            return point?.pain ? '#3B82F6' : '#9CA3AF';
-          }
-          return '#3B82F6';
+          const point = chartData[context.dataIndex];
+          return point?.pain ? '#3B82F6' : '#9CA3AF';
         },
         pointBorderColor: '#1E40AF',
         pointRadius: isToday ? 8 : 4,
@@ -397,10 +388,6 @@ const createChart = (painData: any[], viewMode: string) => {
                   ? `Pain: ${context.raw}/10` 
                   : `Pain-Free: ${context.raw}/10`;
               }
-              if (isToday) {
-                const point = chartData[context.dataIndex];
-                return point?.pain ? `Pain: ${point.pain}/10` : 'Current time';
-              }
               return context.raw ? `Pain: ${context.raw}/10` : 'No pain recorded';
             }
           }
@@ -423,35 +410,19 @@ const createChart = (painData: any[], viewMode: string) => {
             font: { size: 10 }
           }
         },
-        x: isToday ? {
-          type: 'linear',
-          min: 0,
-          max: 24,
+        x: {
           ticks: { 
             color: '#9CA3AF', 
             font: { size: 9 },
-            callback: function(value) {
-              const hour = Math.floor(value);
-              return hour === 0 ? '12AM' : 
-                     hour === 12 ? '12PM' : 
-                     hour < 12 ? `${hour}AM` : `${hour - 12}PM`;
-            },
-            stepSize: 6
+            maxRotation: isToday ? 45 : 0
           },
-          grid: { color: 'rgba(156, 163, 175, 0.1)' },
+          grid: { display: false },
           title: {
-            display: true,
+            display: isToday,
             text: 'Time of Day',
             color: '#9CA3AF',
             font: { size: 10 }
           }
-        } : {
-          ticks: { 
-            color: '#9CA3AF', 
-            font: { size: 9 },
-            maxRotation: 0
-          },
-          grid: { display: false }
         }
       }
     }
