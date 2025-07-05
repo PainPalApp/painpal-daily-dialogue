@@ -314,3 +314,66 @@ All colors MUST be HSL.
     font-size: 20px;
   }
 }
+
+/* Timeline Chart Styles */
+.chart-container {
+  position: relative;
+  height: 300px;
+  margin: 20px 0;
+}
+
+.no-data {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+  background: hsl(var(--muted));
+  border-radius: 8px;
+  border: 2px dashed hsl(var(--border));
+}
+
+/* Timeline Summary */
+.timeline-summary {
+  margin-top: 15px;
+  padding: 12px;
+  background: hsl(var(--muted));
+  border-radius: 8px;
+  border-left: 4px solid hsl(var(--destructive));
+}
+
+.timeline-summary h4 {
+  margin: 0 0 8px 0;
+  color: hsl(var(--foreground));
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.timeline-summary p {
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+}
+
+/* Current status indicator */
+.current-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--destructive));
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
