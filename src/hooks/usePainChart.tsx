@@ -6,28 +6,28 @@ import {
   TimeScale,
   PointElement,
   LineElement,
+  LineController,
   Title,
   Tooltip,
   Legend,
   ArcElement,
-  Filler,
-  ScatterController
+  Filler
 } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 
-// Register all Chart.js components including ScatterController
+// Register all Chart.js components including LineController
 ChartJS.register(
   CategoryScale,
   LinearScale,
   TimeScale,
   PointElement,
   LineElement,
+  LineController,
   Title,
   Tooltip,
   Legend,
   ArcElement,
-  Filler,
-  ScatterController
+  Filler
 );
 
 interface PainEntry {
