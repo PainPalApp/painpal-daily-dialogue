@@ -21,7 +21,7 @@ export const InsightsSection = () => {
   const [painData, setPainData] = useState<PainEntry[]>([]);
 
   useEffect(() => {
-    const savedData = localStorage.getItem('painTracker');
+    const savedData = localStorage.getItem('painTrackingData');
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
@@ -31,6 +31,22 @@ export const InsightsSection = () => {
         setPainData([]);
       }
     }
+
+    // Listen for pain data updates
+    const handlePainDataUpdate = () => {
+      const updatedData = localStorage.getItem('painTrackingData');
+      if (updatedData) {
+        try {
+          const parsed = JSON.parse(updatedData);
+          setPainData(parsed || []);
+        } catch (error) {
+          console.error('Error parsing updated pain data:', error);
+        }
+      }
+    };
+
+    window.addEventListener('painDataUpdated', handlePainDataUpdate);
+    return () => window.removeEventListener('painDataUpdated', handlePainDataUpdate);
   }, []);
 
   // Group entries by date
