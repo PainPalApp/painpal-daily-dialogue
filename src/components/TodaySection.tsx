@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send } from "lucide-react";
+import { Send, Clock } from "lucide-react";
 import { PainChart } from "@/components/PainChart";
 
 interface Message {
@@ -260,7 +260,6 @@ const generateSmartResponse = (userMessage: string, conversationHistory: string[
 
 const MiniInsightsCard = () => {
   const [painHistory, setPainHistory] = useState([]);
-  const [viewMode, setViewMode] = useState<'today' | 'week'>('today');
   const [isCompact, setIsCompact] = useState(false);
 
   // SIMPLIFIED scroll behavior - no sticky positioning
@@ -299,119 +298,94 @@ const MiniInsightsCard = () => {
     return () => window.removeEventListener('painDataUpdated', handleDataUpdate);
   }, []);
 
-  // IMPROVED stats calculation for TODAY vs WEEK
-  const getStatsForPeriod = () => {
-    if (painHistory.length === 0) return { avg: 0, episodes: 0, triggers: 0 };
-    
-    let relevantEntries;
-    
-    if (viewMode === 'today') {
-      const today = new Date().toISOString().split('T')[0];
-      relevantEntries = painHistory.filter((e: any) => e.date === today);
-    } else {
-      relevantEntries = painHistory.slice(-7);
-    }
-    
-    const painLevels = relevantEntries.filter((e: any) => e.painLevel && e.painLevel > 0).map((e: any) => e.painLevel);
-    const avgPain = painLevels.length > 0 ? painLevels.reduce((sum, p) => sum + p, 0) / painLevels.length : 0;
-    const totalEpisodes = painLevels.length;
-    const allTriggers = relevantEntries.flatMap((e: any) => e.triggers || []);
-    const uniqueTriggers = [...new Set(allTriggers)].length;
-    
-    return {
-      avg: avgPain,
-      episodes: totalEpisodes,
-      triggers: uniqueTriggers
-    };
+  // Get today's data
+  const getTodayData = () => {
+    const today = new Date().toISOString().split('T')[0];
+    return painHistory.filter((e: any) => e.date === today);
   };
 
-  const stats = getStatsForPeriod();
-
+  const todayEntries = getTodayData();
+  const painLevels = todayEntries.filter((e: any) => e.painLevel && e.painLevel > 0).map((e: any) => e.painLevel);
+  const currentPain = painLevels.length > 0 ? painLevels[painLevels.length - 1] : 0;
+  const firstPain = painLevels.length > 0 ? painLevels[0] : 0;
+  const earliestEntry = todayEntries.length > 0 ? todayEntries[0] : null;
+  
   // No data state
-  if (painHistory.length === 0) {
+  if (painHistory.length === 0 || todayEntries.length === 0) {
     return (
-      <div className="mini-insights-card">
-        <div className="insights-header">
-          <h3 className="insights-title">🔍 Start Tracking to See Insights</h3>
+      <div className="bg-slate-800 rounded-lg p-4 mb-6 mx-4 sm:mx-6 lg:mx-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-white">Today's Pain</h3>
+          <button className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md">
+            Start Tracking
+          </button>
         </div>
-        <div className="no-data-content">
-          <p className="no-data-text">Once you track a few pain episodes, you'll see patterns and trends here.</p>
-          <div className="sample-stats">
-            <div className="stat-preview">
-              <span className="stat-number-preview">--</span>
-              <span className="stat-label">Avg Pain</span>
-            </div>
-            <div className="stat-preview">
-              <span className="stat-number-preview">--</span>
-              <span className="stat-label">Episodes</span>
-            </div>
-            <div className="stat-preview">
-              <span className="stat-number-preview">--</span>
-              <span className="stat-label">Triggers</span>
-            </div>
-          </div>
+        <div className="text-slate-400 text-sm">
+          No pain data tracked today. Start a conversation to begin tracking.
         </div>
       </div>
     );
   }
 
+  // Create progress bar data
+  const progressData = painLevels.map((level, index) => ({
+    level,
+    position: (index / Math.max(painLevels.length - 1, 1)) * 100
+  }));
+
   return (
-    <div className={`mini-insights-card ${isCompact ? 'compact' : ''}`}>
-      <div className="insights-header">
-        <h3 className="insights-title">
-          📊 Your Recent Pain Tracking
-        </h3>
+    <div className="bg-slate-800 rounded-lg p-4 mb-6 mx-4 sm:mx-6 lg:mx-8">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-white">Today's Pain</h3>
+        <div className="flex items-center gap-3">
+          <button className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md">
+            Stop Tracking
+          </button>
+          <span className="text-2xl font-bold text-white">{currentPain}/10</span>
+        </div>
+      </div>
+      
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-sm">
+          <Clock className="h-4 w-4 text-slate-400" />
+          <span className="text-white">{painLevels.length} pain {painLevels.length === 1 ? 'entry' : 'entries'} today</span>
+        </div>
         
-        <div className="view-toggle">
-          <button 
-            className={`toggle-btn ${viewMode === 'today' ? 'active' : ''}`}
-            onClick={() => setViewMode('today')}
-          >
-            Today
-          </button>
-          <button 
-            className={`toggle-btn ${viewMode === 'week' ? 'active' : ''}`}
-            onClick={() => setViewMode('week')}
-          >
-            Week
-          </button>
+        {earliestEntry && (
+          <div className="flex items-center gap-2 text-sm">
+            <Clock className="h-4 w-4 text-yellow-500" />
+            <span className="text-slate-300">
+              Tracking since {new Date(earliestEntry.timestamp).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </span>
+          </div>
+        )}
+        
+        {painLevels.length > 1 && (
+          <div className="text-sm text-slate-300">
+            Pain levels: {firstPain} → {currentPain}
+          </div>
+        )}
+        
+        {/* Progress Bar */}
+        <div className="relative">
+          <div className="h-2 bg-gradient-to-r from-green-500 via-yellow-500 via-orange-500 to-red-500 rounded-full opacity-30"></div>
+          <div className="absolute top-0 h-2 rounded-full overflow-hidden">
+            {progressData.map((point, index) => (
+              <div
+                key={index}
+                className="absolute w-3 h-3 bg-white rounded-full border-2 border-slate-800 transform -translate-y-0.5"
+                style={{ 
+                  left: `${point.position}%`,
+                  transform: 'translateX(-50%) translateY(-25%)'
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
-      
-      <div className="mini-chart-container">
-        <PainChart 
-          painData={painHistory} 
-          viewMode={viewMode} 
-          isCompact={isCompact}
-        />
-        <p className="chart-description">
-          {viewMode === 'today' ? 'Today\'s pain level' : 'Last 7 days'}
-        </p>
-      </div>
-      
-      <div className="stats-row">
-        <div className="stat-item">
-          <span className="stat-number">{stats.avg > 0 ? stats.avg.toFixed(1) : '0'}</span>
-          <span className="stat-label">Avg Pain</span>
-        </div>
-        <div className="stat-item">
-          <span className="stat-number">{stats.episodes}</span>
-          <span className="stat-label">Episodes</span>
-        </div>
-        <div className="stat-item">
-          <span className="stat-number">{stats.triggers}</span>
-          <span className="stat-label">Triggers</span>
-        </div>
-      </div>
-      
-      {!isCompact && (
-        <button 
-          className="view-insights-btn"
-          onClick={() => {/* Navigate to Insights tab */}}
-        >
-          View Full Insights →
-        </button>
-      )}
     </div>
   );
 };
