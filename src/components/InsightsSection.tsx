@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, MapPin, Pill, FileText, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface PainEntry {
   id: number;
@@ -19,6 +25,9 @@ interface PainEntry {
 
 export const InsightsSection = () => {
   const [painData, setPainData] = useState<PainEntry[]>([]);
+  const [editingEntry, setEditingEntry] = useState<PainEntry | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const savedData = localStorage.getItem('painTrackingData');
@@ -98,6 +107,51 @@ export const InsightsSection = () => {
     return 'bg-red-500';
   };
 
+  const handleEditEntry = (entry: PainEntry) => {
+    setEditingEntry({ ...entry });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveEntry = () => {
+    if (!editingEntry) return;
+
+    const updatedData = painData.map(entry => 
+      entry.id === editingEntry.id ? editingEntry : entry
+    );
+
+    localStorage.setItem('painTrackingData', JSON.stringify(updatedData));
+    setPainData(updatedData);
+    setIsEditDialogOpen(false);
+    setEditingEntry(null);
+
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('painDataUpdated'));
+
+    toast({
+      title: "Entry Updated",
+      description: "Your pain entry has been successfully updated.",
+    });
+  };
+
+  const handleEditInputChange = (field: keyof PainEntry, value: any) => {
+    if (!editingEntry) return;
+    setEditingEntry(prev => prev ? { ...prev, [field]: value } : null);
+  };
+
+  const handleAddArrayItem = (field: 'location' | 'triggers' | 'symptoms', value: string) => {
+    if (!editingEntry || !value.trim()) return;
+    const currentArray = editingEntry[field] as string[];
+    if (!currentArray.includes(value.trim())) {
+      handleEditInputChange(field, [...currentArray, value.trim()]);
+    }
+  };
+
+  const handleRemoveArrayItem = (field: 'location' | 'triggers' | 'symptoms', index: number) => {
+    if (!editingEntry) return;
+    const currentArray = editingEntry[field] as string[];
+    handleEditInputChange(field, currentArray.filter((_, i) => i !== index));
+  };
+
   if (painData.length === 0) {
     return (
       <div className="flex-1 bg-background p-6">
@@ -175,6 +229,14 @@ export const InsightsSection = () => {
                                   </Badge>
                                 )}
                               </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditEntry(entry)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
                             </div>
                             
                             {entry.location && entry.location.length > 0 && (
@@ -231,6 +293,144 @@ export const InsightsSection = () => {
           })}
         </div>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Pain Entry</DialogTitle>
+          </DialogHeader>
+          
+          {editingEntry && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="painLevel">Pain Level (0-10)</Label>
+                <Input
+                  id="painLevel"
+                  type="number"
+                  min="0"
+                  max="10"
+                  value={editingEntry.painLevel || ''}
+                  onChange={(e) => handleEditInputChange('painLevel', e.target.value ? parseInt(e.target.value) : null)}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={editingEntry.notes}
+                  onChange={(e) => handleEditInputChange('notes', e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <Label>Pain Locations</Label>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {editingEntry.location.map((loc, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {loc}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 ml-1"
+                        onClick={() => handleRemoveArrayItem('location', index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add location..."
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddArrayItem('location', e.currentTarget.value);
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Triggers</Label>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {editingEntry.triggers.map((trigger, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {trigger}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 ml-1"
+                        onClick={() => handleRemoveArrayItem('triggers', index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add trigger..."
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddArrayItem('triggers', e.currentTarget.value);
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Symptoms</Label>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {editingEntry.symptoms.map((symptom, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {symptom}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 ml-1"
+                        onClick={() => handleRemoveArrayItem('symptoms', index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add symptom..."
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddArrayItem('symptoms', e.currentTarget.value);
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveEntry}>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
