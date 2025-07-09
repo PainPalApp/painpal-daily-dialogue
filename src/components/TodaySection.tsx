@@ -396,6 +396,7 @@ export function TodaySection() {
     }
   ]);
   const [inputValue, setInputValue] = useState('');
+  const [painData, setPainData] = useState([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -405,6 +406,23 @@ export function TodaySection() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Load initial pain data and listen for updates
+  useEffect(() => {
+    const loadPainData = () => {
+      const storedData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
+      setPainData(storedData);
+    };
+
+    loadPainData();
+    
+    const handleDataUpdate = () => {
+      loadPainData();
+    };
+    
+    window.addEventListener('painDataUpdated', handleDataUpdate);
+    return () => window.removeEventListener('painDataUpdated', handleDataUpdate);
+  }, []);
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
@@ -476,6 +494,18 @@ export function TodaySection() {
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
         {/* Mini Insights Card */}
         <MiniInsightsCard />
+        
+        {/* Daily Pain Chart */}
+        <div className="px-4 sm:px-6 lg:px-8 mb-6">
+          <div className="bg-card rounded-lg border p-4">
+            <h3 className="text-lg font-semibold mb-4">Today's Pain Levels</h3>
+            <PainChart 
+              painData={painData}
+              viewMode="today"
+              isCompact={false}
+            />
+          </div>
+        </div>
         
         {/* Pain Entry Editor */}
         <div className="px-4 sm:px-6 lg:px-8 mb-6">
