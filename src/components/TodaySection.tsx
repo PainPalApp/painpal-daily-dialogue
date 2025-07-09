@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Clock } from "lucide-react";
+import { Send, Clock, Edit } from "lucide-react";
 import { PainChart } from "@/components/PainChart";
+import { PainEntryEditor } from "@/components/PainEntryEditor";
 
 interface Message {
   id: string;
@@ -25,26 +26,13 @@ const createPainEntry = (data: any = {}) => ({
   status: 'active'
 });
 
-// Save pain data to localStorage
+// Save pain data to localStorage - Always create new entries for pain level changes
 const savePainData = (extractedData: any) => {
   const existingData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
-  const today = new Date().toISOString().split('T')[0];
   
-  // Check if entry for today exists
-  const todayIndex = existingData.findIndex((entry: any) => entry.date === today);
-  
-  if (todayIndex >= 0) {
-    // Update today's entry with new information
-    existingData[todayIndex] = { 
-      ...existingData[todayIndex], 
-      ...extractedData,
-      timestamp: new Date().toISOString() // Update timestamp
-    };
-  } else {
-    // Create new entry for today
-    const newEntry = createPainEntry(extractedData);
-    existingData.push(newEntry);
-  }
+  // Always create a new entry for each pain update to track multiple levels per day
+  const newEntry = createPainEntry(extractedData);
+  existingData.push(newEntry);
   
   localStorage.setItem('painTrackingData', JSON.stringify(existingData));
   
@@ -298,10 +286,12 @@ const MiniInsightsCard = () => {
     return () => window.removeEventListener('painDataUpdated', handleDataUpdate);
   }, []);
 
-  // Get today's data
+  // Get today's data - sorted by timestamp to show progression
   const getTodayData = () => {
     const today = new Date().toISOString().split('T')[0];
-    return painHistory.filter((e: any) => e.date === today);
+    return painHistory
+      .filter((e: any) => e.date === today)
+      .sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
   };
 
   const todayEntries = getTodayData();
@@ -487,6 +477,16 @@ export function TodaySection() {
         {/* Mini Insights Card */}
         <MiniInsightsCard />
         
+        {/* Pain Entry Editor */}
+        <div className="px-4 sm:px-6 lg:px-8 mb-6">
+          <PainEntryEditor 
+            entries={JSON.parse(localStorage.getItem('painTrackingData') || '[]')} 
+            onUpdate={(entries) => {
+              // Update will be handled by the component itself
+            }} 
+          />
+        </div>
+
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="space-y-4">
