@@ -369,19 +369,29 @@ const MiniInsightsCard = () => {
           <div className="h-2 bg-gradient-to-r from-green-500 via-yellow-500 via-orange-500 to-red-500 rounded-full opacity-30"></div>
           
           {/* Current pain level indicator */}
-          <div className="absolute top-0 h-2 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-green-500 via-yellow-500 via-orange-500 to-red-500 rounded-full"
-              style={{ width: `${(currentPain / 10) * 100}%` }}
-            />
-          </div>
+          {currentPain > 0 && (
+            <div className="absolute top-0 h-2 rounded-full overflow-hidden w-full">
+              <div 
+                className="h-full bg-gradient-to-r from-green-500 via-yellow-500 via-orange-500 to-red-500 rounded-full transition-all duration-500"
+                style={{ width: `${(currentPain / 10) * 100}%` }}
+              />
+              {/* Current pain level marker */}
+              <div
+                className="absolute w-4 h-4 bg-white rounded-full border-3 border-slate-800 shadow-lg transform -translate-y-1"
+                style={{ 
+                  left: `${(currentPain / 10) * 100}%`,
+                  transform: 'translateX(-50%) translateY(-50%)'
+                }}
+              />
+            </div>
+          )}
           
-          {/* Pain level markers */}
+          {/* Historical pain level markers */}
           <div className="absolute top-0 h-2 rounded-full overflow-hidden">
             {progressData.map((point, index) => (
               <div
                 key={index}
-                className="absolute w-3 h-3 bg-white rounded-full border-2 border-slate-800 transform -translate-y-0.5"
+                className="absolute w-2 h-2 bg-white rounded-full border border-slate-600 transform -translate-y-0.5 opacity-60"
                 style={{ 
                   left: `${point.position}%`,
                   transform: 'translateX(-50%) translateY(-25%)'
