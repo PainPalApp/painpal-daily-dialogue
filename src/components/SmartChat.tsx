@@ -56,14 +56,15 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
     scrollToBottom();
   }, [messages]);
 
-  // Initialize speech recognition with improved settings
+  // Initialize speech recognition once
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
+      recognitionRef.current.continuous = false; // Set to false to prevent session conflicts
       recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = 'en-US';
+      recognitionRef.current.maxAlternatives = 1;
 
       recognitionRef.current.onresult = (event) => {
         let finalTranscript = '';
@@ -74,45 +75,44 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
           }
         }
         
-        if (finalTranscript) {
-          setInputValue(prev => prev + finalTranscript);
+        if (finalTranscript.trim()) {
+          setInputValue(prev => prev + finalTranscript.trim() + ' ');
         }
       };
 
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
+        setIsListening(false);
         
-        if (event.error === 'no-speech') {
-          // Automatically restart on no-speech error
-          setTimeout(() => {
-            if (isListening && recognitionRef.current) {
-              recognitionRef.current.start();
-            }
-          }, 100);
-        } else {
-          setIsListening(false);
-          toast({
-            title: "Voice input error",
-            description: `Could not process voice input: ${event.error}. Please try again.`,
-            variant: "destructive"
-          });
+        if (event.error === 'aborted' || event.error === 'no-speech') {
+          // Don't show error for aborted or no-speech, just stop
+          return;
         }
+        
+        toast({
+          title: "Voice input error",
+          description: `Could not process voice input: ${event.error}. Please try again.`,
+          variant: "destructive"
+        });
+      };
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
       };
 
       recognitionRef.current.onend = () => {
-        if (isListening) {
-          // Restart if we're still supposed to be listening
-          setTimeout(() => {
-            if (recognitionRef.current && isListening) {
-              recognitionRef.current.start();
-            }
-          }, 100);
-        } else {
-          setIsListening(false);
-        }
+        setIsListening(false);
       };
     }
-  }, [toast, isListening]);
+
+    // Cleanup function
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      }
+    };
+  }, [toast]);
 
   const generateSmartSuggestions = (userMessage: string, conversationHistory: Message[]): string[] => {
     // Use pattern engine for personalized suggestions
