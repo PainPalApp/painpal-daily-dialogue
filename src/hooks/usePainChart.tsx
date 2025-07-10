@@ -50,8 +50,12 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week') 
 
   const getTodayData = useCallback((data: PainEntry[]) => {
     const today = new Date().toISOString().split('T')[0];
-    return data.filter(entry => entry.date === today)
-      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    return data.filter(entry => 
+      entry.date === today && 
+      entry.painLevel !== null && 
+      entry.painLevel !== undefined &&
+      entry.painLevel > 0
+    ).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
   }, []);
 
   const getWeekData = useCallback((data: PainEntry[]) => {
@@ -109,13 +113,13 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week') 
           datasets: [{
             label: 'Pain Level',
             data: timelineData,
-            borderColor: 'hsl(var(--destructive))',
-            backgroundColor: 'hsl(var(--destructive) / 0.1)',
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
             borderWidth: 3,
             pointRadius: 6,
             pointHoverRadius: 8,
-            pointBackgroundColor: 'hsl(var(--destructive))',
-            pointBorderColor: 'hsl(var(--background))',
+            pointBackgroundColor: '#ef4444',
+            pointBorderColor: '#ffffff',
             pointBorderWidth: 2,
             fill: true,
             tension: 0.4
@@ -158,9 +162,10 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week') 
               title: {
                 display: true,
                 text: 'Time Today',
-                color: 'hsl(var(--muted-foreground))'
+                color: '#94a3b8'
               },
-              ticks: { color: 'hsl(var(--muted-foreground))' }
+              ticks: { color: '#94a3b8' },
+              grid: { color: '#334155' }
             },
             y: {
               min: 0,
@@ -168,12 +173,13 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week') 
               title: {
                 display: true,
                 text: 'Pain Level',
-                color: 'hsl(var(--muted-foreground))'
+                color: '#94a3b8'
               },
               ticks: { 
                 stepSize: 1,
-                color: 'hsl(var(--muted-foreground))'
-              }
+                color: '#94a3b8'
+              },
+              grid: { color: '#334155' }
             }
           }
         }

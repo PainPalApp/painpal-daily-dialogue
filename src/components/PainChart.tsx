@@ -31,10 +31,11 @@ export const PainChart = ({ painData, viewMode, isCompact = false }: PainChartPr
   }
 
   return (
-    <div className="relative" style={{ height: isCompact ? '80px' : '120px' }}>
+    <div className="relative" style={{ height: isCompact ? '80px' : '200px' }}>
       <canvas 
         ref={canvasRef}
         className="w-full h-full"
+        style={{ display: 'block' }}
       />
       {!isChartReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/80">
