@@ -240,7 +240,6 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week') 
 
   const updateChart = useCallback(() => {
     if (!chartRef.current || !isChartReady) {
-      createChart();
       return;
     }
 
@@ -267,7 +266,7 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week') 
       console.warn('Chart update failed, recreating:', error);
       createChart();
     }
-  }, [painData, viewMode, isChartReady, createChart, getTodayData, getWeekData]);
+  }, [painData, viewMode, isChartReady, getTodayData, getWeekData]);
 
   useEffect(() => {
     createChart();
@@ -282,13 +281,13 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week') 
         chartRef.current = null;
       }
     };
-  }, [viewMode]);
+  }, [createChart]);
 
   useEffect(() => {
     if (isChartReady) {
       updateChart();
     }
-  }, [painData, updateChart, isChartReady]);
+  }, [painData, isChartReady, updateChart]);
 
   return { canvasRef, isChartReady };
 };

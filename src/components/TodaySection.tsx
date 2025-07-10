@@ -43,9 +43,13 @@ const savePainData = (extractedData: any) => {
   return existingData;
 };
 
-// Extract pain data from chat messages
+// Extract pain data from chat messages - focus on latest message
 const extractPainDataFromMessages = (messages: Message[]) => {
   const userMessages = messages.filter(msg => msg.sender === 'user');
+  if (userMessages.length === 0) return null;
+  
+  // Focus on the most recent user message for pain level
+  const latestMessage = userMessages[userMessages.length - 1].content?.toLowerCase() || '';
   const allText = userMessages.map(msg => msg.content || '').join(' ').toLowerCase();
   
   const painData = {
@@ -53,12 +57,12 @@ const extractPainDataFromMessages = (messages: Message[]) => {
     location: [] as string[],
     triggers: [] as string[],
     medications: [] as any[],
-    notes: userMessages.map(msg => msg.content || '').join('; '),
+    notes: userMessages[userMessages.length - 1].content || '',
     symptoms: [] as string[]
   };
   
-  // Extract pain level (look for numbers 0-10)
-  const painMatch = allText.match(/\b([0-9]|10)\b/);
+  // Extract pain level from latest message (look for numbers 0-10)
+  const painMatch = latestMessage.match(/\b([0-9]|10)\b/);
   if (painMatch) {
     painData.painLevel = parseInt(painMatch[0]);
   }
@@ -454,26 +458,29 @@ export function TodaySection() {
       // Extract and save pain data if relevant
       const extractedData = extractPainDataFromMessages(finalMessages);
       
-      // Save if we extracted meaningful data
-      if (extractedData.painLevel !== null || 
-          extractedData.triggers.length > 0 || 
-          extractedData.medications.length > 0 ||
-          inputValue.toLowerCase().includes('headache') ||
-          inputValue.toLowerCase().includes('migraine') ||
-          inputValue.toLowerCase().includes('pain')) {
+      // Only save if we have a valid pain level and it's different from the last entry
+      if (extractedData && extractedData.painLevel !== null) {
+        const existingData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
+        const today = new Date().toISOString().split('T')[0];
+        const todayEntries = existingData.filter((entry: any) => entry.date === today);
         
-        const savedData = savePainData(extractedData);
-        console.log('Pain data saved:', extractedData);
+        // Check if this is a new pain level (different from the last entry)
+        const lastPainLevel = todayEntries.length > 0 ? todayEntries[todayEntries.length - 1].painLevel : null;
         
-        // Optional: Show subtle confirmation
-        setTimeout(() => {
-          setMessages(prev => [...prev, {
-            id: (Date.now() + 2).toString(),
-            content: '✅ Data saved to your tracking history',
-            sender: 'ai',
-            timestamp: new Date()
-          }]);
-        }, 1500);
+        if (lastPainLevel !== extractedData.painLevel) {
+          const savedData = savePainData(extractedData);
+          console.log('Pain data saved:', extractedData);
+          
+          // Optional: Show subtle confirmation
+          setTimeout(() => {
+            setMessages(prev => [...prev, {
+              id: (Date.now() + 2).toString(),
+              content: '✅ Pain level tracked',
+              sender: 'ai',
+              timestamp: new Date()
+            }]);
+          }, 1500);
+        }
       }
     }, 1000);
   };
