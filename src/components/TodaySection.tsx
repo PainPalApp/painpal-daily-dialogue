@@ -365,7 +365,18 @@ const MiniInsightsCard = () => {
         
         {/* Progress Bar */}
         <div className="relative">
+          {/* Background gradient */}
           <div className="h-2 bg-gradient-to-r from-green-500 via-yellow-500 via-orange-500 to-red-500 rounded-full opacity-30"></div>
+          
+          {/* Current pain level indicator */}
+          <div className="absolute top-0 h-2 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-green-500 via-yellow-500 via-orange-500 to-red-500 rounded-full"
+              style={{ width: `${(currentPain / 10) * 100}%` }}
+            />
+          </div>
+          
+          {/* Pain level markers */}
           <div className="absolute top-0 h-2 rounded-full overflow-hidden">
             {progressData.map((point, index) => (
               <div
