@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Clock, Edit, BarChart3, TrendingUp } from "lucide-react";
 import { SmartChat } from "@/components/SmartChat";
-import { PainEntryEditor } from "@/components/PainEntryEditor";
+
 
 interface Message {
   id: string;
@@ -398,15 +398,6 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
         {/* Today's Pain Overview Card */}
         <TodaysPainCard onViewInsights={() => handleNavigationRequest('insights')} />
         
-        {/* Pain Entry Editor - Quick Entry */}
-        <div className="px-4 sm:px-6 lg:px-8 mb-6">
-          <PainEntryEditor 
-            entries={JSON.parse(localStorage.getItem('painTrackingData') || '[]')} 
-            onUpdate={(entries) => {
-              // Update will be handled by the component itself
-            }} 
-          />
-        </div>
 
         {/* Smart Chat Interface */}
         <div className="flex-1 flex flex-col mx-4 sm:mx-6 lg:mx-8 mb-6">
@@ -418,6 +409,7 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
             <SmartChat 
               onPainDataExtracted={handlePainDataExtracted}
               onNavigationRequest={handleNavigationRequest}
+              painHistory={painData}
             />
           </div>
         </div>

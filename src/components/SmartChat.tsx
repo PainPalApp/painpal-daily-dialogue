@@ -2,8 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Send, Mic, MicOff, Volume2 } from "lucide-react";
+import { Send, Mic, MicOff, Volume2, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAI, AISetup } from "./AIService";
+import { PatternEngine } from "./PatternEngine";
 
 // Speech Recognition type definitions
 declare global {
@@ -24,9 +26,10 @@ interface Message {
 interface SmartChatProps {
   onPainDataExtracted?: (data: any) => void;
   onNavigationRequest?: (destination: string) => void;
+  painHistory?: any[];
 }
 
-export function SmartChat({ onPainDataExtracted, onNavigationRequest }: SmartChatProps) {
+export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistory = [] }: SmartChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -39,9 +42,11 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest }: SmartCha
   const [inputValue, setInputValue] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showAISetup, setShowAISetup] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
+  const { isConnected, setupAI, generateResponse } = useAI();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -51,106 +56,130 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest }: SmartCha
     scrollToBottom();
   }, [messages]);
 
-  // Initialize speech recognition
+  // Initialize speech recognition with improved settings
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setInputValue(transcript);
-        setIsListening(false);
+        let finalTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        if (finalTranscript) {
+          setInputValue(prev => prev + finalTranscript);
+        }
       };
 
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-        toast({
-          title: "Voice input error",
-          description: "Could not process voice input. Please try again.",
-          variant: "destructive"
-        });
+        
+        if (event.error === 'no-speech') {
+          // Automatically restart on no-speech error
+          setTimeout(() => {
+            if (isListening && recognitionRef.current) {
+              recognitionRef.current.start();
+            }
+          }, 100);
+        } else {
+          setIsListening(false);
+          toast({
+            title: "Voice input error",
+            description: `Could not process voice input: ${event.error}. Please try again.`,
+            variant: "destructive"
+          });
+        }
       };
 
       recognitionRef.current.onend = () => {
-        setIsListening(false);
+        if (isListening) {
+          // Restart if we're still supposed to be listening
+          setTimeout(() => {
+            if (recognitionRef.current && isListening) {
+              recognitionRef.current.start();
+            }
+          }, 100);
+        } else {
+          setIsListening(false);
+        }
       };
     }
-  }, [toast]);
+  }, [toast, isListening]);
 
   const generateSmartSuggestions = (userMessage: string, conversationHistory: Message[]): string[] => {
-    const msg = userMessage.toLowerCase();
-    const recentMessages = conversationHistory.slice(-3).map(m => m.content.toLowerCase()).join(' ');
-    
-    // Base suggestions
-    const suggestions: string[] = [];
-    
-    // Pain level suggestions
-    if (msg.includes('pain') || msg.includes('hurt') || msg.includes('ache')) {
-      suggestions.push('Pain level 7', 'Took ibuprofen', 'Stress trigger');
-    }
-    
-    // Location-based suggestions
-    if (msg.includes('head') || msg.includes('migraine')) {
-      suggestions.push('Temples hurt', 'Light sensitivity', 'Behind eyes');
-    }
-    
-    // Improvement suggestions
-    if (msg.includes('better') || msg.includes('improving')) {
-      suggestions.push('Still improving', 'Pain level 3', 'Medication helped');
-    }
-    
-    // Navigation suggestions
-    if (msg.includes('show') || msg.includes('see') || msg.includes('view')) {
-      suggestions.push('Show my insights', 'View pain chart', 'See patterns');
-    }
-    
-    // Always include some quick actions
-    suggestions.push('Quick log entry', 'Voice note');
-    
-    return suggestions.slice(0, 4); // Limit to 4 suggestions
+    // Use pattern engine for personalized suggestions
+    const contextualMessages = conversationHistory.map(m => m.content);
+    return PatternEngine.generateContextualSuggestions(
+      userMessage, 
+      painHistory, 
+      contextualMessages
+    );
   };
 
   const generateAIResponse = async (userMessage: string): Promise<{ content: string; suggestions: string[] }> => {
     setIsProcessing(true);
-    
-    // Simulate AI processing delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const msg = userMessage.toLowerCase();
     let response = '';
     
-    // Handle navigation requests
-    if (msg.includes('show') && (msg.includes('insight') || msg.includes('chart') || msg.includes('pattern'))) {
-      onNavigationRequest?.('insights');
-      response = "I'll show you your insights page with detailed analytics and patterns.";
-    }
-    // Pain level responses
-    else if (msg.match(/\b([7-9]|10)\b/)) {
-      response = "That's quite severe pain. When did this level start? Have you taken any medication?";
-    }
-    else if (msg.match(/\b([4-6])\b/)) {
-      response = "Moderate pain that's definitely affecting your day. What's triggering it?";
-    }
-    else if (msg.match(/\b([1-3])\b/)) {
-      response = "Glad it's on the milder side. Is this typical for you?";
-    }
-    // Medication responses
-    else if (msg.includes('took') || msg.includes('medication')) {
-      response = "Good to track medication. Is it starting to help reduce the pain?";
-    }
-    // General responses
-    else {
-      const responses = [
-        "I want to help track this properly. Can you tell me more about your pain?",
-        "Every detail helps me understand your patterns better. What else is important?",
-        "Thanks for sharing. How would you describe your current pain level?"
-      ];
-      response = responses[Math.floor(Math.random() * responses.length)];
+    try {
+      if (isConnected) {
+        // Use real AI
+        const conversationMessages = messages.slice(-5).map(msg => ({
+          role: (msg.sender === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+          content: msg.content
+        }));
+        
+        conversationMessages.push({
+          role: 'user',
+          content: userMessage
+        });
+
+        response = await generateResponse(conversationMessages, painHistory);
+      } else {
+        // Fallback to simulated responses
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const msg = userMessage.toLowerCase();
+        
+        // Handle navigation requests
+        if (msg.includes('show') && (msg.includes('insight') || msg.includes('chart') || msg.includes('pattern'))) {
+          onNavigationRequest?.('insights');
+          response = "I'll show you your insights page with detailed analytics and patterns.";
+        }
+        // Pain level responses
+        else if (msg.match(/\b([7-9]|10)\b/)) {
+          response = "That's quite severe pain. When did this level start? Have you taken any medication?";
+        }
+        else if (msg.match(/\b([4-6])\b/)) {
+          response = "Moderate pain that's definitely affecting your day. What's triggering it?";
+        }
+        else if (msg.match(/\b([1-3])\b/)) {
+          response = "Glad it's on the milder side. Is this typical for you?";
+        }
+        // Medication responses
+        else if (msg.includes('took') || msg.includes('medication')) {
+          response = "Good to track medication. Is it starting to help reduce the pain?";
+        }
+        // General responses
+        else {
+          const responses = [
+            "I want to help track this properly. Can you tell me more about your pain?",
+            "Every detail helps me understand your patterns better. What else is important?",
+            "Thanks for sharing. How would you describe your current pain level?"
+          ];
+          response = responses[Math.floor(Math.random() * responses.length)];
+        }
+      }
+    } catch (error) {
+      console.error('AI Response error:', error);
+      response = "I'm having trouble connecting right now. Can you tell me more about how you're feeling?";
     }
     
     const suggestions = generateSmartSuggestions(userMessage, messages);
@@ -254,8 +283,17 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest }: SmartCha
       recognitionRef.current.stop();
       setIsListening(false);
     } else {
-      recognitionRef.current.start();
-      setIsListening(true);
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (error) {
+        console.error('Speech recognition start error:', error);
+        toast({
+          title: "Voice input error", 
+          description: "Could not start voice input. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -272,6 +310,34 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest }: SmartCha
 
   return (
     <div className="flex flex-col h-full">
+      {/* AI Setup Banner */}
+      {!isConnected && (
+        <div className="p-3 bg-primary/10 border-b border-border">
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              <strong>Connect AI for personalized responses</strong>
+              <p className="text-muted-foreground">Get smarter suggestions based on your patterns</p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowAISetup(!showAISetup)}
+            >
+              <Settings className="h-4 w-4 mr-1" />
+              Setup
+            </Button>
+          </div>
+          {showAISetup && (
+            <div className="mt-3">
+              <AISetup onSetup={(apiKey, provider) => {
+                setupAI(apiKey, provider);
+                setShowAISetup(false);
+              }} />
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
