@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Clock, Edit } from "lucide-react";
-import { PainChart } from "@/components/PainChart";
+import { Send, Clock, Edit, BarChart3, TrendingUp } from "lucide-react";
+import { SmartChat } from "@/components/SmartChat";
 import { PainEntryEditor } from "@/components/PainEntryEditor";
 
 interface Message {
@@ -250,28 +250,8 @@ const generateSmartResponse = (userMessage: string, conversationHistory: string[
 };
 
 
-const MiniInsightsCard = () => {
+const TodaysPainCard = ({ onViewInsights }: { onViewInsights: () => void }) => {
   const [painHistory, setPainHistory] = useState([]);
-  const [isCompact, setIsCompact] = useState(false);
-
-  // SIMPLIFIED scroll behavior - no sticky positioning
-  useEffect(() => {
-    let ticking = false;
-    
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const scrolled = window.scrollY > 150;
-          setIsCompact(scrolled);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const loadPainData = () => {
     const storedData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
@@ -282,7 +262,6 @@ const MiniInsightsCard = () => {
     loadPainData();
     
     const handleDataUpdate = () => {
-      console.log('Pain data updated, refreshing insights...');
       loadPainData();
     };
     
@@ -290,7 +269,7 @@ const MiniInsightsCard = () => {
     return () => window.removeEventListener('painDataUpdated', handleDataUpdate);
   }, []);
 
-  // Get today's data - sorted by timestamp to show progression
+  // Get today's data
   const getTodayData = () => {
     const today = new Date().toISOString().split('T')[0];
     return painHistory
@@ -301,54 +280,43 @@ const MiniInsightsCard = () => {
   const todayEntries = getTodayData();
   const painLevels = todayEntries.filter((e: any) => e.painLevel && e.painLevel > 0).map((e: any) => e.painLevel);
   const currentPain = painLevels.length > 0 ? painLevels[painLevels.length - 1] : 0;
-  const firstPain = painLevels.length > 0 ? painLevels[0] : 0;
   const earliestEntry = todayEntries.length > 0 ? todayEntries[0] : null;
   
-  // No data state
-  if (painHistory.length === 0 || todayEntries.length === 0) {
-    return (
-      <div className="bg-slate-800 rounded-lg p-4 mb-6 mx-4 sm:mx-6 lg:mx-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Today's Pain</h3>
-          <button className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md">
-            Start Tracking
-          </button>
-        </div>
-        <div className="text-slate-400 text-sm">
-          No pain data tracked today. Start a conversation to begin tracking.
-        </div>
-      </div>
-    );
-  }
-
-  // Create progress bar data
-  const progressData = painLevels.map((level, index) => ({
-    level,
-    position: (index / Math.max(painLevels.length - 1, 1)) * 100
-  }));
-
   return (
-    <div className="bg-slate-800 rounded-lg p-4 mb-6 mx-4 sm:mx-6 lg:mx-8">
+    <div className="bg-card rounded-lg border p-4 mb-6 mx-4 sm:mx-6 lg:mx-8">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">Today's Pain</h3>
+        <h3 className="text-lg font-semibold text-foreground">Today's Overview</h3>
         <div className="flex items-center gap-3">
-          <button className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md">
-            Stop Tracking
-          </button>
-          <span className="text-2xl font-bold text-white">{currentPain}/10</span>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={onViewInsights}
+            className="text-xs"
+          >
+            <BarChart3 className="h-4 w-4 mr-1" />
+            View Analytics
+          </Button>
+          {currentPain > 0 && (
+            <span className="text-2xl font-bold text-foreground">{currentPain}/10</span>
+          )}
         </div>
       </div>
       
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-sm">
-          <Clock className="h-4 w-4 text-slate-400" />
-          <span className="text-white">{painLevels.length} pain {painLevels.length === 1 ? 'entry' : 'entries'} today</span>
+          <Clock className="h-4 w-4 text-muted-foreground" />
+          <span className="text-foreground">
+            {painLevels.length > 0 
+              ? `${painLevels.length} pain ${painLevels.length === 1 ? 'entry' : 'entries'} today`
+              : 'No pain entries today'
+            }
+          </span>
         </div>
         
         {earliestEntry && (
           <div className="flex items-center gap-2 text-sm">
-            <Clock className="h-4 w-4 text-yellow-500" />
-            <span className="text-slate-300">
+            <Clock className="h-4 w-4 text-primary" />
+            <span className="text-muted-foreground">
               Tracking since {new Date(earliestEntry.timestamp).toLocaleTimeString([], {
                 hour: '2-digit',
                 minute: '2-digit'
@@ -357,82 +325,33 @@ const MiniInsightsCard = () => {
           </div>
         )}
         
-        {painLevels.length > 1 && (
-          <div className="text-sm text-slate-300">
-            Pain levels: {firstPain} → {currentPain}
+        {/* Simplified progress bar for current pain */}
+        {currentPain > 0 && (
+          <div className="relative">
+            <div className="h-2 bg-muted rounded-full"></div>
+            <div 
+              className="absolute top-0 h-2 bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full transition-all duration-500"
+              style={{ width: `${(currentPain / 10) * 100}%` }}
+            />
           </div>
         )}
         
-        {/* Progress Bar */}
-        <div className="relative">
-          {/* Background gradient */}
-          <div className="h-2 bg-gradient-to-r from-green-500 via-yellow-500 via-orange-500 to-red-500 rounded-full opacity-30"></div>
-          
-          {/* Current pain level indicator */}
-          {currentPain > 0 && (
-            <div className="absolute top-0 h-2 rounded-full overflow-hidden w-full">
-              <div 
-                className="h-full bg-gradient-to-r from-green-500 via-yellow-500 via-orange-500 to-red-500 rounded-full transition-all duration-500"
-                style={{ width: `${(currentPain / 10) * 100}%` }}
-              />
-              {/* Current pain level marker */}
-              <div
-                className="absolute w-4 h-4 bg-white rounded-full border-2 border-slate-800 shadow-lg"
-                style={{ 
-                  left: `${(currentPain / 10) * 100}%`,
-                  top: '50%',
-                  transform: 'translateX(-50%) translateY(-50%)',
-                  zIndex: 10
-                }}
-              />
-            </div>
-          )}
-          
-          {/* Historical pain level markers */}
-          <div className="absolute top-0 h-2 rounded-full overflow-hidden">
-            {progressData.map((point, index) => (
-              <div
-                key={index}
-                className="absolute w-2 h-2 bg-white rounded-full border border-slate-600 transform -translate-y-0.5 opacity-60"
-                style={{ 
-                  left: `${point.position}%`,
-                  transform: 'translateX(-50%) translateY(-25%)'
-                }}
-              />
-            ))}
+        {painLevels.length === 0 && (
+          <div className="text-sm text-muted-foreground">
+            Start a conversation below to begin tracking your pain today.
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
 };
 
-export function TodaySection() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: 'Good afternoon! How are you feeling today? 😊',
-      sender: 'ai',
-      timestamp: new Date()
-    },
-    {
-      id: '2',
-      content: "I'm here to help track your pain and symptoms. Just tell me what's going on.",
-      sender: 'ai',
-      timestamp: new Date()
-    }
-  ]);
-  const [inputValue, setInputValue] = useState('');
+interface TodaySectionProps {
+  onNavigateToInsights?: () => void;
+}
+
+export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
   const [painData, setPainData] = useState([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   // Load initial pain data and listen for updates
   useEffect(() => {
@@ -451,93 +370,35 @@ export function TodaySection() {
     return () => window.removeEventListener('painDataUpdated', handleDataUpdate);
   }, []);
 
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue,
-      sender: 'user',
-      timestamp: new Date()
-    };
-
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-    setInputValue('');
-
-    // Generate AI response after a short delay
-    setTimeout(() => {
-      const conversationHistory = messages.map(msg => msg.content);
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: generateSmartResponse(inputValue, conversationHistory),
-        sender: 'ai',
-        timestamp: new Date()
-      };
+  const handlePainDataExtracted = (extractedData: any) => {
+    if (extractedData && extractedData.painLevel !== null) {
+      const existingData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
+      const today = new Date().toISOString().split('T')[0];
+      const todayEntries = existingData.filter((entry: any) => entry.date === today);
       
-      const finalMessages = [...updatedMessages, aiResponse];
-      setMessages(finalMessages);
+      // Check if this is a new pain level (different from the last entry)
+      const lastPainLevel = todayEntries.length > 0 ? todayEntries[todayEntries.length - 1].painLevel : null;
       
-      // Extract and save pain data if relevant
-      const extractedData = extractPainDataFromMessages(finalMessages);
-      
-      // Only save if we have a valid pain level and it's different from the last entry
-      if (extractedData && extractedData.painLevel !== null) {
-        const existingData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
-        const today = new Date().toISOString().split('T')[0];
-        const todayEntries = existingData.filter((entry: any) => entry.date === today);
-        
-        // Check if this is a new pain level (different from the last entry)
-        const lastPainLevel = todayEntries.length > 0 ? todayEntries[todayEntries.length - 1].painLevel : null;
-        
-        if (lastPainLevel !== extractedData.painLevel) {
-          const savedData = savePainData(extractedData);
-          console.log('Pain data saved:', extractedData);
-          
-          // Optional: Show subtle confirmation
-          setTimeout(() => {
-            setMessages(prev => [...prev, {
-              id: (Date.now() + 2).toString(),
-              content: '✅ Pain level tracked',
-              sender: 'ai',
-              timestamp: new Date()
-            }]);
-          }, 1500);
-        }
+      if (lastPainLevel !== extractedData.painLevel) {
+        savePainData(extractedData);
+        console.log('Pain data saved:', extractedData);
       }
-    }, 1000);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const handleNavigationRequest = (destination: string) => {
+    if (destination === 'insights' && onNavigateToInsights) {
+      onNavigateToInsights();
+    }
   };
 
   return (
     <div className="flex-1 bg-background flex flex-col h-full">
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
-        {/* Mini Insights Card */}
-        <MiniInsightsCard />
+        {/* Today's Pain Overview Card */}
+        <TodaysPainCard onViewInsights={() => handleNavigationRequest('insights')} />
         
-        {/* Daily Pain Chart */}
-        <div className="px-4 sm:px-6 lg:px-8 mb-6">
-          <div className="bg-card rounded-lg border p-4">
-            <h3 className="text-lg font-semibold mb-4">Today's Pain Levels</h3>
-            <PainChart 
-              painData={painData}
-              viewMode="today"
-              isCompact={false}
-            />
-          </div>
-        </div>
-        
-        {/* Pain Entry Editor */}
+        {/* Pain Entry Editor - Quick Entry */}
         <div className="px-4 sm:px-6 lg:px-8 mb-6">
           <PainEntryEditor 
             entries={JSON.parse(localStorage.getItem('painTrackingData') || '[]')} 
@@ -547,58 +408,17 @@ export function TodaySection() {
           />
         </div>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`flex items-start space-x-2 max-w-xs sm:max-w-md lg:max-w-lg ${message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                  {message.sender === 'ai' && (
-                    <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm">
-                      🤖
-                    </div>
-                  )}
-                  <div className="flex flex-col">
-                    <div
-                      className={`px-4 py-3 rounded-2xl ${
-                        message.sender === 'user'
-                          ? 'bg-blue-600 text-white rounded-br-sm'
-                          : 'bg-muted text-foreground rounded-bl-sm'
-                      }`}
-                    >
-                      <p className="text-sm leading-relaxed">{message.content}</p>
-                    </div>
-                    <span className={`text-xs text-muted-foreground mt-1 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
-                      {formatTime(message.timestamp)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
-
-        {/* Input Area */}
-        <div className="border-t border-border p-4 sm:p-6">
-          <div className="flex space-x-2">
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Tell me about your pain or symptoms..."
-              className="flex-1"
+        {/* Smart Chat Interface */}
+        <div className="flex-1 flex flex-col mx-4 sm:mx-6 lg:mx-8 mb-6">
+          <div className="bg-card rounded-lg border flex-1 flex flex-col">
+            <div className="p-4 border-b border-border">
+              <h3 className="text-lg font-semibold text-foreground">Your AI Pain Companion</h3>
+              <p className="text-sm text-muted-foreground">Chat or speak to track your symptoms and get personalized insights</p>
+            </div>
+            <SmartChat 
+              onPainDataExtracted={handlePainDataExtracted}
+              onNavigationRequest={handleNavigationRequest}
             />
-            <Button 
-              onClick={handleSendMessage}
-              size="icon"
-              disabled={!inputValue.trim()}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </div>

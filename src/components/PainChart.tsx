@@ -15,7 +15,7 @@ interface PainEntry {
 
 interface PainChartProps {
   painData: PainEntry[];
-  viewMode: 'today' | 'week';
+  viewMode: 'today' | 'week' | 'month';
   isCompact?: boolean;
 }
 

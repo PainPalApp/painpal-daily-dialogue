@@ -9,7 +9,7 @@ const Index = () => {
   const renderContent = () => {
     switch (activeSection) {
       case "today":
-        return <TodaySection />;
+        return <TodaySection onNavigateToInsights={() => setActiveSection('insights')} />;
       case "insights":
         return <InsightsSection />;
       case "records":
@@ -22,7 +22,7 @@ const Index = () => {
           </div>
         );
       default:
-        return <TodaySection />;
+        return <TodaySection onNavigateToInsights={() => setActiveSection('insights')} />;
     }
   };
 

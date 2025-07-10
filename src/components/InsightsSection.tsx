@@ -7,8 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X } from 'lucide-react';
+import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X, BarChart3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { PainChart } from '@/components/PainChart';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface PainEntry {
   id: number;
@@ -27,6 +29,7 @@ export const InsightsSection = () => {
   const [painData, setPainData] = useState<PainEntry[]>([]);
   const [editingEntry, setEditingEntry] = useState<PainEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('today');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -174,7 +177,33 @@ export const InsightsSection = () => {
   return (
     <div className="flex-1 bg-background p-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-foreground mb-6">Daily Insights</h1>
+        <div className="flex items-center gap-2 mb-6">
+          <BarChart3 className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold text-foreground">Pain Analytics</h1>
+        </div>
+        
+        {/* Pain Chart with Time Period Toggle */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Pain Levels Over Time</CardTitle>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="today">Today</TabsTrigger>
+                <TabsTrigger value="week">This Week</TabsTrigger>
+                <TabsTrigger value="month">This Month</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              <PainChart 
+                painData={painData}
+                viewMode={activeTab as 'today' | 'week' | 'month'}
+                isCompact={false}
+              />
+            </div>
+          </CardContent>
+        </Card>
         
         <div className="space-y-6">
           {sortedDates.map((date) => {
