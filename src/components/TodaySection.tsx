@@ -377,10 +377,12 @@ const MiniInsightsCard = () => {
               />
               {/* Current pain level marker */}
               <div
-                className="absolute w-4 h-4 bg-white rounded-full border-3 border-slate-800 shadow-lg transform -translate-y-1"
+                className="absolute w-4 h-4 bg-white rounded-full border-2 border-slate-800 shadow-lg"
                 style={{ 
                   left: `${(currentPain / 10) * 100}%`,
-                  transform: 'translateX(-50%) translateY(-50%)'
+                  top: '50%',
+                  transform: 'translateX(-50%) translateY(-50%)',
+                  zIndex: 10
                 }}
               />
             </div>
