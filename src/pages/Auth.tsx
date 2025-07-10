@@ -153,7 +153,7 @@ const Auth = () => {
                 setIsLogin(!isLogin);
                 setError("");
               }}
-              className="text-sm"
+              className="text-sm text-primary-foreground"
             >
               {isLogin 
                 ? "Don't have an account? Sign up" 
