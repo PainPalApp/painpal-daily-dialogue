@@ -115,20 +115,21 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">
-            {isLogin ? "Welcome Back" : "Create Account"}
-          </CardTitle>
-          <CardDescription>
-            {isLogin 
-              ? "Sign in to your PainPal account" 
-              : "Join PainPal to start tracking your wellness journey"
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="w-full max-w-md">
+        <div className="card-clean p-8 animate-scale-in">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-semibold text-foreground mb-2">
+              {isLogin ? "Welcome Back" : "Create Account"}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {isLogin 
+                ? "Sign in to your PainPal account" 
+                : "Join PainPal to start tracking your wellness journey"
+              }
+            </p>
+          </div>
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <Alert variant="destructive">
@@ -136,8 +137,8 @@ const Auth = () => {
               </Alert>
             )}
             
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-3">
+              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -145,11 +146,12 @@ const Auth = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
+                className="input-clean"
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-3">
+              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -157,12 +159,13 @@ const Auth = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
+                className="input-clean"
               />
             </div>
             
             <Button 
               type="submit" 
-              className="w-full" 
+              className="button-primary w-full" 
               disabled={loading}
             >
               {loading ? "Please wait..." : (isLogin ? "Sign In" : "Sign Up")}
@@ -178,7 +181,7 @@ const Auth = () => {
           
           <Button 
             variant="outline" 
-            className="w-full mb-4" 
+            className="button-secondary w-full mb-4" 
             onClick={handleGoogleSignIn}
             disabled={loading}
           >
@@ -191,14 +194,14 @@ const Auth = () => {
             Continue with Google
           </Button>
           
-          <div className="mt-4 text-center">
+          <div className="mt-6 text-center">
             <Button
-              variant="link"
+              variant="ghost"
               onClick={() => {
                 setIsLogin(!isLogin);
                 setError("");
               }}
-              className="text-sm text-primary-foreground"
+              className="text-sm text-muted-foreground hover:text-foreground"
             >
               {isLogin 
                 ? "Don't have an account? Sign up" 
@@ -206,8 +209,8 @@ const Auth = () => {
               }
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

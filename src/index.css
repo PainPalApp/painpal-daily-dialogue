@@ -2,79 +2,97 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* ChatGPT-inspired Design System - All colors MUST be HSL */
 
 @layer base {
   :root {
-    --background: 213 27% 10%;
-    --foreground: 0 0% 100%;
+    /* ChatGPT Light Colors (for reference) */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 16%;
 
-    --card: 213 27% 12%;
-    --card-foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 16%;
 
-    --popover: 213 27% 12%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 16%;
 
-    --primary: 213 27% 15%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 0 0% 16%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 213 27% 15%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 16%;
 
-    --muted: 213 27% 15%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 213 50% 25%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 16%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 213 27% 20%;
-    --input: 213 27% 15%;
-    --ring: 213 50% 40%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 16%;
 
-    --radius: 0.5rem;
+    --radius: 8px;
+
+    /* ChatGPT-specific tokens */
+    --chat-user-bg: 212 100% 48%;
+    --chat-user-fg: 0 0% 100%;
+    --chat-ai-bg: 0 0% 96%;
+    --chat-ai-fg: 0 0% 16%;
+    --chat-suggestion: 0 0% 93%;
+    --chat-suggestion-hover: 0 0% 85%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* ChatGPT Dark Colors - Main theme */
+    --background: 217 33% 11%;
+    --foreground: 0 0% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 217 33% 13%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 217 33% 13%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 217 33% 11%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 217 33% 15%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 217 33% 15%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 217 33% 20%;
+    --input: 217 33% 15%;
+    --ring: 0 0% 83%;
+
+    /* ChatGPT-specific dark tokens */
+    --chat-user-bg: 212 100% 48%;
+    --chat-user-fg: 0 0% 100%;
+    --chat-ai-bg: 217 33% 15%;
+    --chat-ai-fg: 0 0% 98%;
+    --chat-suggestion: 217 33% 17%;
+    --chat-suggestion-hover: 217 33% 22%;
+
+    /* Sidebar variables for consistency */
+    --sidebar-background: 217 33% 11%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 212 100% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 217 33% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 217 33% 20%;
+    --sidebar-ring: 212 100% 48%;
   }
 }
 
@@ -84,296 +102,139 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "cv11", "ss01";
+    font-variation-settings: "opsz" 32;
+  }
+
+  /* Typography system */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-medium tracking-tight;
   }
 }
 
-/* Mini Insights Card Styles */
-.mini-insights-card {
-  background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%);
-  border-radius: 16px;
-  padding: 20px;
-  margin: 16px 16px 8px 16px;
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  /* REMOVED: position: sticky */
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-}
-
-.mini-insights-card.compact {
-  /* Subtle compact state without sticky issues */
-  padding: 16px 20px;
-  margin: 12px 16px 6px 16px;
-}
-
-.insights-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.mini-insights-card.minimized .insights-header {
-  margin-bottom: 8px;
-}
-
-.insights-title {
-  color: hsl(var(--foreground));
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.quick-stat {
-  font-size: 12px;
-  color: #3B82F6;
-  font-weight: 500;
-  margin-left: 8px;
-}
-
-.view-toggle {
-  display: flex;
-  background: rgba(59, 130, 246, 0.1);
-  border-radius: 8px;
-  padding: 2px;
-  gap: 2px;
-}
-
-.toggle-btn {
-  background: transparent;
-  color: hsl(var(--muted-foreground));
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.toggle-btn.active {
-  background: #3B82F6;
-  color: white;
-}
-
-.expand-btn {
-  background: rgba(59, 130, 246, 0.2);
-  color: #3B82F6;
-  border: none;
-  border-radius: 6px;
-  padding: 4px 8px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.insights-period {
-  color: hsl(var(--muted-foreground));
-  font-size: 12px;
-  background: rgba(59, 130, 246, 0.1);
-  padding: 4px 8px;
-  border-radius: 8px;
-}
-
-.mini-chart-container {
-  height: 80px;
-  margin: 16px 0;
-  position: relative;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 8px;
-  padding: 8px;
-  transition: all 0.3s ease;
-}
-
-.chart-description {
-  text-align: center;
-  font-size: 11px;
-  color: hsl(var(--muted-foreground));
-  margin: 8px 0 0 0;
-}
-
-.stats-row {
-  display: flex;
-  justify-content: space-around;
-  margin: 16px 0;
-  padding: 12px 0;
-  border-top: 1px solid hsl(var(--border));
-}
-
-.stats-row.minimized-stats {
-  margin: 0;
-  padding: 8px 0;
-}
-
-.stats-row.minimized-stats .stat-item {
-  margin: 0 8px;
-}
-
-.stats-row.minimized-stats .stat-number {
-  font-size: 16px;
-}
-
-.stats-row.minimized-stats .stat-label {
-  font-size: 10px;
-}
-
-.stat-item {
-  text-align: center;
-  flex: 1;
-}
-
-.stat-number {
-  display: block;
-  font-size: 24px;
-  font-weight: bold;
-  color: #3B82F6;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: hsl(var(--muted-foreground));
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.view-insights-btn {
-  width: 100%;
-  background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%);
-  color: white;
-  border: none;
-  padding: 12px 16px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: none;
-}
-
-.view-insights-btn:hover {
-  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
-}
-
-.no-data-content {
-  text-align: center;
-  padding: 20px 0;
-}
-
-.no-data-text {
-  color: hsl(var(--muted-foreground));
-  margin-bottom: 20px;
-  line-height: 1.5;
-}
-
-.sample-stats {
-  display: flex;
-  justify-content: space-around;
-  opacity: 0.4;
-}
-
-.stat-preview {
-  text-align: center;
-}
-
-.stat-number-preview {
-  display: block;
-  font-size: 24px;
-  font-weight: bold;
-  color: hsl(var(--muted));
-  margin-bottom: 4px;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 640px) {
-  .mini-insights-card {
-    margin: 8px;
-    padding: 16px;
-    position: sticky;
-    top: 5px;
+/* ChatGPT-style Chat Components */
+@layer components {
+  .chat-message-user {
+    @apply bg-[hsl(var(--chat-user-bg))] text-[hsl(var(--chat-user-fg))] rounded-2xl rounded-br-sm px-4 py-3 max-w-xs sm:max-w-md lg:max-w-lg;
   }
-  
-  .view-toggle {
-    scale: 0.9;
+
+  .chat-message-ai {
+    @apply bg-[hsl(var(--chat-ai-bg))] text-[hsl(var(--chat-ai-fg))] rounded-2xl rounded-bl-sm px-4 py-3 max-w-xs sm:max-w-md lg:max-w-lg;
   }
-  
-  .insights-title {
-    font-size: 16px;
+
+  .chat-suggestion-pill {
+    @apply bg-[hsl(var(--chat-suggestion))] hover:bg-[hsl(var(--chat-suggestion-hover))] 
+           text-foreground border border-border rounded-full px-3 py-1.5 text-sm 
+           cursor-pointer transition-colors duration-200;
   }
-  
-  .mini-chart-container {
-    height: 70px;
+
+  .chat-input-area {
+    @apply border-t border-border bg-background p-4;
   }
-  
-  .stat-number {
-    font-size: 20px;
+
+  .chat-input {
+    @apply w-full rounded-xl border border-border bg-background px-4 py-3 text-sm 
+           placeholder:text-muted-foreground focus:outline-none focus:ring-2 
+           focus:ring-ring focus:border-transparent resize-none;
+  }
+
+  .chat-send-button {
+    @apply h-10 w-10 rounded-lg bg-foreground text-background hover:bg-foreground/90 
+           disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+  }
+
+  /* Navigation components */
+  .nav-button {
+    @apply px-3 py-2 rounded-lg text-sm font-medium transition-colors 
+           text-muted-foreground hover:text-foreground hover:bg-accent;
+  }
+
+  .nav-button-active {
+    @apply bg-accent text-accent-foreground;
+  }
+
+  /* Card components */
+  .card-clean {
+    @apply bg-card text-card-foreground rounded-xl border border-border shadow-sm;
+  }
+
+  /* Form components */
+  .input-clean {
+    @apply w-full rounded-lg border border-border bg-background px-3 py-2 text-sm 
+           placeholder:text-muted-foreground focus:outline-none focus:ring-2 
+           focus:ring-ring focus:border-transparent;
+  }
+
+  .button-primary {
+    @apply bg-foreground text-background hover:bg-foreground/90 rounded-lg px-4 py-2 
+           text-sm font-medium transition-colors;
+  }
+
+  .button-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg 
+           px-4 py-2 text-sm font-medium transition-colors;
+  }
+
+  .button-ghost {
+    @apply hover:bg-accent hover:text-accent-foreground rounded-lg px-4 py-2 text-sm 
+           font-medium transition-colors;
+  }
+
+  /* Onboarding specific */
+  .onboarding-container {
+    @apply min-h-screen flex items-center justify-center p-6 bg-gradient-to-br 
+           from-background to-secondary/20;
+  }
+
+  .onboarding-card {
+    @apply w-full max-w-2xl bg-card rounded-2xl border border-border shadow-lg p-8;
+  }
+
+  .onboarding-progress {
+    @apply w-full bg-muted rounded-full h-2;
+  }
+
+  .onboarding-progress-bar {
+    @apply h-2 bg-foreground rounded-full transition-all duration-300;
+  }
+
+  /* Loading and states */
+  .loading-dots {
+    @apply flex space-x-1;
+  }
+
+  .loading-dot {
+    @apply w-2 h-2 bg-muted-foreground rounded-full animate-bounce;
   }
 }
 
-/* Timeline Chart Styles */
-.chart-container {
-  position: relative;
-  height: 300px;
-  margin: 20px 0;
+/* Animation utilities */
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.2s ease-out;
+  }
 }
 
-.no-data {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  color: hsl(var(--muted-foreground));
-  font-style: italic;
-  background: hsl(var(--muted));
-  border-radius: 8px;
-  border: 2px dashed hsl(var(--border));
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Timeline Summary */
-.timeline-summary {
-  margin-top: 15px;
-  padding: 12px;
-  background: hsl(var(--muted));
-  border-radius: 8px;
-  border-left: 4px solid hsl(var(--destructive));
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
-.timeline-summary h4 {
-  margin: 0 0 8px 0;
-  color: hsl(var(--foreground));
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.timeline-summary p {
-  margin: 0;
-  color: hsl(var(--muted-foreground));
-  font-size: 13px;
-}
-
-/* Current status indicator */
-.current-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: hsl(var(--destructive));
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
+@keyframes scale-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }

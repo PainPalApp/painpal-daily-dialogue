@@ -137,20 +137,27 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 to-secondary/10">
-      <Card className="w-full max-w-2xl">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl text-primary">Welcome to PainPal</CardTitle>
-          <p className="text-muted-foreground">Let's set up your personalized care experience</p>
-          <div className="mt-4">
-            <Progress value={progress} className="w-full" />
-            <p className="text-sm text-muted-foreground mt-2">Step {currentStep} of {totalSteps}</p>
+    <div className="onboarding-container">
+      <div className="onboarding-card animate-scale-in">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Welcome to PainPal</h1>
+          <p className="text-muted-foreground text-sm">Let's set up your personalized care experience</p>
+          
+          <div className="mt-6">
+            <div className="onboarding-progress">
+              <div 
+                className="onboarding-progress-bar" 
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">Step {currentStep} of {totalSteps}</p>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+        
+        <div className="animate-fade-in">
           {renderStep()}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

@@ -161,46 +161,47 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10">
+    <div className="min-h-screen bg-background">
       <Navigation activeSection="profile" onSectionChange={() => {}} />
-      <div className="container mx-auto p-4 pt-20 space-y-6">
+      <div className="container mx-auto p-6 pt-20 space-y-8 max-w-4xl">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-primary">Profile Settings</h1>
-          <p className="text-muted-foreground">Manage your personal information and pain tracking preferences</p>
+          <h1 className="text-2xl font-semibold text-foreground">Profile Settings</h1>
+          <p className="text-sm text-muted-foreground">Manage your personal information and pain tracking preferences</p>
         </div>
 
-        <div className="grid gap-6 max-w-4xl mx-auto">
+        <div className="grid gap-6 animate-fade-in">
           {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <div className="card-clean p-6">
+            <div className="mb-6">
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
                 <User className="h-5 w-5" />
                 Basic Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </h2>
+            </div>
+            <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="display-name">Display Name</Label>
+                  <Label htmlFor="display-name" className="text-sm font-medium">Display Name</Label>
                   <Input
                     id="display-name"
                     value={profile.display_name}
                     onChange={(e) => setProfile(prev => ({ ...prev, display_name: e.target.value }))}
                     placeholder="Your name"
+                    className="input-clean"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                   <Input
                     id="email"
                     value={profile.email}
                     disabled
-                    className="bg-muted"
+                    className="input-clean bg-secondary text-muted-foreground"
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Medical Information */}
           <Card>

@@ -293,48 +293,40 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
   };
 
   return (
-    <div className="flex flex-col h-full">
-
+    <div className="flex flex-col h-full max-w-4xl mx-auto">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
         {messages.map((message) => (
-          <div key={message.id}>
+          <div key={message.id} className="animate-fade-in">
             <div className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`flex items-start space-x-2 max-w-xs sm:max-w-md lg:max-w-lg ${message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+              <div className={`flex items-start gap-3 ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                 {message.sender === 'ai' && (
-                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm">
-                    🤖
+                  <div className="w-7 h-7 bg-accent rounded-full flex items-center justify-center text-xs shrink-0 mt-0.5">
+                    <span className="text-accent-foreground font-medium">AI</span>
                   </div>
                 )}
-                <div className="flex flex-col">
-                  <div
-                    className={`px-4 py-3 rounded-2xl ${
-                      message.sender === 'user'
-                        ? 'bg-primary text-primary-foreground rounded-br-sm'
-                        : 'bg-muted text-foreground rounded-bl-sm'
-                    }`}
-                  >
-                    <p className="text-sm leading-relaxed">{message.content}</p>
+                <div className="flex flex-col gap-1">
+                  <div className={message.sender === 'user' ? 'chat-message-user' : 'chat-message-ai'}>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
                   </div>
-                  <span className={`text-xs text-muted-foreground mt-1 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
+                  <span className={`text-xs text-muted-foreground px-2 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
                     {formatTime(message.timestamp)}
                   </span>
                 </div>
               </div>
             </div>
             
-            {/* AI Suggestions */}
+            {/* AI Suggestions - ChatGPT style pills */}
             {message.sender === 'ai' && message.suggestions && message.suggestions.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2 justify-start">
+              <div className="mt-4 flex flex-wrap gap-2 animate-fade-in">
                 {message.suggestions.map((suggestion, index) => (
-                  <Badge
+                  <button
                     key={index}
-                    variant="outline"
-                    className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                    className="chat-suggestion-pill"
                     onClick={() => handleSuggestionClick(suggestion)}
                   >
                     {suggestion}
-                  </Badge>
+                  </button>
                 ))}
               </div>
             )}
@@ -342,16 +334,16 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
         ))}
         
         {isProcessing && (
-          <div className="flex justify-start">
-            <div className="flex items-start space-x-2">
-              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm">
-                🤖
+          <div className="flex justify-start animate-fade-in">
+            <div className="flex items-start gap-3">
+              <div className="w-7 h-7 bg-accent rounded-full flex items-center justify-center text-xs shrink-0 mt-0.5">
+                <span className="text-accent-foreground font-medium">AI</span>
               </div>
-              <div className="bg-muted text-foreground px-4 py-3 rounded-2xl rounded-bl-sm">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="chat-message-ai">
+                <div className="loading-dots">
+                  <div className="loading-dot"></div>
+                  <div className="loading-dot" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="loading-dot" style={{ animationDelay: '0.2s' }}></div>
                 </div>
               </div>
             </div>
@@ -361,32 +353,52 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="border-t border-border p-4">
-        <div className="flex space-x-2">
-          <Input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Tell me about your pain or ask a question..."
-            className="flex-1"
-            disabled={isProcessing}
-          />
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleListening}
-            className={isListening ? 'bg-primary text-primary-foreground' : ''}
-          >
-            {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-          </Button>
-          <Button 
-            onClick={() => handleSendMessage()}
-            size="icon"
-            disabled={!inputValue.trim() || isProcessing}
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+      {/* Input Area - ChatGPT style */}
+      <div className="chat-input-area">
+        <div className="relative">
+          <div className="flex items-end gap-3 bg-background border border-border rounded-2xl p-3">
+            <textarea
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              placeholder="Message PainPal..."
+              className="chat-input border-0 bg-transparent resize-none min-h-[20px] max-h-32 leading-relaxed"
+              disabled={isProcessing}
+              rows={1}
+              style={{
+                height: 'auto',
+                overflowY: inputValue.split('\n').length > 3 ? 'auto' : 'hidden'
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = 'auto';
+                target.style.height = target.scrollHeight + 'px';
+              }}
+            />
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleListening}
+                className={`h-8 w-8 p-0 rounded-lg ${isListening ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}
+              >
+                {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+              <Button 
+                onClick={() => handleSendMessage()}
+                size="sm"
+                disabled={!inputValue.trim() || isProcessing}
+                className="chat-send-button"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

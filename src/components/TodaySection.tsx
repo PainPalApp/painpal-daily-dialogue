@@ -283,21 +283,23 @@ const TodaysPainCard = ({ onViewInsights }: { onViewInsights: () => void }) => {
   const earliestEntry = todayEntries.length > 0 ? todayEntries[0] : null;
   
   return (
-    <div className="bg-card rounded-lg border p-4 mb-6 mx-4 sm:mx-6 lg:mx-8">
+    <div className="card-clean p-6 mb-6 mx-4 sm:mx-6 lg:mx-8 animate-fade-in">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-foreground">Today's Overview</h3>
         <div className="flex items-center gap-3">
           <Button 
-            variant="outline" 
+            variant="ghost" 
             size="sm"
             onClick={onViewInsights}
-            className="text-xs"
+            className="text-xs hover:bg-accent"
           >
-            <BarChart3 className="h-4 w-4 mr-1" />
-            View Analytics
+            <BarChart3 className="h-4 w-4 mr-1.5" />
+            Analytics
           </Button>
           {currentPain > 0 && (
-            <span className="text-2xl font-bold text-foreground">{currentPain}/10</span>
+            <div className="px-3 py-1 bg-accent rounded-full">
+              <span className="text-lg font-semibold text-accent-foreground">{currentPain}/10</span>
+            </div>
           )}
         </div>
       </div>
@@ -315,7 +317,7 @@ const TodaysPainCard = ({ onViewInsights }: { onViewInsights: () => void }) => {
         
         {earliestEntry && (
           <div className="flex items-center gap-2 text-sm">
-            <Clock className="h-4 w-4 text-primary" />
+            <Clock className="h-4 w-4 text-accent-foreground" />
             <span className="text-muted-foreground">
               Tracking since {new Date(earliestEntry.timestamp).toLocaleTimeString([], {
                 hour: '2-digit',
@@ -325,19 +327,19 @@ const TodaysPainCard = ({ onViewInsights }: { onViewInsights: () => void }) => {
           </div>
         )}
         
-        {/* Simplified progress bar for current pain */}
+        {/* Clean progress bar for current pain */}
         {currentPain > 0 && (
-          <div className="relative">
-            <div className="h-2 bg-muted rounded-full"></div>
+          <div className="relative mt-4">
+            <div className="h-1.5 bg-secondary rounded-full"></div>
             <div 
-              className="absolute top-0 h-2 bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full transition-all duration-500"
+              className="absolute top-0 h-1.5 bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full transition-all duration-700"
               style={{ width: `${(currentPain / 10) * 100}%` }}
             />
           </div>
         )}
         
         {painLevels.length === 0 && (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground bg-secondary/50 rounded-lg p-3 text-center">
             Start a conversation below to begin tracking your pain today.
           </div>
         )}
@@ -399,12 +401,12 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
         <TodaysPainCard onViewInsights={() => handleNavigationRequest('insights')} />
         
 
-        {/* Smart Chat Interface */}
+        {/* Chat Interface - ChatGPT Style */}
         <div className="flex-1 flex flex-col mx-4 sm:mx-6 lg:mx-8 mb-6">
-          <div className="bg-card rounded-lg border flex-1 flex flex-col">
-            <div className="p-4 border-b border-border">
+          <div className="card-clean flex-1 flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-border bg-card/50">
               <h3 className="text-lg font-semibold text-foreground">Your AI Pain Companion</h3>
-              <p className="text-sm text-muted-foreground">Chat or speak to track your symptoms and get personalized insights</p>
+              <p className="text-sm text-muted-foreground">Chat naturally about your symptoms for personalized insights</p>
             </div>
             <SmartChat 
               onPainDataExtracted={handlePainDataExtracted}

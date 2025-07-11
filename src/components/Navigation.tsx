@@ -20,23 +20,23 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
   ];
 
   return (
-    <header className="bg-background border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <header className="bg-background/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex justify-between items-center h-14">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <h1 className="text-xl font-bold text-foreground">PainPal</h1>
+            <h1 className="text-lg font-semibold text-foreground tracking-tight">PainPal</h1>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <nav className="flex space-x-8">
+          <div className="hidden md:flex items-center gap-6">
+            <nav className="flex gap-1">
               {navItems.map((item) => (
                 item.isLink ? (
                   <a
                     key={item.id}
                     href={item.href}
-                    className="px-3 py-2 rounded-md text-sm font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
+                    className="nav-button"
                   >
                     {item.label}
                   </a>
@@ -44,10 +44,8 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
                   <button
                     key={item.id}
                     onClick={() => onSectionChange(item.id)}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      activeSection === item.id
-                        ? "bg-accent text-accent-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    className={`nav-button ${
+                      activeSection === item.id ? "nav-button-active" : ""
                     }`}
                   >
                     {item.label}
@@ -60,7 +58,7 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
               variant="ghost"
               size="sm"
               onClick={signOut}
-              className="text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent"
             >
               <LogOut className="h-4 w-4" />
             </Button>
@@ -72,10 +70,10 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
               variant="ghost"
               size="sm"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-foreground"
+              className="h-8 w-8 p-0"
             >
               <svg
-                className="h-6 w-6"
+                className="h-5 w-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -102,8 +100,8 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-border">
+          <div className="md:hidden border-t border-border animate-fade-in">
+            <div className="py-4 space-y-1">
               {navItems.map((item) => (
                 <button
                   key={item.id}
@@ -111,10 +109,8 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
                     onSectionChange(item.id);
                     setIsMenuOpen(false);
                   }}
-                  className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                    activeSection === item.id
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  className={`block w-full text-left nav-button ${
+                    activeSection === item.id ? "nav-button-active" : ""
                   }`}
                 >
                   {item.label}
@@ -128,7 +124,7 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
                   signOut();
                   setIsMenuOpen(false);
                 }}
-                className="w-full justify-start text-muted-foreground hover:text-foreground mt-2"
+                className="w-full justify-start text-muted-foreground hover:text-foreground mt-3"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
