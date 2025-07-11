@@ -16,6 +16,7 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
     { id: "today", label: "Today" },
     { id: "insights", label: "Insights" },
     { id: "records", label: "Records" },
+    { id: "profile", label: "Profile", isLink: true, href: "/profile" },
   ];
 
   return (
@@ -31,17 +32,27 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
           <div className="hidden md:flex items-center space-x-8">
             <nav className="flex space-x-8">
               {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => onSectionChange(item.id)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeSection === item.id
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {item.label}
-                </button>
+                item.isLink ? (
+                  <a
+                    key={item.id}
+                    href={item.href}
+                    className="px-3 py-2 rounded-md text-sm font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <button
+                    key={item.id}
+                    onClick={() => onSectionChange(item.id)}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      activeSection === item.id
+                        ? "bg-accent text-accent-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                )
               ))}
             </nav>
             

@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Send, Mic, MicOff, Volume2, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAI, AISetup } from "./AIService";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { PatternEngine } from "./PatternEngine";
 
 // Speech Recognition type definitions
@@ -30,6 +31,7 @@ interface SmartChatProps {
 }
 
 export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistory = [] }: SmartChatProps) {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -42,11 +44,9 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
   const [inputValue, setInputValue] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showAISetup, setShowAISetup] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
-  const { isConnected, setupAI, generateResponse } = useAI();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -124,68 +124,52 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
     );
   };
 
+  // generateAIResponse calls the real AI service with user context
   const generateAIResponse = async (userMessage: string): Promise<{ content: string; suggestions: string[] }> => {
-    setIsProcessing(true);
-    let response = '';
-    
-    try {
-      if (isConnected) {
-        // Use real AI
-        const conversationMessages = messages.slice(-5).map(msg => ({
-          role: (msg.sender === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
-          content: msg.content
-        }));
-        
-        conversationMessages.push({
-          role: 'user',
-          content: userMessage
-        });
+    // Show thinking state
+    const thinkingMessage: Message = {
+      id: Date.now().toString() + '-thinking',
+      content: "thinking...",
+      sender: 'ai',
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, thinkingMessage]);
 
-        response = await generateResponse(conversationMessages, painHistory);
-      } else {
-        // Fallback to simulated responses
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const msg = userMessage.toLowerCase();
-        
-        // Handle navigation requests
-        if (msg.includes('show') && (msg.includes('insight') || msg.includes('chart') || msg.includes('pattern'))) {
-          onNavigationRequest?.('insights');
-          response = "I'll show you your insights page with detailed analytics and patterns.";
+    try {
+      // Call the Supabase edge function for AI chat
+      const { data, error } = await supabase.functions.invoke('ai-chat', {
+        body: {
+          message: userMessage,
+          userId: user?.id
         }
-        // Pain level responses
-        else if (msg.match(/\b([7-9]|10)\b/)) {
-          response = "That's quite severe pain. When did this level start? Have you taken any medication?";
-        }
-        else if (msg.match(/\b([4-6])\b/)) {
-          response = "Moderate pain that's definitely affecting your day. What's triggering it?";
-        }
-        else if (msg.match(/\b([1-3])\b/)) {
-          response = "Glad it's on the milder side. Is this typical for you?";
-        }
-        // Medication responses
-        else if (msg.includes('took') || msg.includes('medication')) {
-          response = "Good to track medication. Is it starting to help reduce the pain?";
-        }
-        // General responses
-        else {
-          const responses = [
-            "I want to help track this properly. Can you tell me more about your pain?",
-            "Every detail helps me understand your patterns better. What else is important?",
-            "Thanks for sharing. How would you describe your current pain level?"
-          ];
-          response = responses[Math.floor(Math.random() * responses.length)];
-        }
+      });
+
+      // Remove thinking message
+      setMessages(prev => prev.filter(msg => msg.id !== thinkingMessage.id));
+
+      if (error) {
+        console.error('AI chat error:', error);
+        return {
+          content: "I'm sorry, I'm having trouble connecting to my AI brain right now. But I can still help you log pain entries and track patterns!",
+          suggestions: generateSmartSuggestions(userMessage, messages)
+        };
       }
+
+      return {
+        content: data.content,
+        suggestions: data.suggestions || generateSmartSuggestions(userMessage, messages)
+      };
     } catch (error) {
-      console.error('AI Response error:', error);
-      response = "I'm having trouble connecting right now. Can you tell me more about how you're feeling?";
+      console.error('Error calling AI service:', error);
+      
+      // Remove thinking message
+      setMessages(prev => prev.filter(msg => msg.id !== thinkingMessage.id));
+      
+      return {
+        content: "I'm experiencing some technical difficulties, but I'm still here to help you track your pain. Feel free to log your pain levels and I'll help you spot patterns!",
+        suggestions: generateSmartSuggestions(userMessage, messages)
+      };
     }
-    
-    const suggestions = generateSmartSuggestions(userMessage, messages);
-    
-    setIsProcessing(false);
-    return { content: response, suggestions };
   };
 
   const handleSendMessage = async (messageText?: string) => {
@@ -310,33 +294,6 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
 
   return (
     <div className="flex flex-col h-full">
-      {/* AI Setup Banner */}
-      {!isConnected && (
-        <div className="p-3 bg-primary/10 border-b border-border">
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <strong>Connect AI for personalized responses</strong>
-              <p className="text-muted-foreground">Get smarter suggestions based on your patterns</p>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowAISetup(!showAISetup)}
-            >
-              <Settings className="h-4 w-4 mr-1" />
-              Setup
-            </Button>
-          </div>
-          {showAISetup && (
-            <div className="mt-3">
-              <AISetup onSetup={(apiKey, provider) => {
-                setupAI(apiKey, provider);
-                setShowAISetup(false);
-              }} />
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

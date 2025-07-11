@@ -65,29 +65,38 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string | null
+          current_medications: Json | null
           default_pain_locations: string[] | null
+          diagnosis: string | null
           display_name: string | null
           email: string | null
           id: string
           onboarding_completed: boolean | null
+          pain_is_consistent: boolean | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          current_medications?: Json | null
           default_pain_locations?: string[] | null
+          diagnosis?: string | null
           display_name?: string | null
           email?: string | null
           id: string
           onboarding_completed?: boolean | null
+          pain_is_consistent?: boolean | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          current_medications?: Json | null
           default_pain_locations?: string[] | null
+          diagnosis?: string | null
           display_name?: string | null
           email?: string | null
           id?: string
           onboarding_completed?: boolean | null
+          pain_is_consistent?: boolean | null
           updated_at?: string | null
         }
         Relationships: []
