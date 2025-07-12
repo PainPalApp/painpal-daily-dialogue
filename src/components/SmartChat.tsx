@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { PatternEngine } from "./PatternEngine";
+import { PainLocationSelector } from "./PainLocationSelector";
+import { usePainLogs } from "@/hooks/usePainLogs";
 
 // Speech Recognition type definitions
 declare global {
@@ -30,8 +32,18 @@ interface SmartChatProps {
   painHistory?: any[];
 }
 
+interface UserProfile {
+  pain_is_consistent?: boolean;
+  default_pain_locations?: string[];
+}
+
 export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistory = [] }: SmartChatProps) {
   const { user } = useAuth();
+  const { savePainLog } = usePainLogs();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [showLocationSelector, setShowLocationSelector] = useState(false);
+  const [pendingPainData, setPendingPainData] = useState<any>(null);
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -55,6 +67,25 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Fetch user profile for pain consistency setting
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user?.id) return;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('pain_is_consistent, default_pain_locations')
+        .eq('id', user.id)
+        .single();
+      
+      if (!error && data) {
+        setUserProfile(data);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user?.id]);
 
   // Initialize speech recognition once
   useEffect(() => {
@@ -190,6 +221,26 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
     // Extract pain data if relevant
     const extractedData = extractPainData(textToSend);
     if (extractedData && extractedData.painLevel !== null) {
+      // Check if user has variable pain and needs location selection
+      if (userProfile?.pain_is_consistent === false && extractedData.location.length === 0) {
+        setPendingPainData(extractedData);
+        setSelectedLocations([]);
+        setShowLocationSelector(true);
+        
+        // Add AI message asking for location
+        const locationRequest: Message = {
+          id: (Date.now() + 0.5).toString(),
+          content: "I see you're experiencing pain. Since your pain tends to move around, could you tell me where specifically you're feeling pain right now?",
+          sender: 'ai',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, locationRequest]);
+        return; // Don't extract data yet, wait for location
+      } else if (userProfile?.pain_is_consistent === true && extractedData.location.length === 0) {
+        // For consistent pain users, use their default locations
+        extractedData.location = userProfile.default_pain_locations || [];
+      }
+      
       onPainDataExtracted?.(extractedData);
     }
 
@@ -232,21 +283,83 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
       painData.painLevel = parseInt(painMatch[0]);
     }
 
-    // Extract locations
-    if (msg.includes('head') || msg.includes('forehead')) painData.location.push('forehead');
-    if (msg.includes('temples')) painData.location.push('temples');
-    if (msg.includes('behind') && msg.includes('eyes')) painData.location.push('behind eyes');
+    // Enhanced location extraction
+    const locationKeywords = {
+      'forehead': ['head', 'forehead', 'front of head'],
+      'temples': ['temples', 'temple', 'side of head'],
+      'behind eyes': ['behind eyes', 'behind eye', 'eye pain'],
+      'back of head': ['back of head', 'occipital', 'base of skull'],
+      'neck': ['neck', 'cervical'],
+      'shoulders': ['shoulder', 'shoulders'],
+      'back': ['back', 'spine'],
+      'chest': ['chest', 'thoracic'],
+      'abdomen': ['stomach', 'abdomen', 'belly'],
+      'arms': ['arm', 'arms', 'wrist', 'elbow'],
+      'legs': ['leg', 'legs', 'knee', 'ankle', 'foot', 'feet'],
+      'jaw': ['jaw', 'tmj', 'face'],
+      'joints': ['joint', 'joints', 'arthritis']
+    };
+
+    Object.entries(locationKeywords).forEach(([location, keywords]) => {
+      if (keywords.some(keyword => msg.includes(keyword))) {
+        if (!painData.location.includes(location)) {
+          painData.location.push(location);
+        }
+      }
+    });
 
     // Extract triggers
     if (msg.includes('stress')) painData.triggers.push('stress');
     if (msg.includes('tired') || msg.includes('sleep')) painData.triggers.push('poor sleep');
+    if (msg.includes('weather') || msg.includes('barometric')) painData.triggers.push('weather');
+    if (msg.includes('screen') || msg.includes('computer')) painData.triggers.push('screen time');
 
     // Extract medications
     if (msg.includes('ibuprofen') || msg.includes('advil')) {
       painData.medications.push({ name: 'ibuprofen', effective: true });
     }
+    if (msg.includes('tylenol') || msg.includes('acetaminophen')) {
+      painData.medications.push({ name: 'tylenol', effective: true });
+    }
 
     return painData;
+  };
+
+  const handleLocationConfirm = async () => {
+    if (pendingPainData && selectedLocations.length > 0) {
+      const finalPainData = {
+        ...pendingPainData,
+        location: selectedLocations
+      };
+      
+      // Save to database
+      const success = await savePainLog({
+        pain_level: finalPainData.painLevel,
+        pain_locations: selectedLocations,
+        triggers: finalPainData.triggers,
+        medications: finalPainData.medications,
+        notes: finalPainData.notes
+      });
+
+      if (success) {
+        // Also trigger the local callback for immediate UI updates
+        onPainDataExtracted?.(finalPainData);
+        
+        // Add confirmation message
+        const confirmMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: `Got it! I've recorded your pain level ${finalPainData.painLevel} in: ${selectedLocations.join(', ')}. I'll help you track this.`,
+          sender: 'ai',
+          timestamp: new Date(),
+          suggestions: ['How long has this been going on?', 'What might have triggered this?', 'Any medications taken?']
+        };
+        setMessages(prev => [...prev, confirmMessage]);
+      }
+    }
+    
+    setShowLocationSelector(false);
+    setPendingPainData(null);
+    setSelectedLocations([]);
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -294,6 +407,20 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto">
+      {/* Pain Location Selector Modal */}
+      {showLocationSelector && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg max-w-md w-full">
+            <PainLocationSelector
+              commonLocations={userProfile?.default_pain_locations || []}
+              selectedLocations={selectedLocations}
+              onLocationChange={setSelectedLocations}
+              onConfirm={handleLocationConfirm}
+              isVariable={true}
+            />
+          </div>
+        </div>
+      )}
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
         {messages.map((message) => (

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Edit3, Save, X, Plus, Trash2 } from "lucide-react";
+import { Calendar, Clock, Edit3, Save, X, Plus, Trash2, MapPin } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface PainEntry {
@@ -76,6 +76,22 @@ export function PainEntryEditor({ entries, onUpdate }: PainEntryEditorProps) {
     });
   };
 
+  const addLocation = (location: string) => {
+    if (!editingEntry || editingEntry.location.includes(location)) return;
+    setEditingEntry({
+      ...editingEntry,
+      location: [...editingEntry.location, location]
+    });
+  };
+
+  const removeLocation = (location: string) => {
+    if (!editingEntry) return;
+    setEditingEntry({
+      ...editingEntry,
+      location: editingEntry.location.filter(l => l !== location)
+    });
+  };
+
   const addMedication = (medication: string) => {
     if (!editingEntry) return;
     setEditingEntry({
@@ -101,6 +117,7 @@ export function PainEntryEditor({ entries, onUpdate }: PainEntryEditorProps) {
 
   const commonTriggers = ['stress', 'poor sleep', 'dehydration', 'bright lights', 'screen time', 'diet', 'weather', 'hormones'];
   const commonMedications = ['ibuprofen', 'tylenol', 'aspirin', 'excedrin'];
+  const commonLocations = ['forehead', 'temples', 'behind eyes', 'back of head', 'neck', 'shoulders', 'back', 'chest', 'abdomen', 'arms', 'legs', 'jaw', 'joints'];
 
   return (
     <div className="space-y-4">
@@ -168,6 +185,25 @@ export function PainEntryEditor({ entries, onUpdate }: PainEntryEditorProps) {
                               timestamp: new Date(e.target.value).toISOString()
                             })}
                           />
+                        </div>
+
+                        {/* Pain Locations */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Pain Locations</label>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {editingEntry.location.map((location) => (
+                              <Badge key={location} variant="secondary" className="cursor-pointer" onClick={() => removeLocation(location)}>
+                                {location} <X className="h-3 w-3 ml-1" />
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {commonLocations.filter(l => !editingEntry.location.includes(l)).map((location) => (
+                              <Button key={location} variant="outline" size="sm" onClick={() => addLocation(location)}>
+                                <Plus className="h-3 w-3 mr-1" /> {location}
+                              </Button>
+                            ))}
+                          </div>
                         </div>
 
                         {/* Triggers */}
@@ -248,6 +284,18 @@ export function PainEntryEditor({ entries, onUpdate }: PainEntryEditorProps) {
 
             {/* Entry Details */}
             <div className="space-y-2 text-sm">
+              {entry.location.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  <span className="text-muted-foreground">Locations:</span>
+                  {entry.location.map((location) => (
+                    <Badge key={location} variant="outline" className="text-xs">
+                      <MapPin className="h-3 w-3 mr-1" />
+                      {location}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              
               {entry.triggers.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   <span className="text-muted-foreground">Triggers:</span>
