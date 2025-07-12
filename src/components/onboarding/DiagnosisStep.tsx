@@ -22,7 +22,7 @@ export const DiagnosisStep = ({ diagnosis, onUpdate, onNext }: DiagnosisStepProp
   return (
     <div className="space-y-8">
       <div className="text-center space-y-3">
-        <h2 className="text-xl font-semibold">Help us understand what you're managing</h2>
+        <h2 className="text-xl font-semibold">Help us understand your journey</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           This helps us give you insights that actually matter for your situation
         </p>
