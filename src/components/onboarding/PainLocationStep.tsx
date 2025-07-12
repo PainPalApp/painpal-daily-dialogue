@@ -4,13 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { getSmartDefaults } from "@/lib/conditionDetection";
-
-const BODY_AREAS = [
-  "Head", "Neck", "Shoulders", "Upper back", "Lower back", 
-  "Chest", "Arms", "Elbows", "Wrists", "Hands", 
-  "Hips", "Thighs", "Knees", "Calves", "Ankles", "Feet"
-];
+import { Input } from "@/components/ui/input";
+import { X } from "lucide-react";
+import { getSmartDefaults, GENERAL_BODY_AREAS } from "@/lib/conditionDetection";
 
 interface PainLocationStepProps {
   diagnosis: string;
@@ -33,6 +29,9 @@ export const PainLocationStep = ({
   const [localIsConsistent, setLocalIsConsistent] = useState(painIsConsistent);
   const [smartDefaults, setSmartDefaults] = useState<any>(null);
   const [hasAppliedDefaults, setHasAppliedDefaults] = useState(false);
+  const [showOtherInput, setShowOtherInput] = useState(false);
+  const [otherLocation, setOtherLocation] = useState("");
+  const [customLocations, setCustomLocations] = useState<string[]>([]);
 
   // Apply smart defaults when diagnosis changes
   useEffect(() => {
@@ -47,11 +46,34 @@ export const PainLocationStep = ({
     }
   }, [diagnosis, hasAppliedDefaults, localPainLocations.length]);
 
+  // Get relevant body areas based on condition
+  const getRelevantBodyAreas = () => {
+    if (smartDefaults?.relevantBodyAreas) {
+      return smartDefaults.relevantBodyAreas;
+    }
+    return GENERAL_BODY_AREAS;
+  };
+
   const toggleLocation = (location: string) => {
     const updated = localPainLocations.includes(location)
       ? localPainLocations.filter(l => l !== location)
       : [...localPainLocations, location];
     setLocalPainLocations(updated);
+  };
+
+  const addCustomLocation = () => {
+    if (otherLocation.trim() && !localPainLocations.includes(otherLocation.trim())) {
+      const newCustom = otherLocation.trim();
+      setLocalPainLocations([...localPainLocations, newCustom]);
+      setCustomLocations([...customLocations, newCustom]);
+      setOtherLocation("");
+      setShowOtherInput(false);
+    }
+  };
+
+  const removeCustomLocation = (location: string) => {
+    setLocalPainLocations(localPainLocations.filter(l => l !== location));
+    setCustomLocations(customLocations.filter(l => l !== location));
   };
 
   const handleNext = () => {
@@ -86,7 +108,7 @@ export const PainLocationStep = ({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {BODY_AREAS.map((area) => (
+            {getRelevantBodyAreas().map((area) => (
               <Badge
                 key={area}
                 variant={localPainLocations.includes(area) ? "default" : "outline"}
@@ -96,7 +118,56 @@ export const PainLocationStep = ({
                 {area}
               </Badge>
             ))}
+            
+            {/* Other option */}
+            {!showOtherInput ? (
+              <Badge
+                variant="outline"
+                className="cursor-pointer p-3 text-center justify-center hover:bg-primary/80 border-dashed"
+                onClick={() => setShowOtherInput(true)}
+              >
+                + Other
+              </Badge>
+            ) : (
+              <div className="col-span-2 flex gap-2">
+                <Input
+                  placeholder="Enter location..."
+                  value={otherLocation}
+                  onChange={(e) => setOtherLocation(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addCustomLocation()}
+                  className="flex-1"
+                  autoFocus
+                />
+                <Button size="sm" onClick={addCustomLocation} disabled={!otherLocation.trim()}>
+                  Add
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setShowOtherInput(false)}>
+                  Cancel
+                </Button>
+              </div>
+            )}
           </div>
+
+          {/* Custom locations with remove option */}
+          {customLocations.length > 0 && (
+            <div className="mt-4 space-y-2">
+              <p className="text-sm text-muted-foreground">Custom locations:</p>
+              <div className="flex flex-wrap gap-2">
+                {customLocations.map((location) => (
+                  <Badge
+                    key={location}
+                    variant="secondary"
+                    className="cursor-pointer group"
+                    onClick={() => removeCustomLocation(location)}
+                  >
+                    {location}
+                    <X className="ml-1 h-3 w-3 opacity-50 group-hover:opacity-100" />
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">Click to remove custom locations</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
