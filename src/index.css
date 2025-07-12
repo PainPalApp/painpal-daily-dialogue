@@ -167,7 +167,7 @@
   }
 
   .button-primary {
-    @apply bg-foreground text-black hover:bg-foreground/90 rounded-lg px-4 py-2 
+    @apply bg-foreground text-background hover:bg-foreground/90 rounded-lg px-4 py-2 
            text-sm font-medium transition-colors;
   }
 
