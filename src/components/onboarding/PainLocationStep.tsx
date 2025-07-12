@@ -97,14 +97,6 @@ export const PainLocationStep = ({
         <p className="text-muted-foreground">
           Select all areas where you commonly have pain or discomfort
         </p>
-        {smartDefaults?.description && (
-          <div className="text-sm text-primary/80 bg-primary/10 rounded-lg p-3 mt-4 space-y-1">
-            <p>💡 {smartDefaults.description}</p>
-            <p className="text-xs opacity-80">
-              We've highlighted common areas for {diagnosis} - feel free to adjust
-            </p>
-          </div>
-        )}
       </div>
 
       <Card>
