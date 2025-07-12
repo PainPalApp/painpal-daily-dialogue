@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { X } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { getSmartDefaults, GENERAL_BODY_AREAS } from "@/lib/conditionDetection";
 
 interface PainLocationStepProps {
@@ -77,6 +77,12 @@ export const PainLocationStep = ({
   };
 
   const handleNext = () => {
+    // Validation: Check if at least one pain location is selected
+    if (localPainLocations.length === 0) {
+      alert("Please select at least one pain area or use 'Other' to specify your pain location. If your pain is very general, you can add 'General' as a custom location.");
+      return;
+    }
+    
     onUpdate({ 
       painLocations: localPainLocations, 
       painIsConsistent: localIsConsistent 
@@ -92,9 +98,12 @@ export const PainLocationStep = ({
           Select all areas where you commonly have pain or discomfort
         </p>
         {smartDefaults?.description && (
-          <p className="text-sm text-primary/80 bg-primary/10 rounded-lg p-3 mt-4">
-            💡 {smartDefaults.description}
-          </p>
+          <div className="text-sm text-primary/80 bg-primary/10 rounded-lg p-3 mt-4 space-y-1">
+            <p>💡 {smartDefaults.description}</p>
+            <p className="text-xs opacity-80">
+              We've highlighted common areas for {diagnosis} - feel free to adjust
+            </p>
+          </div>
         )}
       </div>
 
@@ -108,16 +117,26 @@ export const PainLocationStep = ({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {getRelevantBodyAreas().map((area) => (
-              <Badge
-                key={area}
-                variant={localPainLocations.includes(area) ? "default" : "outline"}
-                className="cursor-pointer p-3 text-center justify-center hover:bg-primary/80"
-                onClick={() => toggleLocation(area)}
-              >
-                {area}
-              </Badge>
-            ))}
+            {getRelevantBodyAreas().map((area) => {
+              const isSelected = localPainLocations.includes(area);
+              return (
+                <Badge
+                  key={area}
+                  variant={isSelected ? "default" : "outline"}
+                  className={`cursor-pointer p-3 text-center justify-center transition-all duration-200 ${
+                    isSelected 
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                      : "border-border hover:bg-accent hover:text-accent-foreground"
+                  }`}
+                  onClick={() => toggleLocation(area)}
+                >
+                  <span className="flex items-center gap-1">
+                    {isSelected && <Check className="h-3 w-3" />}
+                    {area}
+                  </span>
+                </Badge>
+              );
+            })}
             
             {/* Other option */}
             {!showOtherInput ? (
@@ -179,22 +198,34 @@ export const PainLocationStep = ({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="consistent-pain"
-              checked={localIsConsistent}
-              onCheckedChange={setLocalIsConsistent}
-            />
-            <Label htmlFor="consistent-pain" className="cursor-pointer">
-              My pain is usually in the same areas
-            </Label>
-          </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            {localIsConsistent 
-              ? "Your pain tends to stay in consistent locations"
-              : "Your pain moves around or varies in location"
-            }
-          </p>
+          <RadioGroup
+            value={localIsConsistent ? "consistent" : "varies"}
+            onValueChange={(value) => setLocalIsConsistent(value === "consistent")}
+            className="space-y-4"
+          >
+            <div className="flex items-start space-x-3">
+              <RadioGroupItem value="consistent" id="consistent" className="mt-1" />
+              <div className="space-y-1">
+                <Label htmlFor="consistent" className="cursor-pointer font-medium">
+                  My pain usually stays in the same areas
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Consistent locations each time
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-3">
+              <RadioGroupItem value="varies" id="varies" className="mt-1" />
+              <div className="space-y-1">
+                <Label htmlFor="varies" className="cursor-pointer font-medium">
+                  My pain moves to different areas
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Varies from episode to episode
+                </p>
+              </div>
+            </div>
+          </RadioGroup>
         </CardContent>
       </Card>
 
