@@ -22,9 +22,9 @@ export const DiagnosisStep = ({ diagnosis, onUpdate, onNext }: DiagnosisStepProp
   return (
     <div className="space-y-8">
       <div className="text-center space-y-3">
-        <h2 className="text-xl font-semibold">Tell us about your condition</h2>
+        <h2 className="text-xl font-semibold">Help us understand what you're managing</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          This helps PainPal provide personalized care and relevant insights
+          This helps us give you insights that actually matter for your situation
         </p>
       </div>
 
@@ -36,13 +36,13 @@ export const DiagnosisStep = ({ diagnosis, onUpdate, onNext }: DiagnosisStepProp
             </Label>
             <Textarea
               id="diagnosis"
-              placeholder="e.g., Arthritis, Fibromyalgia, Back injury, Chronic headaches..."
+              placeholder="e.g., Chronic migraines, Fibromyalgia, Arthritis, Lower back pain, Joint stiffness..."
               value={localDiagnosis}
               onChange={(e) => setLocalDiagnosis(e.target.value)}
               className="input-clean min-h-[120px] resize-none"
             />
             <p className="text-xs text-muted-foreground">
-              You can leave this blank if you prefer not to share or don't have a specific diagnosis
+              Don't worry about being exact - you can always update this later
             </p>
           </div>
         </div>

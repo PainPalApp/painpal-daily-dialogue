@@ -140,8 +140,8 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     <div className="onboarding-container">
       <div className="onboarding-card animate-scale-in">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-foreground mb-2">Welcome to PainPal</h1>
-          <p className="text-muted-foreground text-sm">Let's set up your personalized care experience</p>
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Welcome to PainPal 👋</h1>
+          <p className="text-muted-foreground text-sm">Let's create a space that understands your journey</p>
           
           <div className="mt-6">
             <div className="onboarding-progress">
@@ -150,7 +150,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-3">Step {currentStep} of {totalSteps}</p>
+            <p className="text-xs text-muted-foreground mt-3">Getting to know you... ({currentStep} of {totalSteps})</p>
           </div>
         </div>
         
