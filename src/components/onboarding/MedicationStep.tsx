@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus } from "lucide-react";
+import { getSmartDefaults } from "@/lib/conditionDetection";
 
 interface Medication {
   name: string;
@@ -14,15 +15,31 @@ interface Medication {
 }
 
 interface MedicationStepProps {
+  diagnosis: string;
   medications: Medication[];
-  onUpdate: (medications: Medication[]) => void;
+  triggers: string[];
+  onUpdate: (data: { currentMedications?: Medication[]; commonTriggers?: string[] }) => void;
   onNext: () => void;
   onPrevious: () => void;
 }
 
-export const MedicationStep = ({ medications, onUpdate, onNext, onPrevious }: MedicationStepProps) => {
+export const MedicationStep = ({ diagnosis, medications, triggers, onUpdate, onNext, onPrevious }: MedicationStepProps) => {
   const [localMedications, setLocalMedications] = useState<Medication[]>(medications);
+  const [localTriggers, setLocalTriggers] = useState<string[]>(triggers);
   const [newMed, setNewMed] = useState<Medication>({ name: "", dosage: "", frequency: "" });
+  const [smartDefaults, setSmartDefaults] = useState<any>(null);
+  const [hasAppliedTriggerDefaults, setHasAppliedTriggerDefaults] = useState(false);
+
+  // Apply smart trigger defaults when diagnosis changes
+  useEffect(() => {
+    if (diagnosis && !hasAppliedTriggerDefaults && localTriggers.length === 0) {
+      const defaults = getSmartDefaults(diagnosis);
+      if (defaults.commonTriggers && defaults.commonTriggers.length > 0) {
+        setSmartDefaults(defaults);
+        setHasAppliedTriggerDefaults(true);
+      }
+    }
+  }, [diagnosis, hasAppliedTriggerDefaults, localTriggers.length]);
 
   const frequencies = [
     "As needed",
@@ -51,8 +68,18 @@ export const MedicationStep = ({ medications, onUpdate, onNext, onPrevious }: Me
     setLocalMedications(updated);
   };
 
+  const toggleTrigger = (trigger: string) => {
+    const updated = localTriggers.includes(trigger)
+      ? localTriggers.filter(t => t !== trigger)
+      : [...localTriggers, trigger];
+    setLocalTriggers(updated);
+  };
+
   const handleNext = () => {
-    onUpdate(localMedications);
+    onUpdate({ 
+      currentMedications: localMedications,
+      commonTriggers: localTriggers
+    });
     onNext();
   };
 
@@ -149,6 +176,53 @@ export const MedicationStep = ({ medications, onUpdate, onNext, onPrevious }: Me
           </CardContent>
         </Card>
       )}
+
+      {/* Triggers Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Pain Triggers (Optional)</CardTitle>
+          <CardDescription>
+            What typically triggers or worsens your pain? This helps you track patterns.
+            {smartDefaults && " We've suggested common triggers based on your condition."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {smartDefaults?.commonTriggers && (
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Common triggers for your condition:</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {smartDefaults.commonTriggers.map((trigger: string) => (
+                  <Badge
+                    key={trigger}
+                    variant={localTriggers.includes(trigger) ? "default" : "outline"}
+                    className="cursor-pointer p-2 text-center justify-center hover:bg-primary/80"
+                    onClick={() => toggleTrigger(trigger)}
+                  >
+                    {trigger}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {localTriggers.length > 0 && (
+            <div className="mt-4 space-y-2">
+              <Label className="text-sm font-medium">Your selected triggers:</Label>
+              <div className="flex flex-wrap gap-2">
+                {localTriggers.map((trigger, index) => (
+                  <Badge key={index} variant="secondary" className="gap-1">
+                    {trigger}
+                    <X 
+                      className="h-3 w-3 cursor-pointer" 
+                      onClick={() => toggleTrigger(trigger)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="flex justify-between">
         <Button variant="outline" onClick={onPrevious}>

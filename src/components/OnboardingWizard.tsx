@@ -14,6 +14,7 @@ export interface OnboardingData {
   diagnosis: string;
   painLocations: string[];
   painIsConsistent: boolean;
+  commonTriggers: string[];
   currentMedications: Array<{
     name: string;
     dosage: string;
@@ -35,6 +36,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     diagnosis: "",
     painLocations: [],
     painIsConsistent: false,
+    commonTriggers: [],
     currentMedications: []
   });
 
@@ -68,6 +70,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           diagnosis: onboardingData.diagnosis,
           default_pain_locations: onboardingData.painLocations,
           pain_is_consistent: onboardingData.painIsConsistent,
+          common_triggers: onboardingData.commonTriggers,
           current_medications: onboardingData.currentMedications,
           onboarding_completed: true
         })
@@ -106,6 +109,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
       case 2:
         return (
           <PainLocationStep
+            diagnosis={onboardingData.diagnosis}
             painLocations={onboardingData.painLocations}
             painIsConsistent={onboardingData.painIsConsistent}
             onUpdate={(data) => updateData(data)}
@@ -116,8 +120,10 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
       case 3:
         return (
           <MedicationStep
+            diagnosis={onboardingData.diagnosis}
             medications={onboardingData.currentMedications}
-            onUpdate={(currentMedications) => updateData({ currentMedications })}
+            triggers={onboardingData.commonTriggers}
+            onUpdate={(data) => updateData(data)}
             onNext={handleNext}
             onPrevious={handlePrevious}
           />

@@ -64,6 +64,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          common_triggers: string[] | null
           created_at: string | null
           current_medications: Json | null
           default_pain_locations: string[] | null
@@ -76,6 +77,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          common_triggers?: string[] | null
           created_at?: string | null
           current_medications?: Json | null
           default_pain_locations?: string[] | null
@@ -88,6 +90,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          common_triggers?: string[] | null
           created_at?: string | null
           current_medications?: Json | null
           default_pain_locations?: string[] | null
