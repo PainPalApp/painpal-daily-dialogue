@@ -398,16 +398,26 @@ export const MedicationStep = ({ diagnosis, medications, triggers, onUpdate, onN
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Common triggers for your condition:</Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {smartDefaults.commonTriggers.map((trigger: string) => (
-                    <Badge
-                      key={trigger}
-                      variant={localTriggers.includes(trigger) ? "default" : "outline"}
-                      className="cursor-pointer p-2 text-center justify-center hover:bg-primary/80"
-                      onClick={() => toggleTrigger(trigger)}
-                    >
-                      {trigger}
-                    </Badge>
-                  ))}
+                  {smartDefaults.commonTriggers.map((trigger: string) => {
+                    const isSelected = localTriggers.includes(trigger);
+                    return (
+                      <Badge
+                        key={trigger}
+                        variant={isSelected ? "default" : "outline"}
+                        className={`cursor-pointer p-3 text-center justify-center transition-all duration-200 ${
+                          isSelected 
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                            : "border-border hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                        onClick={() => toggleTrigger(trigger)}
+                      >
+                        <span className="flex items-center gap-1">
+                          {isSelected && <Check className="h-3 w-3" />}
+                          {trigger}
+                        </span>
+                      </Badge>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -417,15 +427,20 @@ export const MedicationStep = ({ diagnosis, medications, triggers, onUpdate, onN
                 <Label className="text-sm font-medium">Your selected triggers:</Label>
                 <div className="flex flex-wrap gap-2">
                   {localTriggers.map((trigger, index) => (
-                    <Badge key={index} variant="secondary" className="gap-1">
+                    <Badge 
+                      key={index} 
+                      variant="secondary" 
+                      className="cursor-pointer group transition-all duration-200 hover:bg-secondary/80"
+                      onClick={() => toggleTrigger(trigger)}
+                    >
                       {trigger}
                       <X 
-                        className="h-3 w-3 cursor-pointer" 
-                        onClick={() => toggleTrigger(trigger)}
+                        className="ml-1 h-3 w-3 opacity-50 group-hover:opacity-100 transition-opacity" 
                       />
                     </Badge>
                   ))}
                 </div>
+                <p className="text-xs text-muted-foreground">Click to remove triggers</p>
               </div>
             )}
           </CardContent>
