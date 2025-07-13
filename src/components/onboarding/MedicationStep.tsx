@@ -192,7 +192,7 @@ export const MedicationStep = ({ diagnosis, medications, triggers, onUpdate, onN
                         aria-expanded={medicationSearchOpen}
                         className="w-full justify-between"
                       >
-                        {newMed.name || "Select or type medication..."}
+                        {newMed.name || "Type or select"}
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
