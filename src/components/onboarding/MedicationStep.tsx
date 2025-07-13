@@ -204,8 +204,9 @@ export const MedicationStep = ({ diagnosis, medications, triggers, onUpdate, onN
                           onValueChange={(value) => setNewMed(prev => ({ ...prev, name: value }))}
                         />
                         <CommandList>
-                          <CommandEmpty>
-                            {newMed.name && (
+                          <CommandEmpty>No medication found.</CommandEmpty>
+                          <CommandGroup>
+                            {newMed.name && filteredMedications.length === 0 && (
                               <CommandItem
                                 value={newMed.name}
                                 onSelect={(value) => {
@@ -218,8 +219,6 @@ export const MedicationStep = ({ diagnosis, medications, triggers, onUpdate, onN
                                 Add "{newMed.name}" as custom medication
                               </CommandItem>
                             )}
-                          </CommandEmpty>
-                          <CommandGroup>
                             {filteredMedications.map((med) => (
                               <CommandItem
                                 key={med.name}
