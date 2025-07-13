@@ -186,15 +186,17 @@ export const MedicationStep = ({ diagnosis, medications, triggers, onUpdate, onN
                   <Label htmlFor="med-name">Medication Name</Label>
                   <Popover open={medicationSearchOpen} onOpenChange={setMedicationSearchOpen}>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={medicationSearchOpen}
-                        className="w-full justify-between"
-                      >
-                        {newMed.name || "Type or select"}
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={medicationSearchOpen}
+                          className="w-full justify-between h-10"
+                        >
+                          <span className={cn(newMed.name ? "text-foreground" : "text-muted-foreground")}>
+                            {newMed.name || "Type or select"}
+                          </span>
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-full p-0">
                       <Command>
@@ -252,9 +254,11 @@ export const MedicationStep = ({ diagnosis, medications, triggers, onUpdate, onN
                           variant="outline"
                           role="combobox"
                           aria-expanded={dosageSearchOpen}
-                          className="w-full justify-between"
+                          className="w-full justify-between h-10"
                         >
-                          {newMed.dosage || "Select or type dosage..."}
+                          <span className={cn(newMed.dosage ? "text-foreground" : "text-muted-foreground")}>
+                            {newMed.dosage || "Type dosage"}
+                          </span>
                           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
@@ -310,8 +314,8 @@ export const MedicationStep = ({ diagnosis, medications, triggers, onUpdate, onN
                     value={newMed.frequency}
                     onValueChange={(value) => setNewMed(prev => ({ ...prev, frequency: value }))}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="How often?" />
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="How often?" className="text-muted-foreground" />
                     </SelectTrigger>
                     <SelectContent>
                       {frequencies.map((freq) => (
