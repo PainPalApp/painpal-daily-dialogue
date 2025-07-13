@@ -205,12 +205,19 @@ export const MedicationStep = ({ diagnosis, medications, triggers, onUpdate, onN
                         />
                         <CommandList>
                           <CommandEmpty>
-                            <div className="p-2 text-sm">
-                              <p>No medication found.</p>
-                              <p className="text-muted-foreground text-xs mt-1">
-                                Keep typing to add "{newMed.name}" as a custom medication.
-                              </p>
-                            </div>
+                            {newMed.name && (
+                              <CommandItem
+                                value={newMed.name}
+                                onSelect={(value) => {
+                                  setNewMed(prev => ({ ...prev, name: value }));
+                                  setMedicationSearchOpen(false);
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add "{newMed.name}" as custom medication
+                              </CommandItem>
+                            )}
                           </CommandEmpty>
                           <CommandGroup>
                             {filteredMedications.map((med) => (
