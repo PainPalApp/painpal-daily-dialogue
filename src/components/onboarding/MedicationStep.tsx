@@ -192,10 +192,13 @@ export const MedicationStep = ({ diagnosis, medications, triggers, onUpdate, onN
                           aria-expanded={medicationSearchOpen}
                           className="w-full justify-between h-10"
                         >
-                          <span className={cn(newMed.name ? "text-foreground" : "text-muted-foreground")}>
-                            {newMed.name || "Type or select"}
+                          <span className={cn(
+                            "truncate text-left flex-1 mr-2", 
+                            newMed.name ? "text-foreground" : "text-muted-foreground"
+                          )}>
+                            {newMed.name ? (newMed.name.length > 13 ? `${newMed.name.slice(0, 13)}...` : newMed.name) : "Type or select"}
                           </span>
-                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-full p-0">
@@ -256,10 +259,13 @@ export const MedicationStep = ({ diagnosis, medications, triggers, onUpdate, onN
                           aria-expanded={dosageSearchOpen}
                           className="w-full justify-between h-10"
                         >
-                          <span className={cn(newMed.dosage ? "text-foreground" : "text-muted-foreground")}>
-                            {newMed.dosage || "Type dosage"}
+                          <span className={cn(
+                            "truncate text-left flex-1 mr-2",
+                            newMed.dosage ? "text-foreground" : "text-muted-foreground"
+                          )}>
+                            {newMed.dosage ? (newMed.dosage.length > 13 ? `${newMed.dosage.slice(0, 13)}...` : newMed.dosage) : "Type dosage"}
                           </span>
-                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-full p-0">
