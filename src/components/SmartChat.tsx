@@ -44,10 +44,12 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
   const [showLocationSelector, setShowLocationSelector] = useState(false);
   const [pendingPainData, setPendingPainData] = useState<any>(null);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [conversationId, setConversationId] = useState<string>('');
+  const [currentInsights, setCurrentInsights] = useState<string[]>([]);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: 'Hi! I\'m your pain companion. How are you feeling today?',
+      content: 'Hi! I\'m your advanced AI pain companion. I remember our conversations and learn your patterns. How are you feeling today?',
       sender: 'ai',
       timestamp: new Date(),
       suggestions: ['I have a headache', 'Pain level 7', 'Feeling better today', 'Show my insights']
@@ -155,23 +157,26 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
     );
   };
 
-  // generateAIResponse calls the real AI service with user context
-  const generateAIResponse = async (userMessage: string): Promise<{ content: string; suggestions: string[] }> => {
+  // Enhanced generateAIResponse calls the enhanced AI service with full context
+  const generateAIResponse = async (userMessage: string): Promise<{ content: string; suggestions: string[]; conversationId?: string; insights?: string[] }> => {
     // Show thinking state
     const thinkingMessage: Message = {
       id: Date.now().toString() + '-thinking',
-      content: "thinking...",
+      content: "Thinking...",
       sender: 'ai',
       timestamp: new Date()
     };
     setMessages(prev => [...prev, thinkingMessage]);
 
     try {
-      // Call the Supabase edge function for AI chat
+      console.log('Calling enhanced AI with:', { userMessage, conversationId, userId: user?.id });
+      
+      // Call the enhanced Supabase edge function for AI chat
       const { data, error } = await supabase.functions.invoke('ai-chat', {
         body: {
           message: userMessage,
-          userId: user?.id
+          userId: user?.id,
+          conversationId: conversationId || undefined
         }
       });
 
@@ -179,19 +184,35 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
       setMessages(prev => prev.filter(msg => msg.id !== thinkingMessage.id));
 
       if (error) {
-        console.error('AI chat error:', error);
+        console.error('Enhanced AI chat error:', error);
         return {
-          content: "I'm sorry, I'm having trouble connecting to my AI brain right now. But I can still help you log pain entries and track patterns!",
+          content: "I'm sorry, I'm having trouble connecting to my enhanced AI brain right now. But I can still help you log pain entries and track patterns!",
           suggestions: generateSmartSuggestions(userMessage, messages)
         };
       }
 
+      const responseData = data || {};
+      
+      // Update conversation ID if provided
+      if (responseData.conversationId && !conversationId) {
+        setConversationId(responseData.conversationId);
+        console.log('New conversation started:', responseData.conversationId);
+      }
+
+      // Update insights if provided
+      if (responseData.insights && responseData.insights.length > 0) {
+        setCurrentInsights(responseData.insights);
+        console.log('New insights received:', responseData.insights);
+      }
+
       return {
-        content: data.content,
-        suggestions: data.suggestions || generateSmartSuggestions(userMessage, messages)
+        content: responseData.content || "I'm here to help you track and manage your pain with my enhanced capabilities!",
+        suggestions: responseData.suggestions || generateSmartSuggestions(userMessage, messages),
+        conversationId: responseData.conversationId,
+        insights: responseData.insights
       };
     } catch (error) {
-      console.error('Error calling AI service:', error);
+      console.error('Error calling enhanced AI service:', error);
       
       // Remove thinking message
       setMessages(prev => prev.filter(msg => msg.id !== thinkingMessage.id));
@@ -423,6 +444,23 @@ export function SmartChat({ onPainDataExtracted, onNavigationRequest, painHistor
       )}
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+        {/* Display current insights if available */}
+        {currentInsights.length > 0 && (
+          <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 animate-fade-in">
+            <h4 className="font-medium text-sm mb-2 text-accent-foreground flex items-center gap-2">
+              💡 AI Insights from your recent patterns:
+            </h4>
+            <ul className="text-sm space-y-1">
+              {currentInsights.map((insight, index) => (
+                <li key={index} className="text-accent-foreground/90 flex items-start gap-2">
+                  <span className="text-accent-foreground/60">•</span>
+                  <span>{insight}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
         {messages.map((message) => (
           <div key={message.id} className="animate-fade-in">
             <div className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
