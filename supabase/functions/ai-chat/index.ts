@@ -195,6 +195,8 @@ CAPABILITIES:
     if (!response.ok) {
       const errorData = await response.text();
       console.error('OpenAI API error:', errorData);
+      console.error('OpenAI API Key present:', !!openAIApiKey);
+      console.error('OpenAI API Key length:', openAIApiKey?.length || 0);
       throw new Error(`OpenAI API error: ${response.status}`);
     }
 
