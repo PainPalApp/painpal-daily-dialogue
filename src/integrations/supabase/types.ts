@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_conversations: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          message_type: string
+          metadata: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message_type: string
+          metadata?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          metadata?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_insights: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          data_sources: Json | null
+          description: string
+          id: string
+          insight_type: string
+          is_dismissed: boolean | null
+          metadata: Json | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          data_sources?: Json | null
+          description: string
+          id?: string
+          insight_type: string
+          is_dismissed?: boolean | null
+          metadata?: Json | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          data_sources?: Json | null
+          description?: string
+          id?: string
+          insight_type?: string
+          is_dismissed?: boolean | null
+          metadata?: Json | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pain_logs: {
         Row: {
           activity: string | null
@@ -101,6 +176,45 @@ export type Database = {
           onboarding_completed?: boolean | null
           pain_is_consistent?: boolean | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_ai_preferences: {
+        Row: {
+          ai_personality: string | null
+          conversation_context: Json | null
+          created_at: string
+          id: string
+          last_interaction: string | null
+          learned_patterns: Json | null
+          notification_preferences: Json | null
+          preferred_communication_style: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_personality?: string | null
+          conversation_context?: Json | null
+          created_at?: string
+          id?: string
+          last_interaction?: string | null
+          learned_patterns?: Json | null
+          notification_preferences?: Json | null
+          preferred_communication_style?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_personality?: string | null
+          conversation_context?: Json | null
+          created_at?: string
+          id?: string
+          last_interaction?: string | null
+          learned_patterns?: Json | null
+          notification_preferences?: Json | null
+          preferred_communication_style?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
