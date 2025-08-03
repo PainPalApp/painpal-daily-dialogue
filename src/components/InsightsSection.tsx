@@ -11,6 +11,8 @@ import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X, BarChar
 import { useToast } from '@/hooks/use-toast';
 import { PainChart } from '@/components/PainChart';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { usePainLogs } from '@/hooks/usePainLogs';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PainEntry {
   id: number;
@@ -31,35 +33,58 @@ export const InsightsSection = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('today');
   const { toast } = useToast();
+  const { getPainLogs, updatePainLog, deletePainLog } = usePainLogs();
+
+  // Transform Supabase data to PainEntry format
+  const transformSupabaseData = (supabaseData: any[]): PainEntry[] => {
+    return supabaseData.map((entry) => ({
+      id: entry.id,
+      date: entry.logged_at.split('T')[0], // Extract date part
+      timestamp: entry.logged_at,
+      painLevel: entry.pain_level,
+      location: entry.pain_locations || [],
+      triggers: entry.triggers || [],
+      medications: entry.medications || [],
+      notes: entry.notes || '',
+      symptoms: [], // Not currently used in Supabase schema
+      status: 'active'
+    }));
+  };
 
   useEffect(() => {
-    const savedData = localStorage.getItem('painTrackingData');
-    if (savedData) {
+    const loadPainData = async () => {
       try {
-        const parsed = JSON.parse(savedData);
-        setPainData(parsed || []);
+        const logs = await getPainLogs();
+        const transformedData = transformSupabaseData(logs);
+        setPainData(transformedData);
       } catch (error) {
-        console.error('Error parsing pain data:', error);
+        console.error('Error loading pain data:', error);
         setPainData([]);
-      }
-    }
-
-    // Listen for pain data updates
-    const handlePainDataUpdate = () => {
-      const updatedData = localStorage.getItem('painTrackingData');
-      if (updatedData) {
-        try {
-          const parsed = JSON.parse(updatedData);
-          setPainData(parsed || []);
-        } catch (error) {
-          console.error('Error parsing updated pain data:', error);
-        }
       }
     };
 
-    window.addEventListener('painDataUpdated', handlePainDataUpdate);
-    return () => window.removeEventListener('painDataUpdated', handlePainDataUpdate);
-  }, []);
+    loadPainData();
+
+    // Listen for real-time updates
+    const channel = supabase
+      .channel('pain_logs_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'pain_logs'
+        },
+        () => {
+          loadPainData(); // Reload data when changes occur
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [getPainLogs]);
 
   // Group entries by date
   const groupedEntries = painData.reduce((groups, entry) => {
@@ -115,25 +140,32 @@ export const InsightsSection = () => {
     setIsEditDialogOpen(true);
   };
 
-  const handleSaveEntry = () => {
+  const handleSaveEntry = async () => {
     if (!editingEntry) return;
 
-    const updatedData = painData.map(entry => 
-      entry.id === editingEntry.id ? editingEntry : entry
-    );
+    const updates = {
+      pain_level: editingEntry.painLevel,
+      pain_locations: editingEntry.location,
+      triggers: editingEntry.triggers,
+      medications: editingEntry.medications,
+      notes: editingEntry.notes
+    };
 
-    localStorage.setItem('painTrackingData', JSON.stringify(updatedData));
-    setPainData(updatedData);
-    setIsEditDialogOpen(false);
-    setEditingEntry(null);
+    const success = await updatePainLog(editingEntry.id.toString(), updates);
+    
+    if (success) {
+      const updatedData = painData.map(entry => 
+        entry.id === editingEntry.id ? editingEntry : entry
+      );
+      setPainData(updatedData);
+      setIsEditDialogOpen(false);
+      setEditingEntry(null);
 
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('painDataUpdated'));
-
-    toast({
-      title: "Entry Updated",
-      description: "Your pain entry has been successfully updated.",
-    });
+      toast({
+        title: "Entry Updated",
+        description: "Your pain entry has been successfully updated.",
+      });
+    }
   };
 
   const handleEditInputChange = (field: keyof PainEntry, value: any) => {

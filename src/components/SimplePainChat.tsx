@@ -27,6 +27,7 @@ interface Message {
 
 interface SimplePainChatProps {
   onPainDataSaved?: (data: any) => void;
+  onNavigateToInsights?: () => void;
 }
 
 interface UserProfile {
@@ -34,7 +35,7 @@ interface UserProfile {
   default_pain_locations?: string[];
 }
 
-export function SimplePainChat({ onPainDataSaved }: SimplePainChatProps) {
+export function SimplePainChat({ onPainDataSaved, onNavigateToInsights }: SimplePainChatProps) {
   const { user } = useAuth();
   const { savePainLog } = usePainLogs();
   const { toast } = useToast();
@@ -351,6 +352,10 @@ export function SimplePainChat({ onPainDataSaved }: SimplePainChatProps) {
   };
 
   const handlePillClick = (pill: string) => {
+    if (pill === 'Show my progress' && onNavigateToInsights) {
+      onNavigateToInsights();
+      return;
+    }
     handleSendMessage(pill);
   };
 

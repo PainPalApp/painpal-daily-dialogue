@@ -31,7 +31,7 @@ ChartJS.register(
 );
 
 interface PainEntry {
-  id: number;
+  id: number | string;
   date: string;
   timestamp: string;
   painLevel: number | null;

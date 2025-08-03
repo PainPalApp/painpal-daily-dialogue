@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Clock, Edit, BarChart3, TrendingUp } from "lucide-react";
 import { SimplePainChat } from "@/components/SimplePainChat";
-import { TodaysPainTimeline } from "@/components/TodaysPainTimeline";
+import { PainChart } from "@/components/PainChart";
+import { usePainLogs } from "@/hooks/usePainLogs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 
 interface Message {
@@ -280,9 +282,63 @@ interface TodaySectionProps {
 }
 
 export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
+  const { getPainLogs } = usePainLogs();
+  const [painData, setPainData] = useState<any[]>([]);
+  const [recentEntries, setRecentEntries] = useState<any[]>([]);
+
+  // Transform Supabase data to PainEntry format for chart
+  const transformForChart = (supabaseData: any[]) => {
+    return supabaseData.map((entry) => ({
+      id: entry.id,
+      date: entry.logged_at.split('T')[0],
+      timestamp: entry.logged_at,
+      painLevel: entry.pain_level,
+      location: entry.pain_locations || [],
+      triggers: entry.triggers || [],
+      medications: entry.medications || [],
+      notes: entry.notes || '',
+      symptoms: [],
+      status: 'active'
+    }));
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const logs = await getPainLogs();
+        const transformed = transformForChart(logs);
+        setPainData(transformed);
+        
+        // Get last 3 entries for display
+        const recent = logs
+          .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())
+          .slice(0, 3);
+        setRecentEntries(recent);
+      } catch (error) {
+        console.error('Error loading pain data:', error);
+      }
+    };
+
+    loadData();
+  }, [getPainLogs]);
+
   const handlePainDataSaved = (painData: any) => {
-    // Trigger a custom event for other components to listen to
-    window.dispatchEvent(new CustomEvent('painDataUpdated', { detail: painData }));
+    // Refresh data when new pain entry is saved
+    const loadData = async () => {
+      try {
+        const logs = await getPainLogs();
+        const transformed = transformForChart(logs);
+        setPainData(transformed);
+        
+        const recent = logs
+          .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())
+          .slice(0, 3);
+        setRecentEntries(recent);
+      } catch (error) {
+        console.error('Error loading pain data:', error);
+      }
+    };
+    loadData();
   };
 
   const handleNavigationRequest = (destination: string) => {
@@ -291,15 +347,60 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
     }
   };
 
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <div className="flex-1 bg-background flex flex-col h-full">
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
         {/* Header Card */}
         <TodaysPainCard onViewInsights={() => handleNavigationRequest('insights')} />
         
-        {/* Today's Timeline */}
+        {/* Pain Chart with Recent Entries */}
         <div className="mx-4 sm:mx-6 lg:mx-8 mb-6">
-          <TodaysPainTimeline />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Today's Pain Pattern
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-48 mb-4">
+                <PainChart 
+                  painData={painData}
+                  viewMode="today"
+                  isCompact={true}
+                />
+              </div>
+              
+              {/* Recent Entries */}
+              {recentEntries.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Recent Entries</h4>
+                  <div className="space-y-2">
+                    {recentEntries.map((entry) => (
+                      <div key={entry.id} className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">{formatTime(entry.logged_at)}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">Pain: {entry.pain_level}/10</span>
+                          {entry.pain_locations && entry.pain_locations.length > 0 && (
+                            <span className="text-muted-foreground">
+                              • {entry.pain_locations.slice(0, 2).join(', ')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Simplified Chat Interface */}
@@ -311,6 +412,7 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
             </div>
             <SimplePainChat 
               onPainDataSaved={handlePainDataSaved}
+              onNavigateToInsights={() => handleNavigationRequest('insights')}
             />
           </div>
         </div>
