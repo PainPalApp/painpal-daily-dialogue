@@ -91,7 +91,7 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
   }, []);
 
   const createChart = useCallback(() => {
-    if (!canvasRef.current || !painData) return;
+    if (!canvasRef.current || !painData || !canvasRef.current.isConnected) return;
 
     // Clean up existing chart
     if (chartRef.current) {
@@ -354,7 +354,9 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      createChart();
+      if (canvasRef.current && canvasRef.current.isConnected) {
+        createChart();
+      }
     }, 100);
     
     return () => {
@@ -368,7 +370,7 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
         chartRef.current = null;
       }
     };
-  }, [painData, viewMode]);
+  }, [painData, viewMode, createChart]);
 
   useEffect(() => {
     if (isChartReady && chartRef.current && painData?.length > 0) {
