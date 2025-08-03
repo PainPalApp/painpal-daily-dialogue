@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Clock, Edit, BarChart3, TrendingUp } from "lucide-react";
-import { SmartChat } from "@/components/SmartChat";
+import { SimplePainChat } from "@/components/SimplePainChat";
+import { TodaysPainTimeline } from "@/components/TodaysPainTimeline";
 
 
 interface Message {
@@ -250,99 +251,25 @@ const generateSmartResponse = (userMessage: string, conversationHistory: string[
 };
 
 
+// Simplified TodaysPainCard - now just shows insights button
 const TodaysPainCard = ({ onViewInsights }: { onViewInsights: () => void }) => {
-  const [painHistory, setPainHistory] = useState([]);
-
-  const loadPainData = () => {
-    const storedData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
-    setPainHistory(storedData);
-  };
-
-  useEffect(() => {
-    loadPainData();
-    
-    const handleDataUpdate = () => {
-      loadPainData();
-    };
-    
-    window.addEventListener('painDataUpdated', handleDataUpdate);
-    return () => window.removeEventListener('painDataUpdated', handleDataUpdate);
-  }, []);
-
-  // Get today's data
-  const getTodayData = () => {
-    const today = new Date().toISOString().split('T')[0];
-    return painHistory
-      .filter((e: any) => e.date === today)
-      .sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-  };
-
-  const todayEntries = getTodayData();
-  const painLevels = todayEntries.filter((e: any) => e.painLevel && e.painLevel > 0).map((e: any) => e.painLevel);
-  const currentPain = painLevels.length > 0 ? painLevels[painLevels.length - 1] : 0;
-  const earliestEntry = todayEntries.length > 0 ? todayEntries[0] : null;
-  
   return (
     <div className="card-clean p-6 mb-6 mx-4 sm:mx-6 lg:mx-8 animate-fade-in">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-foreground">Today's Overview</h3>
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={onViewInsights}
-            className="text-xs hover:bg-accent"
-          >
-            <BarChart3 className="h-4 w-4 mr-1.5" />
-            Analytics
-          </Button>
-          {currentPain > 0 && (
-            <div className="px-3 py-1 bg-accent rounded-full">
-              <span className="text-lg font-semibold text-accent-foreground">{currentPain}/10</span>
-            </div>
-          )}
-        </div>
+        <h3 className="text-lg font-semibold text-foreground">Pain Tracking</h3>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={onViewInsights}
+          className="text-xs hover:bg-accent"
+        >
+          <BarChart3 className="h-4 w-4 mr-1.5" />
+          View Insights
+        </Button>
       </div>
       
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm">
-          <Clock className="h-4 w-4 text-muted-foreground" />
-          <span className="text-foreground">
-            {painLevels.length > 0 
-              ? `${painLevels.length} pain ${painLevels.length === 1 ? 'entry' : 'entries'} today`
-              : 'No pain entries today'
-            }
-          </span>
-        </div>
-        
-        {earliestEntry && (
-          <div className="flex items-center gap-2 text-sm">
-            <Clock className="h-4 w-4 text-accent-foreground" />
-            <span className="text-muted-foreground">
-              Tracking since {new Date(earliestEntry.timestamp).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </span>
-          </div>
-        )}
-        
-        {/* Clean progress bar for current pain */}
-        {currentPain > 0 && (
-          <div className="relative mt-4">
-            <div className="h-1.5 bg-secondary rounded-full"></div>
-            <div 
-              className="absolute top-0 h-1.5 bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full transition-all duration-700"
-              style={{ width: `${(currentPain / 10) * 100}%` }}
-            />
-          </div>
-        )}
-        
-        {painLevels.length === 0 && (
-          <div className="text-sm text-muted-foreground bg-secondary/50 rounded-lg p-3 text-center">
-            Start a conversation below to begin tracking your pain today.
-          </div>
-        )}
+      <div className="text-sm text-muted-foreground">
+        Track your pain naturally by chatting below or view detailed analytics and patterns.
       </div>
     </div>
   );
@@ -353,39 +280,9 @@ interface TodaySectionProps {
 }
 
 export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
-  const [painData, setPainData] = useState([]);
-
-  // Load initial pain data and listen for updates
-  useEffect(() => {
-    const loadPainData = () => {
-      const storedData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
-      setPainData(storedData);
-    };
-
-    loadPainData();
-    
-    const handleDataUpdate = () => {
-      loadPainData();
-    };
-    
-    window.addEventListener('painDataUpdated', handleDataUpdate);
-    return () => window.removeEventListener('painDataUpdated', handleDataUpdate);
-  }, []);
-
-  const handlePainDataExtracted = (extractedData: any) => {
-    if (extractedData && extractedData.painLevel !== null) {
-      const existingData = JSON.parse(localStorage.getItem('painTrackingData') || '[]');
-      const today = new Date().toISOString().split('T')[0];
-      const todayEntries = existingData.filter((entry: any) => entry.date === today);
-      
-      // Check if this is a new pain level (different from the last entry)
-      const lastPainLevel = todayEntries.length > 0 ? todayEntries[todayEntries.length - 1].painLevel : null;
-      
-      if (lastPainLevel !== extractedData.painLevel) {
-        savePainData(extractedData);
-        console.log('Pain data saved:', extractedData);
-      }
-    }
+  const handlePainDataSaved = (painData: any) => {
+    // Trigger a custom event for other components to listen to
+    window.dispatchEvent(new CustomEvent('painDataUpdated', { detail: painData }));
   };
 
   const handleNavigationRequest = (destination: string) => {
@@ -397,21 +294,23 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
   return (
     <div className="flex-1 bg-background flex flex-col h-full">
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
-        {/* Today's Pain Overview Card */}
+        {/* Header Card */}
         <TodaysPainCard onViewInsights={() => handleNavigationRequest('insights')} />
         
+        {/* Today's Timeline */}
+        <div className="mx-4 sm:mx-6 lg:mx-8 mb-6">
+          <TodaysPainTimeline />
+        </div>
 
-        {/* Chat Interface - ChatGPT Style */}
+        {/* Simplified Chat Interface */}
         <div className="flex-1 flex flex-col mx-4 sm:mx-6 lg:mx-8 mb-6">
           <div className="card-clean flex-1 flex flex-col overflow-hidden">
             <div className="p-4 border-b border-border bg-card/50">
-              <h3 className="text-lg font-semibold text-foreground">Your AI Pain Companion</h3>
-              <p className="text-sm text-muted-foreground">Chat naturally about your symptoms for personalized insights</p>
+              <h3 className="text-lg font-semibold text-foreground">Track Your Pain</h3>
+              <p className="text-sm text-muted-foreground">Chat naturally or tap the easy buttons to log your symptoms</p>
             </div>
-            <SmartChat 
-              onPainDataExtracted={handlePainDataExtracted}
-              onNavigationRequest={handleNavigationRequest}
-              painHistory={painData}
+            <SimplePainChat 
+              onPainDataSaved={handlePainDataSaved}
             />
           </div>
         </div>
