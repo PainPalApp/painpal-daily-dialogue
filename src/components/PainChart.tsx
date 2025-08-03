@@ -1,4 +1,5 @@
 import { usePainChart } from '@/hooks/usePainChart';
+import { memo } from 'react';
 
 interface PainEntry {
   id: number;
@@ -19,7 +20,7 @@ interface PainChartProps {
   isCompact?: boolean;
 }
 
-export const PainChart = ({ painData, viewMode, isCompact = false }: PainChartProps) => {
+const PainChartComponent = ({ painData, viewMode, isCompact = false }: PainChartProps) => {
   const { canvasRef, isChartReady } = usePainChart(painData, viewMode);
 
   if (painData.length === 0) {
@@ -45,3 +46,13 @@ export const PainChart = ({ painData, viewMode, isCompact = false }: PainChartPr
     </div>
   );
 };
+
+// Memoize the component to prevent unnecessary re-renders
+export const PainChart = memo(PainChartComponent, (prevProps, nextProps) => {
+  // Custom comparison function to prevent re-renders when data hasn't actually changed
+  return (
+    prevProps.viewMode === nextProps.viewMode &&
+    prevProps.isCompact === nextProps.isCompact &&
+    JSON.stringify(prevProps.painData) === JSON.stringify(nextProps.painData)
+  );
+});

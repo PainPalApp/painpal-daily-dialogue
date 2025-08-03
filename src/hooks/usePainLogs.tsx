@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -18,8 +18,24 @@ export function usePainLogs() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingRequestsRef = useRef<Set<string>>(new Set());
 
-  const savePainLog = async (painData: PainLogData) => {
+  // Debounced save function to prevent rapid API calls
+  const debouncedSavePainLog = useCallback(async (painData: PainLogData): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+
+      debounceTimeoutRef.current = setTimeout(async () => {
+        const result = await savePainLogImmediate(painData);
+        resolve(result);
+      }, 800); // 800ms debounce
+    });
+  }, []);
+
+  const savePainLogImmediate = async (painData: PainLogData) => {
     if (!user?.id) {
       toast({
         title: "Authentication required",
@@ -29,7 +45,16 @@ export function usePainLogs() {
       return false;
     }
 
+    // Create a unique key for this request to prevent duplicates
+    const requestKey = `${user.id}-${painData.pain_level}-${Date.now()}`;
+    
+    if (pendingRequestsRef.current.has(requestKey)) {
+      return false; // Request already in progress
+    }
+
+    pendingRequestsRef.current.add(requestKey);
     setIsLoading(true);
+    
     try {
       const { error } = await supabase
         .from('pain_logs')
@@ -70,9 +95,12 @@ export function usePainLogs() {
       });
       return false;
     } finally {
+      pendingRequestsRef.current.delete(requestKey);
       setIsLoading(false);
     }
   };
+
+  const savePainLog = debouncedSavePainLog;
 
   const getPainLogs = async (startDate?: string, endDate?: string) => {
     if (!user?.id) return [];

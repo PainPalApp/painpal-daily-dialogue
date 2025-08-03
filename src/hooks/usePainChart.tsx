@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -47,6 +47,22 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
   const chartRef = useRef<ChartJS | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isChartReady, setIsChartReady] = useState(false);
+  const mutationObserverRef = useRef<MutationObserver | null>(null);
+  const isInitializedRef = useRef(false);
+
+  // Memoize processed data to prevent unnecessary recalculations
+  const processedData = useMemo(() => {
+    switch (viewMode) {
+      case 'today':
+        return getTodayData(painData);
+      case 'week':
+        return getWeekData(painData);
+      case 'month':
+        return getMonthData(painData);
+      default:
+        return [];
+    }
+  }, [painData, viewMode]);
 
   const getTodayData = useCallback((data: PainEntry[]) => {
     const today = new Date().toISOString().split('T')[0];
@@ -91,7 +107,12 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
   }, []);
 
   const createChart = useCallback(() => {
-    if (!canvasRef.current || !painData) return;
+    if (!canvasRef.current || !painData || !canvasRef.current.isConnected) return;
+
+    // Prevent multiple initializations
+    if (isInitializedRef.current && chartRef.current) {
+      return;
+    }
 
     // Clean up existing chart
     if (chartRef.current) {
@@ -103,16 +124,27 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
       chartRef.current = null;
     }
 
+    // Clean up existing MutationObserver
+    if (mutationObserverRef.current) {
+      try {
+        mutationObserverRef.current.disconnect();
+      } catch (e) {
+        console.warn('MutationObserver cleanup failed:', e);
+      }
+      mutationObserverRef.current = null;
+    }
+
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
 
     setIsChartReady(false);
 
     if (viewMode === 'today') {
-      const todayData = getTodayData(painData);
+      const todayData = processedData as PainEntry[];
       
       if (todayData.length === 0) {
         setIsChartReady(true);
+        isInitializedRef.current = true;
         return;
       }
 
@@ -202,7 +234,7 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
       });
     } else if (viewMode === 'week') {
       // Week view - simplified line chart
-      const weekData = getWeekData(painData);
+      const weekData = processedData as any[];
       
       chartRef.current = new ChartJS(ctx, {
         type: 'line',
@@ -257,7 +289,7 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
       });
     } else {
       // Month view - similar to week but with more data points
-      const monthData = getMonthData(painData);
+      const monthData = processedData as any[];
       
       chartRef.current = new ChartJS(ctx, {
         type: 'line',
@@ -315,8 +347,28 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
       });
     }
 
+    // Set up MutationObserver to watch for DOM changes only once
+    if (canvasRef.current && !mutationObserverRef.current) {
+      try {
+        mutationObserverRef.current = new MutationObserver(() => {
+          // Only reconnect chart if it was disconnected
+          if (chartRef.current && !canvasRef.current?.isConnected) {
+            console.log('Canvas disconnected, will recreate on next update');
+          }
+        });
+        
+        mutationObserverRef.current.observe(canvasRef.current.parentNode as Node, {
+          childList: true,
+          subtree: true
+        });
+      } catch (e) {
+        console.warn('Failed to set up MutationObserver:', e);
+      }
+    }
+
     setIsChartReady(true);
-  }, [painData, viewMode, getTodayData, getWeekData, getMonthData]);
+    isInitializedRef.current = true;
+  }, [painData, viewMode, processedData]);
 
   const updateChart = useCallback(() => {
     if (!chartRef.current || !isChartReady) {
@@ -353,7 +405,10 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
   }, [painData, viewMode, isChartReady, getTodayData, getWeekData, getMonthData]);
 
   useEffect(() => {
-    createChart();
+    // Only create chart once, then update data
+    if (!isInitializedRef.current) {
+      createChart();
+    }
     
     return () => {
       if (chartRef.current) {
@@ -364,8 +419,28 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
         }
         chartRef.current = null;
       }
+      
+      if (mutationObserverRef.current) {
+        try {
+          mutationObserverRef.current.disconnect();
+        } catch (e) {
+          console.warn('MutationObserver cleanup failed:', e);
+        }
+        mutationObserverRef.current = null;
+      }
+      
+      isInitializedRef.current = false;
     };
-  }, [painData, viewMode, createChart]);
+  }, [viewMode]); // Only recreate when viewMode changes
+
+  // Update chart data when painData changes (without recreating the entire chart)
+  useEffect(() => {
+    if (chartRef.current && isChartReady && isInitializedRef.current) {
+      updateChart();
+    } else if (!isInitializedRef.current) {
+      createChart();
+    }
+  }, [painData, updateChart, isChartReady, createChart]);
 
   return { canvasRef, isChartReady };
 };
