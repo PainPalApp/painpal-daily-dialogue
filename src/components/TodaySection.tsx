@@ -253,29 +253,6 @@ const generateSmartResponse = (userMessage: string, conversationHistory: string[
 };
 
 
-// Simplified TodaysPainCard - now just shows insights button
-const TodaysPainCard = ({ onViewInsights }: { onViewInsights: () => void }) => {
-  return (
-    <div className="card-clean p-6 mb-6 mx-4 sm:mx-6 lg:mx-8 animate-fade-in">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-foreground">Pain Tracking</h3>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={onViewInsights}
-          className="text-xs hover:bg-accent"
-        >
-          <BarChart3 className="h-4 w-4 mr-1.5" />
-          View Insights
-        </Button>
-      </div>
-      
-      <div className="text-sm text-muted-foreground">
-        Track your pain naturally by chatting below or view detailed analytics and patterns.
-      </div>
-    </div>
-  );
-};
 
 interface TodaySectionProps {
   onNavigateToInsights?: () => void;
@@ -358,7 +335,7 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
     <div className="flex-1 bg-background flex flex-col h-full">
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
         {/* Header Card */}
-        <TodaysPainCard onViewInsights={() => handleNavigationRequest('insights')} />
+        
         
         {/* Pain Chart with Recent Entries */}
         <div className="mx-4 sm:mx-6 lg:mx-8 mb-6">
