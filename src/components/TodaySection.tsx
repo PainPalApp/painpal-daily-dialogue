@@ -370,11 +370,11 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-48 mb-4">
+              <div className="h-64 mb-4">
                 <PainChart 
                   painData={painData}
                   viewMode="today"
-                  isCompact={true}
+                  isCompact={false}
                 />
               </div>
               
