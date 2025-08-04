@@ -50,21 +50,7 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
   const mutationObserverRef = useRef<MutationObserver | null>(null);
   const isInitializedRef = useRef(false);
 
-  // Memoize processed data to prevent unnecessary recalculations
-  const processedData = useMemo(() => {
-    switch (viewMode) {
-      case 'today':
-        return getTodayData(painData);
-      case 'week':
-        return getWeekData(painData);
-      case 'month':
-        return getMonthData(painData);
-      default:
-        return [];
-    }
-  }, [painData, viewMode]);
-
-  const getTodayData = useCallback((data: PainEntry[]) => {
+  const getTodayData = (data: PainEntry[]) => {
     const today = new Date().toISOString().split('T')[0];
     return data.filter(entry => 
       entry.date === today && 
@@ -72,9 +58,9 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
       entry.painLevel !== undefined &&
       entry.painLevel > 0
     ).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-  }, []);
+  };
 
-  const getWeekData = useCallback((data: PainEntry[]) => {
+  const getWeekData = (data: PainEntry[]) => {
     const chartData = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
@@ -88,9 +74,9 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
       });
     }
     return chartData;
-  }, []);
+  };
 
-  const getMonthData = useCallback((data: PainEntry[]) => {
+  const getMonthData = (data: PainEntry[]) => {
     const chartData = [];
     for (let i = 29; i >= 0; i--) {
       const date = new Date();
@@ -104,7 +90,21 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
       });
     }
     return chartData;
-  }, []);
+  };
+
+  // Memoize processed data to prevent unnecessary recalculations
+  const processedData = useMemo(() => {
+    switch (viewMode) {
+      case 'today':
+        return getTodayData(painData);
+      case 'week':
+        return getWeekData(painData);
+      case 'month':
+        return getMonthData(painData);
+      default:
+        return [];
+    }
+  }, [painData, viewMode]);
 
   const createChart = useCallback(() => {
     if (!canvasRef.current || !painData || !canvasRef.current.isConnected) return;
