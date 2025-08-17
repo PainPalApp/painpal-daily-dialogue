@@ -12,6 +12,8 @@ interface PainLogData {
   mood?: string;
   activity?: string;
   weather?: string;
+  pain_strategies?: string[];
+  journal_entry?: string;
 }
 
 export function usePainLogs() {
@@ -68,6 +70,8 @@ export function usePainLogs() {
           mood: painData.mood,
           activity: painData.activity,
           weather: painData.weather,
+          pain_strategies: painData.pain_strategies || [],
+          journal_entry: painData.journal_entry,
           logged_at: new Date().toISOString()
         });
 

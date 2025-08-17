@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -94,12 +94,15 @@ export type Database = {
           activity: string | null
           created_at: string
           id: string
+          journal_entry: string | null
           logged_at: string
           medications: string[] | null
           mood: string | null
           notes: string | null
           pain_level: number
           pain_locations: string[] | null
+          pain_strategies: string[] | null
+          strategy_effectiveness_score: number | null
           triggers: string[] | null
           updated_at: string
           user_id: string
@@ -109,12 +112,15 @@ export type Database = {
           activity?: string | null
           created_at?: string
           id?: string
+          journal_entry?: string | null
           logged_at?: string
           medications?: string[] | null
           mood?: string | null
           notes?: string | null
           pain_level: number
           pain_locations?: string[] | null
+          pain_strategies?: string[] | null
+          strategy_effectiveness_score?: number | null
           triggers?: string[] | null
           updated_at?: string
           user_id: string
@@ -124,12 +130,15 @@ export type Database = {
           activity?: string | null
           created_at?: string
           id?: string
+          journal_entry?: string | null
           logged_at?: string
           medications?: string[] | null
           mood?: string | null
           notes?: string | null
           pain_level?: number
           pain_locations?: string[] | null
+          pain_strategies?: string[] | null
+          strategy_effectiveness_score?: number | null
           triggers?: string[] | null
           updated_at?: string
           user_id?: string

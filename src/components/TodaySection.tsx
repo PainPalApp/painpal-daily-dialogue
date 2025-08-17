@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Clock, Edit, BarChart3, TrendingUp } from "lucide-react";
-import { SimplePainChat } from "@/components/SimplePainChat";
+import { PainEntryForm } from "@/components/PainEntryForm";
 import { PainChart } from "@/components/PainChart";
 import { usePainLogs } from "@/hooks/usePainLogs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -380,18 +380,11 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
           </Card>
         </div>
 
-        {/* Simplified Chat Interface */}
+        {/* Pain Entry Form */}
         <div className="flex-1 flex flex-col mx-4 sm:mx-6 lg:mx-8 mb-6">
-          <div className="card-clean flex-1 flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-border bg-card/50">
-              <h3 className="text-lg font-semibold text-foreground">Track Your Pain</h3>
-              <p className="text-sm text-muted-foreground">Chat naturally or tap the easy buttons to log your symptoms</p>
-            </div>
-            <SimplePainChat 
-              onPainDataSaved={handlePainDataSaved}
-              onNavigateToInsights={() => handleNavigationRequest('insights')}
-            />
-          </div>
+          <PainEntryForm 
+            onPainDataSaved={handlePainDataSaved}
+          />
         </div>
       </div>
     </div>
