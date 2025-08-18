@@ -164,13 +164,14 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
             borderColor: '#ef4444',
             backgroundColor: 'rgba(239, 68, 68, 0.1)',
             borderWidth: 3,
-            pointRadius: 6,
-            pointHoverRadius: 8,
+            pointRadius: 4,
+            pointHoverRadius: 6,
             pointBackgroundColor: '#ef4444',
             pointBorderColor: '#ffffff',
             pointBorderWidth: 2,
             fill: true,
-            tension: 0.4
+            tension: 0.4,
+            cubicInterpolationMode: 'monotone' as const
           }]
         },
         options: {

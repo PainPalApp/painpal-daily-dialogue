@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Send, Clock, Edit, BarChart3, TrendingUp } from "lucide-react";
 import { PainEntryForm } from "@/components/PainEntryForm";
 import { PainChart } from "@/components/PainChart";
 import { usePainLogs } from "@/hooks/usePainLogs";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 
@@ -260,8 +263,12 @@ interface TodaySectionProps {
 
 export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
   const { getPainLogs } = usePainLogs();
+  const { user } = useAuth();
   const [painData, setPainData] = useState<any[]>([]);
-  const [recentEntries, setRecentEntries] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState('today');
+  const [lastPainLevel, setLastPainLevel] = useState<number | null>(null);
+  const [lastEntryInfo, setLastEntryInfo] = useState<string | null>(null);
+  const [userGreeting, setUserGreeting] = useState<string>('');
 
   // Transform Supabase data to PainEntry format for chart
   const transformForChart = (supabaseData: any[]) => {
@@ -280,42 +287,117 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
   };
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const logs = await getPainLogs();
-        const transformed = transformForChart(logs);
-        setPainData(transformed);
-        
-        // Get last 3 entries for display
-        const recent = logs
-          .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())
-          .slice(0, 3);
-        setRecentEntries(recent);
-      } catch (error) {
-        console.error('Error loading pain data:', error);
-      }
-    };
-
     loadData();
+    loadUserLifecycleInfo();
   }, [getPainLogs]);
 
-  const handlePainDataSaved = (painData: any) => {
-    // Refresh data when new pain entry is saved
-    const loadData = async () => {
-      try {
-        const logs = await getPainLogs();
-        const transformed = transformForChart(logs);
-        setPainData(transformed);
-        
-        const recent = logs
-          .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())
-          .slice(0, 3);
-        setRecentEntries(recent);
-      } catch (error) {
-        console.error('Error loading pain data:', error);
-      }
+  // Real-time updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('pain_logs_today')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'pain_logs'
+        },
+        () => {
+          loadData();
+          loadUserLifecycleInfo();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const logs = await getPainLogs();
+      const transformed = transformForChart(logs);
+      setPainData(transformed);
+    } catch (error) {
+      console.error('Error loading pain data:', error);
+    }
+  };
+
+  const loadUserLifecycleInfo = async () => {
+    if (!user) return;
+    
+    try {
+      // Get user's display name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', user.id)
+        .single();
+
+      const userName = profile?.display_name || 'there';
+      
+      // Get current time for greeting
+      const hour = new Date().getHours();
+      let timeGreeting = 'Good morning';
+      if (hour >= 12 && hour < 17) timeGreeting = 'Good afternoon';
+      else if (hour >= 17) timeGreeting = 'Good evening';
+
+      // Get today's entries
+      const today = new Date().toISOString().split('T')[0];
+      const todayLogs = await getPainLogs(today, today);
+      
+      if (todayLogs.length === 0) {
+        // First visit of the day - get yesterday's summary
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        
+        const yesterdayLogs = await getPainLogs(yesterdayStr, yesterdayStr);
+        
+        if (yesterdayLogs.length > 0) {
+          const painLevels = yesterdayLogs.map(log => log.pain_level).filter(Boolean);
+          const maxPain = Math.max(...painLevels);
+          const minPain = Math.min(...painLevels);
+          
+          setUserGreeting(`${timeGreeting}, ${userName}! Yesterday your pain ranged from ${minPain} to ${maxPain}. Keep tracking your pain and strategies to help us analyze your patterns and improve your quality of life.`);
+        } else {
+          setUserGreeting(`${timeGreeting}, ${userName}! Ready to start tracking your pain today?`);
+        }
+      } else {
+        // Return visit - show last entry info
+        const sortedEntries = todayLogs.sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime());
+        const lastEntry = sortedEntries[0];
+        const lastEntryTime = new Date(lastEntry.logged_at);
+        const hoursAgo = Math.floor((Date.now() - lastEntryTime.getTime()) / (1000 * 60 * 60));
+        const minutesAgo = Math.floor((Date.now() - lastEntryTime.getTime()) / (1000 * 60));
+        
+        let timeAgoText = '';
+        if (hoursAgo > 0) {
+          timeAgoText = `${hoursAgo} hour${hoursAgo > 1 ? 's' : ''} ago`;
+        } else {
+          timeAgoText = `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`;
+        }
+        
+        setLastPainLevel(lastEntry.pain_level);
+        setLastEntryInfo(`Last entry: ${timeAgoText} - Pain Level ${lastEntry.pain_level}`);
+        
+        // Evening check for journal prompt
+        if (hour >= 18 && sortedEntries.some(entry => entry.pain_level >= lastEntry.pain_level)) {
+          setUserGreeting(`${timeGreeting}, ${userName}! Your pain hasn't decreased much today. Consider adding a journal entry about what happened today.`);
+        } else {
+          setUserGreeting(`${timeGreeting}, ${userName}!`);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user lifecycle info:', error);
+      setUserGreeting('Welcome back!');
+    }
+  };
+
+  const handlePainDataSaved = (painData: any) => {
     loadData();
+    loadUserLifecycleInfo();
   };
 
   const handleNavigationRequest = (destination: string) => {
@@ -332,60 +414,64 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
   };
 
   return (
-    <div className="flex-1 bg-background flex flex-col h-full">
-      <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full pt-6">
-        {/* Header Card */}
-        
-        
-        {/* Pain Chart with Recent Entries */}
-        <div className="mx-4 sm:mx-6 lg:mx-8 mb-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Today's Pain Pattern
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64 mb-4">
-                <PainChart 
-                  painData={painData}
-                  viewMode="today"
-                  isCompact={false}
-                />
-              </div>
-              
-              {/* Recent Entries */}
-              {recentEntries.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Recent Entries</h4>
-                  <div className="space-y-2">
-                    {recentEntries.map((entry) => (
-                      <div key={entry.id} className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">{formatTime(entry.logged_at)}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Pain: {entry.pain_level}/10</span>
-                          {entry.pain_locations && entry.pain_locations.length > 0 && (
-                            <span className="text-muted-foreground">
-                              • {entry.pain_locations.slice(0, 2).join(', ')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+    <div className="flex-1 bg-background p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold text-foreground">Today's Overview</h1>
+        </div>
+
+        {/* User Greeting */}
+        {userGreeting && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="pt-6">
+              <p className="text-sm text-foreground">{userGreeting}</p>
+              {lastEntryInfo && (
+                <p className="text-xs text-muted-foreground mt-2">{lastEntryInfo}</p>
               )}
             </CardContent>
           </Card>
-        </div>
+        )}
+
+        {/* Pain Chart with Time Period Toggle */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Pain Levels Over Time</CardTitle>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="today">Today</TabsTrigger>
+                <TabsTrigger value="week">This Week</TabsTrigger>
+                <TabsTrigger value="month">This Month</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              <PainChart 
+                painData={painData}
+                viewMode={activeTab as 'today' | 'week' | 'month'}
+                isCompact={false}
+              />
+            </div>
+            <div className="flex justify-end mt-4">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={onNavigateToInsights}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <TrendingUp className="h-4 w-4 mr-2" />
+                View Tracking Log →
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Pain Entry Form */}
-        <div className="flex-1 flex flex-col mx-4 sm:mx-6 lg:mx-8 mb-6">
-          <PainEntryForm 
-            onPainDataSaved={handlePainDataSaved}
-          />
-        </div>
+        <PainEntryForm 
+          onPainDataSaved={handlePainDataSaved} 
+          defaultPainLevel={lastPainLevel}
+        />
       </div>
     </div>
   );

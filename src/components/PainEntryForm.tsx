@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface PainEntryFormProps {
   onPainDataSaved?: (data: any) => void;
+  defaultPainLevel?: number | null;
 }
 
 interface UserProfile {
@@ -50,8 +51,8 @@ const getCommonStrategies = (diagnosis?: string) => {
   return [...baseStrategies, ...specific];
 };
 
-export function PainEntryForm({ onPainDataSaved }: PainEntryFormProps) {
-  const [selectedPainLevel, setSelectedPainLevel] = useState<number | null>(null);
+export function PainEntryForm({ onPainDataSaved, defaultPainLevel }: PainEntryFormProps) {
+  const [selectedPainLevel, setSelectedPainLevel] = useState<number | null>(defaultPainLevel || null);
   const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
   const [selectedMedications, setSelectedMedications] = useState<string[]>([]);
   const [journalEntry, setJournalEntry] = useState("");
@@ -220,29 +221,32 @@ export function PainEntryForm({ onPainDataSaved }: PainEntryFormProps) {
         <div className="space-y-3">
           <h3 className="font-semibold">What are you doing for your pain? (Optional)</h3>
           
-          <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
             {commonStrategies.map((strategy) => (
-              <Badge
+              <button
                 key={strategy}
-                variant={selectedStrategies.includes(strategy) ? "default" : "outline"}
-                className="cursor-pointer hover:scale-105 transition-transform"
                 onClick={() => toggleStrategy(strategy)}
+                className={`chat-suggestion-pill transition-colors ${
+                  selectedStrategies.includes(strategy)
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : ''
+                }`}
               >
                 {strategy}
-              </Badge>
+              </button>
             ))}
           </div>
 
           {/* Add new strategy */}
           <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Add custom strategy..."
-              value={newStrategy}
-              onChange={(e) => setNewStrategy(e.target.value)}
-              className="flex-1 px-3 py-2 border border-border rounded-md text-sm"
-              onKeyPress={(e) => e.key === 'Enter' && addNewStrategy()}
-            />
+              <input
+                type="text"
+                placeholder="Add custom strategy..."
+                value={newStrategy}
+                onChange={(e) => setNewStrategy(e.target.value)}
+                className="chat-suggestion-pill bg-background text-foreground border-border flex-1"
+                onKeyPress={(e) => e.key === 'Enter' && addNewStrategy()}
+              />
             <Button size="sm" onClick={addNewStrategy} disabled={!newStrategy.trim()}>
               <Plus className="h-4 w-4" />
             </Button>
@@ -256,14 +260,17 @@ export function PainEntryForm({ onPainDataSaved }: PainEntryFormProps) {
             
             <div className="flex flex-wrap gap-2">
               {userProfile.current_medications.map((med) => (
-                <Badge
+                <button
                   key={med.name}
-                  variant={selectedMedications.includes(med.name) ? "default" : "outline"}
-                  className="cursor-pointer hover:scale-105 transition-transform"
                   onClick={() => toggleMedication(med.name)}
+                  className={`chat-suggestion-pill transition-colors ${
+                    selectedMedications.includes(med.name)
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : ''
+                  }`}
                 >
                   {med.name} {med.dosage && `(${med.dosage})`}
-                </Badge>
+                </button>
               ))}
             </div>
 
@@ -274,7 +281,7 @@ export function PainEntryForm({ onPainDataSaved }: PainEntryFormProps) {
                 placeholder="Add other medication..."
                 value={newMedication}
                 onChange={(e) => setNewMedication(e.target.value)}
-                className="flex-1 px-3 py-2 border border-border rounded-md text-sm"
+                className="chat-suggestion-pill bg-background text-foreground border-border flex-1"
                 onKeyPress={(e) => e.key === 'Enter' && addNewMedication()}
               />
               <Button size="sm" onClick={addNewMedication} disabled={!newMedication.trim()}>
