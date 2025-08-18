@@ -446,7 +446,7 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
             </Tabs>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-48">
               <PainChart 
                 painData={painData}
                 viewMode={activeTab as 'today' | 'week' | 'month'}
