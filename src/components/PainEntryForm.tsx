@@ -55,6 +55,7 @@ export function PainEntryForm({ onPainDataSaved, defaultPainLevel }: PainEntryFo
   const [selectedPainLevel, setSelectedPainLevel] = useState<number | null>(defaultPainLevel || null);
   const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
   const [selectedMedications, setSelectedMedications] = useState<string[]>([]);
+  const [tookMedication, setTookMedication] = useState<boolean | null>(null);
   const [journalEntry, setJournalEntry] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile>({});
@@ -171,6 +172,7 @@ export function PainEntryForm({ onPainDataSaved, defaultPainLevel }: PainEntryFo
       setSelectedPainLevel(null);
       setSelectedStrategies([]);
       setSelectedMedications([]);
+      setTookMedication(null);
       setJournalEntry("");
       
       onPainDataSaved?.(painData);
@@ -182,9 +184,10 @@ export function PainEntryForm({ onPainDataSaved, defaultPainLevel }: PainEntryFo
       <CardHeader>
         <CardTitle className="text-center">How is your pain today?</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-8">
         {/* Pain Level Selector */}
-        <div className="space-y-3">
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg">How is your pain right now?</h3>
           <div className="grid grid-cols-6 sm:grid-cols-11 gap-2">
             {painLevels.map((pain) => (
               <button
@@ -217,89 +220,88 @@ export function PainEntryForm({ onPainDataSaved, defaultPainLevel }: PainEntryFo
           )}
         </div>
 
-        {/* Pain Management Strategies */}
-        <div className="space-y-3">
-          <h3 className="font-semibold">What are you doing for your pain? (Optional)</h3>
-          
-            <div className="flex flex-wrap gap-2">
-            {commonStrategies.map((strategy) => (
-              <button
-                key={strategy}
-                onClick={() => toggleStrategy(strategy)}
-                className={`chat-suggestion-pill transition-colors ${
-                  selectedStrategies.includes(strategy)
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : ''
-                }`}
-              >
-                {strategy}
-              </button>
-            ))}
+        {/* Medication Question */}
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg">Did you take any medication today?</h3>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setTookMedication(true)}
+              className={`px-6 py-3 rounded-lg border transition-all ${
+                tookMedication === true
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-foreground border-border hover:bg-muted'
+              }`}
+            >
+              Yes
+            </button>
+            <button
+              onClick={() => setTookMedication(false)}
+              className={`px-6 py-3 rounded-lg border transition-all ${
+                tookMedication === false
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-foreground border-border hover:bg-muted'
+              }`}
+            >
+              No
+            </button>
           </div>
 
-          {/* Add new strategy */}
-          <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Add custom strategy..."
-                value={newStrategy}
-                onChange={(e) => setNewStrategy(e.target.value)}
-                className="chat-suggestion-pill bg-background text-foreground border-border flex-1"
-                onKeyPress={(e) => e.key === 'Enter' && addNewStrategy()}
-              />
-            <Button size="sm" onClick={addNewStrategy} disabled={!newStrategy.trim()}>
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
+          {/* Show medication options if they said yes */}
+          {tookMedication === true && userProfile.current_medications && userProfile.current_medications.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">Which medications?</p>
+              <div className="flex flex-wrap gap-2">
+                {userProfile.current_medications.map((med) => (
+                  <button
+                    key={med.name}
+                    onClick={() => toggleMedication(med.name)}
+                    className={`chat-suggestion-pill transition-colors ${
+                      selectedMedications.includes(med.name)
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : ''
+                    }`}
+                  >
+                    {med.name} {med.dosage && `(${med.dosage})`}
+                  </button>
+                ))}
+              </div>
+
+              {/* Add new medication */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Add other medication..."
+                  value={newMedication}
+                  onChange={(e) => setNewMedication(e.target.value)}
+                  className="chat-suggestion-pill bg-background text-foreground border-border flex-1"
+                  onKeyPress={(e) => e.key === 'Enter' && addNewMedication()}
+                />
+                <Button size="sm" onClick={addNewMedication} disabled={!newMedication.trim()}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Medications */}
-        {userProfile.current_medications && userProfile.current_medications.length > 0 && (
-          <div className="space-y-3">
-            <h3 className="font-semibold">Medications taken:</h3>
-            
-            <div className="flex flex-wrap gap-2">
-              {userProfile.current_medications.map((med) => (
-                <button
-                  key={med.name}
-                  onClick={() => toggleMedication(med.name)}
-                  className={`chat-suggestion-pill transition-colors ${
-                    selectedMedications.includes(med.name)
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : ''
-                  }`}
-                >
-                  {med.name} {med.dosage && `(${med.dosage})`}
-                </button>
-              ))}
-            </div>
-
-            {/* Add new medication */}
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Add other medication..."
-                value={newMedication}
-                onChange={(e) => setNewMedication(e.target.value)}
-                className="chat-suggestion-pill bg-background text-foreground border-border flex-1"
-                onKeyPress={(e) => e.key === 'Enter' && addNewMedication()}
-              />
-              <Button size="sm" onClick={addNewMedication} disabled={!newMedication.trim()}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Journal Entry */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Journal about your pain (Optional)</h3>
+        {/* Combined Journal with Strategies */}
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg">Journal what else you're doing about your pain</h3>
+          <p className="text-sm text-muted-foreground">Write about your experience or choose from common strategies below</p>
+          
+          <div className="flex items-center gap-2 mb-4">
+            <Textarea
+              placeholder="How are you feeling? What triggered your pain? What's helping or not helping today..."
+              value={journalEntry}
+              onChange={(e) => setJournalEntry(e.target.value)}
+              className="min-h-[100px] flex-1"
+            />
             <Button
               size="sm"
               variant="outline"
               onClick={startVoiceInput}
               disabled={isListening}
+              className="self-start mt-2"
             >
               {isListening ? (
                 <MicOff className="h-4 w-4 text-red-500" />
@@ -308,13 +310,41 @@ export function PainEntryForm({ onPainDataSaved, defaultPainLevel }: PainEntryFo
               )}
             </Button>
           </div>
-          
-          <Textarea
-            placeholder="Write about your pain experience, what might have triggered it, how you're feeling..."
-            value={journalEntry}
-            onChange={(e) => setJournalEntry(e.target.value)}
-            className="min-h-[100px]"
-          />
+
+          {/* Top 6 Common Strategies */}
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">Quick strategies (tap to add to your journal):</p>
+            <div className="flex flex-wrap gap-2">
+              {commonStrategies.slice(0, 6).map((strategy) => (
+                <button
+                  key={strategy}
+                  onClick={() => toggleStrategy(strategy)}
+                  className={`chat-suggestion-pill transition-colors ${
+                    selectedStrategies.includes(strategy)
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : ''
+                  }`}
+                >
+                  {strategy}
+                </button>
+              ))}
+            </div>
+
+            {/* Add custom strategy */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Add your own strategy..."
+                value={newStrategy}
+                onChange={(e) => setNewStrategy(e.target.value)}
+                className="chat-suggestion-pill bg-background text-foreground border-border flex-1"
+                onKeyPress={(e) => e.key === 'Enter' && addNewStrategy()}
+              />
+              <Button size="sm" onClick={addNewStrategy} disabled={!newStrategy.trim()}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Submit Button */}

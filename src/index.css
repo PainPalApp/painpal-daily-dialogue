@@ -125,7 +125,7 @@
 
   .chat-suggestion-pill {
     @apply bg-[hsl(var(--chat-suggestion))] hover:bg-[hsl(var(--chat-suggestion-hover))] 
-           text-foreground border border-border rounded-full px-3 py-1.5 text-sm 
+           text-foreground border border-border rounded-full px-4 py-2 text-sm font-normal
            cursor-pointer transition-colors duration-200;
   }
 
