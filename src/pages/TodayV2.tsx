@@ -272,7 +272,10 @@ const TodayV2 = () => {
 
         {/* Meds/Notes Sheet */}
         <Sheet open={medsSheetOpen} onOpenChange={setMedsSheetOpen}>
-          <SheetContent className="p-6" style={{ backgroundColor: '#17182B', borderColor: '#232445' }}>
+          <SheetContent className="p-6" style={{ backgroundColor: '#17182B', borderColor: '#232445' }} aria-describedby="medsDesc">
+            <div id="medsDesc" className="sr-only">
+              Select your medications and optionally add notes.
+            </div>
             <SheetHeader>
               <SheetTitle style={{ color: '#E9E7FF' }}>Medications & Notes</SheetTitle>
             </SheetHeader>
