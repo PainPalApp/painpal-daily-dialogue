@@ -9,15 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { TodayV2Sparkline } from "@/components/TodayV2Sparkline";
 import { supabase } from "@/integrations/supabase/client";
 
-console.log('TodayV2 module loading...');
-console.log('useAuth import:', useAuth);
-
 const TodayV2 = () => {
-  console.log('TodayV2 component rendering...');
-  console.log('About to call useAuth...');
-  
   const { user } = useAuth();
-  console.log('useAuth called successfully, user:', user);
   const { todayLogs, last3Logs, activeSession, lastLog, refetchAll } = useTodayQueries();
   const { toast } = useToast();
 
