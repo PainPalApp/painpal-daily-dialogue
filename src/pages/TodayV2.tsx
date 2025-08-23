@@ -509,8 +509,10 @@ const TodayV2 = () => {
                   style={{
                     backgroundColor: 'transparent',
                     borderColor: '#232445',
-                    color: '#E9E7FF'
+                    color: '#E9E7FF',
+                    colorScheme: 'dark'
                   }}
+                  className="[&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                 />
               </div>
 
