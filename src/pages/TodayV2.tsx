@@ -209,25 +209,25 @@ const TodayV2 = () => {
             How's your pain right now?
           </h2>
           
-          <div className="grid grid-cols-5 md:grid-cols-6 gap-2">
+          <div className="grid grid-cols-5 gap-x-2 gap-y-1.5 auto-rows-min">
             {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
-              <Button
+              <button
                 key={level}
-                variant="outline"
-                className={`min-h-11 flex-col text-xs p-2 ${
-                  painLevel === level ? 'border-2' : ''
+                className={`min-w-11 min-h-11 flex flex-col items-center justify-center p-1 rounded border bg-transparent transition-all ${
+                  painLevel === level 
+                    ? 'border-2 ring-2 ring-offset-2 ring-offset-transparent ring-purple-400' 
+                    : 'border'
                 }`}
                 style={{
                   borderColor: painLevel === level ? '#A78BFA' : '#232445',
-                  backgroundColor: 'transparent',
                   color: '#E9E7FF'
                 }}
                 onClick={() => handlePainLevelSelect(level)}
                 aria-label={`Pain level ${level}`}
               >
-                <span className="text-xl">{painEmojis[level]}</span>
-                <span>{level}</span>
-              </Button>
+                <span className="leading-none" style={{ fontSize: '22px' }}>{painEmojis[level]}</span>
+                <span className="leading-none" style={{ fontSize: '10px', lineHeight: '1' }}>{level}</span>
+              </button>
             ))}
           </div>
           
