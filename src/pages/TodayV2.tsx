@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const TodayV2 = () => {
   const { user } = useAuth();
-  const { todayLogs, last3Logs, activeSession, lastLog, refetchAll } = useTodayQueries();
+  const { todayLogs, last3Logs, activeSession, lastLog, profile, refetchAll } = useTodayQueries();
   const { updatePainLog, deletePainLog } = usePainLogs();
   const { toast } = useToast();
 
@@ -28,6 +28,8 @@ const TodayV2 = () => {
   const [endLevel, setEndLevel] = useState<number>(0);
   const [showUnresolvedCard, setShowUnresolvedCard] = useState<boolean>(true);
   const [notes, setNotes] = useState<string>("");
+  const [otherMedication, setOtherMedication] = useState<string>("");
+  const [showOtherMedInput, setShowOtherMedInput] = useState<boolean>(false);
   
   // Edit/Delete state
   const [editingEntry, setEditingEntry] = useState<any>(null);
@@ -47,7 +49,15 @@ const TodayV2 = () => {
   }, [lastLog, activeSession, showUnresolvedCard]);
 
   const painEmojis = ['😊', '😊', '😐', '😐', '😟', '😟', '😣', '😫', '😰', '😱', '😭'];
-  const medOptions = ['Ibuprofen', 'Acetaminophen', 'Aspirin', 'Naproxen', 'Prescribed Medication'];
+  
+  // Combine profile medications with default options
+  const profileMedications = Array.isArray(profile?.current_medications) ? profile.current_medications as string[] : [];
+  const defaultMedOptions = ['Ibuprofen', 'Acetaminofen', 'Aspirin', 'Naproxen'];
+  const medOptions = [
+    ...profileMedications.filter((med: string) => !defaultMedOptions.includes(med)),
+    ...defaultMedOptions,
+    'Other'
+  ];
 
   const handlePainLevelSelect = (level: number) => {
     setPainLevel(level);
@@ -78,6 +88,25 @@ const TodayV2 = () => {
     if (!user?.id || painLevel === null) return;
 
     try {
+      // Prepare medications list including other medication if specified
+      let finalMedications = [...selectedMeds];
+      if (otherMedication.trim()) {
+        finalMedications = finalMedications.filter(med => med !== 'Other');
+        finalMedications.push(otherMedication.trim());
+        
+        // Optionally update profile with new medication
+        const currentMeds = Array.isArray(profile?.current_medications) ? profile.current_medications as string[] : [];
+        if (!currentMeds.includes(otherMedication.trim())) {
+          const updatedMeds = [...currentMeds, otherMedication.trim()];
+          await supabase
+            .from('profiles')
+            .update({ current_medications: updatedMeds })
+            .eq('id', user.id);
+        }
+      } else {
+        finalMedications = finalMedications.filter(med => med !== 'Other');
+      }
+
       // Create session if no active session exists
       if (!activeSession) {
         const { error: sessionError } = await supabase
@@ -97,7 +126,7 @@ const TodayV2 = () => {
           user_id: user.id,
           pain_level: painLevel,
           activity: selectedActivity || null,
-          medications: selectedMeds,
+          medications: finalMedications,
           notes: notes || null
         });
 
@@ -110,6 +139,8 @@ const TodayV2 = () => {
       setPreviewPoints([]);
       setMedsSheetOpen(false);
       setNotes("");
+      setOtherMedication("");
+      setShowOtherMedInput(false);
 
       refetchAll();
       toast({ description: "Logged." });
@@ -349,17 +380,47 @@ const TodayV2 = () => {
                         color: selectedMeds.includes(med) ? '#0F1020' : '#E9E7FF'
                       }}
                       onClick={() => {
-                        setSelectedMeds(prev =>
-                          prev.includes(med)
-                            ? prev.filter(m => m !== med)
-                            : [...prev, med]
-                        );
+                        if (med === 'Other') {
+                          setShowOtherMedInput(!showOtherMedInput);
+                          if (showOtherMedInput) {
+                            setSelectedMeds(prev => prev.filter(m => m !== 'Other'));
+                            setOtherMedication("");
+                          } else {
+                            setSelectedMeds(prev => [...prev.filter(m => m !== 'Other'), 'Other']);
+                          }
+                        } else {
+                          setSelectedMeds(prev =>
+                            prev.includes(med)
+                              ? prev.filter(m => m !== med)
+                              : [...prev, med]
+                          );
+                        }
                       }}
                     >
                       {med}
                     </Button>
                   ))}
                 </div>
+                
+                {/* Other medication input */}
+                {showOtherMedInput && (
+                  <div className="mt-4">
+                    <Label htmlFor="otherMed" className="text-sm font-medium mb-2 block" style={{ color: '#E9E7FF' }}>
+                      Specify other medication
+                    </Label>
+                    <Input
+                      id="otherMed"
+                      value={otherMedication}
+                      onChange={(e) => setOtherMedication(e.target.value)}
+                      placeholder="Enter medication name"
+                      style={{
+                        backgroundColor: 'transparent',
+                        borderColor: '#232445',
+                        color: '#E9E7FF'
+                      }}
+                    />
+                  </div>
+                )}
               </div>
               
               <div>
