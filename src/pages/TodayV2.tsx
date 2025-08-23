@@ -248,17 +248,14 @@ const TodayV2 = () => {
                 </p>
               </div>
               <div className="flex gap-2">
-                <div className="flex flex-col items-center">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setMedsSheetOpen(true)}
-                    style={{ color: '#A78BFA' }}
-                  >
-                    + Add meds/notes
-                  </Button>
-                  <span className="text-xs" style={{ color: '#BDB8E6' }}>optional</span>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMedsSheetOpen(true)}
+                  style={{ color: '#A78BFA' }}
+                >
+                  + Add meds/notes
+                </Button>
                 <Button
                   onClick={handleSaveCheckin}
                   style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
