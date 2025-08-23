@@ -226,7 +226,7 @@ const TodayV2 = () => {
                 aria-label={`Pain level ${level}`}
               >
                 <span className="leading-none" style={{ fontSize: '22px' }}>{painEmojis[level]}</span>
-                <span className="leading-none" style={{ fontSize: '10px', lineHeight: '1' }}>{level}</span>
+                <span className="leading-none mt-0.5" style={{ fontSize: '10px', lineHeight: '1' }}>{level}</span>
               </button>
             ))}
           </div>
