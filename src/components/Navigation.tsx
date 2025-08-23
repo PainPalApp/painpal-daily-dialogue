@@ -16,6 +16,7 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
     { id: "today", label: "Today" },
     { id: "insights", label: "Insights" },
     { id: "records", label: "Records" },
+    { id: "today-v2", label: "Today V2", isLink: true, href: "/today-v2" },
     { id: "profile", label: "Profile", isLink: true, href: "/profile" },
   ];
 
@@ -103,18 +104,29 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
           <div className="md:hidden border-t border-border animate-fade-in">
             <div className="py-4 space-y-1">
               {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    onSectionChange(item.id);
-                    setIsMenuOpen(false);
-                  }}
-                  className={`block w-full text-left nav-button ${
-                    activeSection === item.id ? "nav-button-active" : ""
-                  }`}
-                >
-                  {item.label}
-                </button>
+                item.isLink ? (
+                  <a
+                    key={item.id}
+                    href={item.href}
+                    className="block w-full text-left nav-button"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      onSectionChange(item.id);
+                      setIsMenuOpen(false);
+                    }}
+                    className={`block w-full text-left nav-button ${
+                      activeSection === item.id ? "nav-button-active" : ""
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                )
               ))}
               
               <Button
