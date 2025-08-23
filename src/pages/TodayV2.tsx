@@ -475,21 +475,23 @@ const TodayV2 = () => {
                 </Label>
                 <div className="grid grid-cols-6 gap-2">
                   {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
-                    <Button
+                    <button
                       key={level}
-                      variant="outline"
-                      size="sm"
-                      className="min-h-11 flex-col text-xs p-1"
+                      className={`min-w-11 min-h-11 flex flex-col items-center justify-center py-2 px-1 rounded border bg-transparent transition-all ${
+                        editPainLevel === level 
+                          ? 'ring-1 ring-offset-2 ring-offset-transparent ring-purple-400' 
+                          : ''
+                      }`}
                       style={{
                         borderColor: editPainLevel === level ? '#A78BFA' : '#232445',
-                        backgroundColor: editPainLevel === level ? '#A78BFA' : 'transparent',
-                        color: editPainLevel === level ? '#0F1020' : '#E9E7FF'
+                        color: '#E9E7FF'
                       }}
                       onClick={() => setEditPainLevel(level)}
+                      aria-label={`Pain level ${level}`}
                     >
-                      <span className="text-lg">{painEmojis[level]}</span>
-                      <span>{level}</span>
-                    </Button>
+                      <span className="leading-none" style={{ fontSize: '22px' }}>{painEmojis[level]}</span>
+                      <span className="leading-none mt-0.5" style={{ fontSize: '10px', lineHeight: '1' }}>{level}</span>
+                    </button>
                   ))}
                 </div>
               </div>
