@@ -51,7 +51,15 @@ const TodayV2 = () => {
   const painEmojis = ['😊', '😊', '😐', '😐', '😟', '😟', '😣', '😫', '😰', '😱', '😭'];
   
   // Combine profile medications with default options
-  const profileMedications = Array.isArray(profile?.current_medications) ? profile.current_medications as string[] : [];
+  const profileMedications = Array.isArray(profile?.current_medications) 
+    ? profile.current_medications.map(med => {
+        if (typeof med === 'string') return med;
+        if (typeof med === 'object' && med !== null && 'name' in med) {
+          return (med as { name: string }).name;
+        }
+        return '';
+      }).filter(Boolean)
+    : [];
   const defaultMedOptions = ['Ibuprofen', 'Acetaminofen', 'Aspirin', 'Naproxen'];
   const medOptions = [
     ...profileMedications.filter((med: string) => !defaultMedOptions.includes(med)),
@@ -95,9 +103,18 @@ const TodayV2 = () => {
         finalMedications.push(otherMedication.trim());
         
         // Optionally update profile with new medication
-        const currentMeds = Array.isArray(profile?.current_medications) ? profile.current_medications as string[] : [];
-        if (!currentMeds.includes(otherMedication.trim())) {
-          const updatedMeds = [...currentMeds, otherMedication.trim()];
+        const currentMeds = Array.isArray(profile?.current_medications) ? profile.current_medications : [];
+        const medicationNames = currentMeds.map(med => {
+          if (typeof med === 'string') return med;
+          if (typeof med === 'object' && med !== null && 'name' in med) {
+            return (med as { name: string }).name;
+          }
+          return '';
+        }).filter(Boolean);
+        
+        if (!medicationNames.includes(otherMedication.trim())) {
+          const newMedication = { name: otherMedication.trim(), dosage: '', frequency: '' };
+          const updatedMeds = [...currentMeds, newMedication];
           await supabase
             .from('profiles')
             .update({ current_medications: updatedMeds })
