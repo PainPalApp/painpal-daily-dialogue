@@ -162,7 +162,7 @@ const TodayV2 = () => {
                           variant="outline"
                           size="sm"
                           className={`min-h-11 flex-col text-xs p-1 ${
-                            endLevel === level ? 'border-2' : ''
+                            endLevel === level ? '' : ''
                           }`}
                           style={{
                             borderColor: endLevel === level ? '#A78BFA' : '#232445',
@@ -215,8 +215,8 @@ const TodayV2 = () => {
                 key={level}
                 className={`min-w-11 min-h-11 flex flex-col items-center justify-center p-1 rounded border bg-transparent transition-all ${
                   painLevel === level 
-                    ? 'border-2 ring-2 ring-offset-2 ring-offset-transparent ring-purple-400' 
-                    : 'border'
+                    ? 'ring-2 ring-offset-2 ring-offset-transparent ring-purple-400' 
+                    : ''
                 }`}
                 style={{
                   borderColor: painLevel === level ? '#A78BFA' : '#232445',
