@@ -146,6 +146,33 @@ export type Database = {
         }
         Relationships: []
       }
+      pain_sessions: {
+        Row: {
+          end_level: number | null
+          id: string
+          resolved_at: string | null
+          start_level: number
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          end_level?: number | null
+          id?: string
+          resolved_at?: string | null
+          start_level: number
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          end_level?: number | null
+          id?: string
+          resolved_at?: string | null
+          start_level?: number
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           common_triggers: string[] | null
