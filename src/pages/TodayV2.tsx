@@ -247,18 +247,21 @@ const TodayV2 = () => {
                   Pain {painLevel}/10
                 </p>
                 <p className="text-xs" style={{ color: '#BDB8E6' }}>
-                  optional: meds/notes
+                  meds/notes
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setMedsSheetOpen(true)}
-                  style={{ color: '#A78BFA' }}
-                >
-                  + Add meds/notes
-                </Button>
+                <div className="flex flex-col items-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setMedsSheetOpen(true)}
+                    style={{ color: '#A78BFA' }}
+                  >
+                    + Add meds/notes
+                  </Button>
+                  <span className="text-xs" style={{ color: '#BDB8E6' }}>optional</span>
+                </div>
                 <Button
                   onClick={handleSaveCheckin}
                   style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
