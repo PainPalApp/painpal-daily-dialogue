@@ -77,11 +77,28 @@ export const useTodayQueries = () => {
     enabled: !!user?.id,
   });
 
+  // Q_Profile
+  const profile = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user!.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
   const refetchAll = () => {
     todayLogs.refetch();
     last3Logs.refetch();
     activeSession.refetch();
     lastLog.refetch();
+    profile.refetch();
   };
 
   return {
@@ -89,7 +106,8 @@ export const useTodayQueries = () => {
     last3Logs: last3Logs.data || [],
     activeSession: activeSession.data,
     lastLog: lastLog.data,
-    isLoading: todayLogs.isLoading || last3Logs.isLoading || activeSession.isLoading || lastLog.isLoading,
+    profile: profile.data,
+    isLoading: todayLogs.isLoading || last3Logs.isLoading || activeSession.isLoading || lastLog.isLoading || profile.isLoading,
     refetchAll,
   };
 };
