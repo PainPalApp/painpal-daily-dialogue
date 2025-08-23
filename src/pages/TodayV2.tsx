@@ -1,17 +1,22 @@
 import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTodayQueries } from "@/hooks/useTodayQueries";
+import { usePainLogs } from "@/hooks/usePainLogs";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { TodayV2Sparkline } from "@/components/TodayV2Sparkline";
+import { Edit3, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const TodayV2 = () => {
   const { user } = useAuth();
   const { todayLogs, last3Logs, activeSession, lastLog, refetchAll } = useTodayQueries();
+  const { updatePainLog, deletePainLog } = usePainLogs();
   const { toast } = useToast();
 
   // State
@@ -23,6 +28,15 @@ const TodayV2 = () => {
   const [endLevel, setEndLevel] = useState<number>(0);
   const [showUnresolvedCard, setShowUnresolvedCard] = useState<boolean>(true);
   const [notes, setNotes] = useState<string>("");
+  
+  // Edit/Delete state
+  const [editingEntry, setEditingEntry] = useState<any>(null);
+  const [editSheetOpen, setEditSheetOpen] = useState<boolean>(false);
+  const [editPainLevel, setEditPainLevel] = useState<number>(0);
+  const [editActivity, setEditActivity] = useState<string>("");
+  const [editMeds, setEditMeds] = useState<string[]>([]);
+  const [editNotes, setEditNotes] = useState<string>("");
+  const [editTime, setEditTime] = useState<string>("");
 
   // Check if yesterday's pain is still ongoing
   const shouldShowUnresolvedCard = useMemo(() => {
@@ -119,6 +133,45 @@ const TodayV2 = () => {
     if (level <= 6) return "Moderate";
     if (level <= 9) return "Severe";
     return "Worst";
+  };
+
+  const handleEditEntry = (log: any) => {
+    setEditingEntry(log);
+    setEditPainLevel(log.pain_level);
+    setEditActivity(log.activity || "");
+    setEditMeds(log.medications || []);
+    setEditNotes(log.notes || "");
+    
+    // Format datetime-local input value
+    const date = new Date(log.logged_at);
+    const timeString = date.toISOString().slice(0, 16);
+    setEditTime(timeString);
+    
+    setEditSheetOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingEntry) return;
+
+    const success = await updatePainLog(editingEntry.id, {
+      pain_level: editPainLevel,
+      activity: editActivity,
+      medications: editMeds,
+      notes: editNotes,
+    });
+
+    if (success) {
+      setEditSheetOpen(false);
+      setEditingEntry(null);
+      refetchAll();
+    }
+  };
+
+  const handleDeleteEntry = async (logId: string) => {
+    const success = await deletePainLog(logId);
+    if (success) {
+      refetchAll();
+    }
   };
 
   return (
@@ -351,16 +404,203 @@ const TodayV2 = () => {
             last3Logs.map((log) => (
               <div
                 key={log.id}
-                className="p-4 rounded-lg"
+                className="p-4 rounded-lg flex justify-between items-center"
                 style={{ backgroundColor: '#17182B', borderColor: '#232445', border: '1px solid' }}
               >
                 <p className="text-[15px] leading-[22px]" style={{ color: '#E9E7FF' }}>
                   {formatTime(log.ts)} — Pain {log.pain_level}/10 · {log.activity || '—'}
                 </p>
+                <div className="flex gap-2 ml-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleEditEntry(log)}
+                    className="p-2 h-8 w-8"
+                    style={{ color: '#A78BFA' }}
+                    aria-label="Edit entry"
+                  >
+                    <Edit3 size={14} />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="p-2 h-8 w-8"
+                        style={{ color: '#A78BFA' }}
+                        aria-label="Delete entry"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent style={{ backgroundColor: '#17182B', borderColor: '#232445' }}>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle style={{ color: '#E9E7FF' }}>Delete Entry</AlertDialogTitle>
+                        <AlertDialogDescription style={{ color: '#BDB8E6' }}>
+                          Are you sure you want to delete this pain entry? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel
+                          style={{ backgroundColor: 'transparent', borderColor: '#232445', color: '#BDB8E6' }}
+                        >
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteEntry(log.id)}
+                          style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             ))
           )}
         </div>
+
+        {/* Edit Entry Sheet */}
+        <Sheet open={editSheetOpen} onOpenChange={setEditSheetOpen}>
+          <SheetContent className="p-6" style={{ backgroundColor: '#17182B', borderColor: '#232445' }}>
+            <SheetHeader>
+              <SheetTitle style={{ color: '#E9E7FF' }}>Edit Entry</SheetTitle>
+            </SheetHeader>
+            <div className="mt-6 space-y-6">
+              {/* Pain Level */}
+              <div>
+                <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                  Pain Level
+                </Label>
+                <div className="grid grid-cols-6 gap-2">
+                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                    <Button
+                      key={level}
+                      variant="outline"
+                      size="sm"
+                      className="min-h-11 flex-col text-xs p-1"
+                      style={{
+                        borderColor: editPainLevel === level ? '#A78BFA' : '#232445',
+                        backgroundColor: editPainLevel === level ? '#A78BFA' : 'transparent',
+                        color: editPainLevel === level ? '#0F1020' : '#E9E7FF'
+                      }}
+                      onClick={() => setEditPainLevel(level)}
+                    >
+                      <span className="text-lg">{painEmojis[level]}</span>
+                      <span>{level}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Time */}
+              <div>
+                <Label htmlFor="editTime" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                  Time
+                </Label>
+                <Input
+                  id="editTime"
+                  type="datetime-local"
+                  value={editTime}
+                  onChange={(e) => setEditTime(e.target.value)}
+                  style={{
+                    backgroundColor: 'transparent',
+                    borderColor: '#232445',
+                    color: '#E9E7FF'
+                  }}
+                />
+              </div>
+
+              {/* Activity */}
+              <div>
+                <Label htmlFor="editActivity" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                  Activity
+                </Label>
+                <Input
+                  id="editActivity"
+                  value={editActivity}
+                  onChange={(e) => setEditActivity(e.target.value)}
+                  placeholder="What were you doing?"
+                  style={{
+                    backgroundColor: 'transparent',
+                    borderColor: '#232445',
+                    color: '#E9E7FF'
+                  }}
+                />
+              </div>
+
+              {/* Medications */}
+              <div>
+                <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                  Medications
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {medOptions.map((med) => (
+                    <Button
+                      key={med}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      style={{
+                        borderColor: editMeds.includes(med) ? '#A78BFA' : '#232445',
+                        backgroundColor: editMeds.includes(med) ? '#A78BFA' : 'transparent',
+                        color: editMeds.includes(med) ? '#0F1020' : '#E9E7FF'
+                      }}
+                      onClick={() => {
+                        setEditMeds(prev =>
+                          prev.includes(med)
+                            ? prev.filter(m => m !== med)
+                            : [...prev, med]
+                        );
+                      }}
+                    >
+                      {med}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <Label htmlFor="editNotes" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                  Notes
+                </Label>
+                <Textarea
+                  id="editNotes"
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  placeholder="Additional notes..."
+                  className="min-h-24"
+                  style={{
+                    backgroundColor: 'transparent',
+                    borderColor: '#232445',
+                    color: '#E9E7FF'
+                  }}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditSheetOpen(false)}
+                  className="flex-1"
+                  style={{ backgroundColor: 'transparent', borderColor: '#232445', color: '#BDB8E6' }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveEdit}
+                  className="flex-1"
+                  style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );
