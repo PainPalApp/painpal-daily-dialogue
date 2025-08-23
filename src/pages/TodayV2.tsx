@@ -246,9 +246,6 @@ const TodayV2 = () => {
                 <p className="font-medium" style={{ color: '#E9E7FF' }}>
                   Pain {painLevel}/10
                 </p>
-                <p className="text-xs" style={{ color: '#BDB8E6' }}>
-                  meds/notes
-                </p>
               </div>
               <div className="flex gap-2">
                 <div className="flex flex-col items-center">
