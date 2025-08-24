@@ -255,14 +255,14 @@ const TodayV2 = () => {
                   <SheetHeader>
                     <SheetTitle style={{ color: '#E9E7FF' }}>End Pain Level</SheetTitle>
                   </SheetHeader>
-                  <div className="mt-4 space-y-4">
-                    <div className="grid grid-cols-6 gap-2">
+                  <div className="mt-4 space-y-6">
+                    <div className="grid grid-cols-6 gap-x-2 gap-y-1.5">
                       {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
                         <Button
                           key={level}
                           variant="outline"
                           size="sm"
-                          className={`min-h-11 flex-col text-xs p-1 ${
+                          className={`min-w-11 min-h-11 flex-col text-xs p-1 ${
                             endLevel === level ? '' : ''
                           }`}
                           style={{
@@ -305,7 +305,7 @@ const TodayV2 = () => {
         </div>
 
         {/* NRS-11 Emoji Grid */}
-        <div className="space-y-4">
+        <div className="space-y-6 py-2">
           <h2 className="text-[18px] leading-6 font-medium" style={{ color: '#E9E7FF' }}>
             How's your pain right now?
           </h2>
@@ -547,15 +547,15 @@ const TodayV2 = () => {
             </SheetHeader>
             <div className="mt-6 space-y-6">
               {/* Pain Level */}
-              <div>
+              <div className="py-2">
                 <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
                   Pain Level
                 </Label>
-                <div className="grid grid-cols-6 gap-2">
+                <div className="grid grid-cols-6 gap-x-2 gap-y-1.5">
                   {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
                     <button
                       key={level}
-                      className={`min-w-11 min-h-11 flex flex-col items-center justify-center py-2 px-1 rounded border bg-transparent transition-all ${
+                      className={`min-w-11 min-h-11 flex flex-col items-center justify-center p-1 rounded border bg-transparent transition-all ${
                         editPainLevel === level 
                           ? 'ring-1 ring-offset-2 ring-offset-transparent ring-purple-400' 
                           : ''
