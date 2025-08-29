@@ -410,23 +410,27 @@ const TodayV2 = () => {
               <SheetTitle style={{ color: '#E9E7FF' }}>Medications & Notes</SheetTitle>
             </SheetHeader>
             <div className="mt-6 space-y-6">
-              {/* How is this pain affecting you? */}
+              {/* How is the pain affecting you? */}
               <div>
                 <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
-                  How is this pain affecting you?
+                  How is the pain affecting you?
                 </Label>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { label: "No impact", value: "none" },
-                    { label: "Limited", value: "limited" },
-                    { label: "Stopped an activity", value: "stopped" },
-                    { label: "Bed rest", value: "bed" }
+                    { label: "Work", value: "work" },
+                    { label: "Driving", value: "driving" },
+                    { label: "Sleep", value: "sleep" },
+                    { label: "Exercise", value: "exercise" },
+                    { label: "Household", value: "household" },
+                    { label: "Mood", value: "mood" },
+                    { label: "Other", value: "other" }
                   ].map((impact) => (
                     <Button
                       key={impact.value}
                       variant="outline"
                       size="default"
-                      className="text-sm px-4 py-2"
+                      className={`text-sm px-4 py-2 ${functionalImpact === impact.value ? 'font-medium' : 'font-normal'}`}
                       style={{
                         borderColor: functionalImpact === impact.value ? '#A78BFA' : '#232445',
                         backgroundColor: functionalImpact === impact.value ? '#A78BFA' : 'transparent',
@@ -435,37 +439,6 @@ const TodayV2 = () => {
                       onClick={() => setFunctionalImpact(impact.value)}
                     >
                       {impact.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Impact Tags */}
-              <div>
-                <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
-                  Impact areas (optional)
-                </Label>
-                <div className="flex flex-wrap gap-2">
-                  {["Work", "Driving", "Sleep", "Exercise", "Household", "Social"].map((tag) => (
-                    <Button
-                      key={tag}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs"
-                      style={{
-                        borderColor: impactTags.includes(tag) ? '#A78BFA' : '#232445',
-                        backgroundColor: impactTags.includes(tag) ? '#A78BFA' : 'transparent',
-                        color: impactTags.includes(tag) ? '#0F1020' : '#E9E7FF'
-                      }}
-                      onClick={() => {
-                        setImpactTags(prev =>
-                          prev.includes(tag)
-                            ? prev.filter(t => t !== tag)
-                            : [...prev, tag]
-                        );
-                      }}
-                    >
-                      {tag}
                     </Button>
                   ))}
                 </div>
@@ -512,9 +485,7 @@ const TodayV2 = () => {
                       key={med}
                       variant="outline"
                       size="sm"
-                      className={`text-xs ${
-                        selectedMeds.includes(med) ? 'border-2' : ''
-                      }`}
+                      className={`text-sm ${selectedMeds.includes(med) ? 'font-medium border-2' : 'font-normal'}`}
                       style={{
                         borderColor: selectedMeds.includes(med) ? '#A78BFA' : '#232445',
                         backgroundColor: selectedMeds.includes(med) ? '#A78BFA' : 'transparent',
