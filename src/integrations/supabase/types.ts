@@ -93,7 +93,9 @@ export type Database = {
         Row: {
           activity: string | null
           created_at: string
+          functional_impact: string | null
           id: string
+          impact_tags: string[] | null
           journal_entry: string | null
           logged_at: string
           medications: string[] | null
@@ -102,6 +104,8 @@ export type Database = {
           pain_level: number
           pain_locations: string[] | null
           pain_strategies: string[] | null
+          rx_taken: boolean | null
+          side_effects: string | null
           strategy_effectiveness_score: number | null
           triggers: string[] | null
           updated_at: string
@@ -111,7 +115,9 @@ export type Database = {
         Insert: {
           activity?: string | null
           created_at?: string
+          functional_impact?: string | null
           id?: string
+          impact_tags?: string[] | null
           journal_entry?: string | null
           logged_at?: string
           medications?: string[] | null
@@ -120,6 +126,8 @@ export type Database = {
           pain_level: number
           pain_locations?: string[] | null
           pain_strategies?: string[] | null
+          rx_taken?: boolean | null
+          side_effects?: string | null
           strategy_effectiveness_score?: number | null
           triggers?: string[] | null
           updated_at?: string
@@ -129,7 +137,9 @@ export type Database = {
         Update: {
           activity?: string | null
           created_at?: string
+          functional_impact?: string | null
           id?: string
+          impact_tags?: string[] | null
           journal_entry?: string | null
           logged_at?: string
           medications?: string[] | null
@@ -138,6 +148,8 @@ export type Database = {
           pain_level?: number
           pain_locations?: string[] | null
           pain_strategies?: string[] | null
+          rx_taken?: boolean | null
+          side_effects?: string | null
           strategy_effectiveness_score?: number | null
           triggers?: string[] | null
           updated_at?: string
