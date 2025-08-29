@@ -369,19 +369,20 @@ const TodayV2 = () => {
 
         {/* Sticky Save Bar */}
         {painLevel !== null && (
-          <div className="fixed bottom-0 left-0 right-0 p-4" style={{ backgroundColor: '#17182B', borderTop: '1px solid #232445' }}>
-            <div className="max-w-md mx-auto flex justify-between items-center">
+          <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4" style={{ backgroundColor: '#17182B', borderTop: '1px solid #232445' }}>
+            <div className="max-w-md mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-2">
               <div>
-                <p className="font-medium" style={{ color: '#E9E7FF' }}>
+                <p className="font-medium text-sm sm:text-base" style={{ color: '#E9E7FF' }}>
                   Pain {painLevel}/10
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <div className="flex flex-col items-start gap-1">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setMedsSheetOpen(true)}
+                    className="text-xs sm:text-sm"
                     style={{ color: '#A78BFA' }}
                   >
                     + Add meds/notes
@@ -389,7 +390,7 @@ const TodayV2 = () => {
                   {painLevel >= 7 && (
                     <Badge 
                       variant="secondary" 
-                      className="text-xs px-2 py-0.5"
+                      className="text-[10px] px-1.5 py-0.5 leading-none"
                       style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
                     >
                       Recommended
@@ -398,9 +399,10 @@ const TodayV2 = () => {
                 </div>
                 <Button
                   onClick={handleSaveCheckin}
+                  className="text-sm sm:text-base px-4 sm:px-6"
                   style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
                 >
-                  Save check-in
+                  Save
                 </Button>
               </div>
             </div>
