@@ -370,14 +370,14 @@ const TodayV2 = () => {
         {/* Sticky Save Bar */}
         {painLevel !== null && (
           <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4" style={{ backgroundColor: '#17182B', borderTop: '1px solid #232445' }}>
-            <div className="max-w-md mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-2">
-              <div>
-                <p className="font-medium text-sm sm:text-base" style={{ color: '#E9E7FF' }}>
-                  Pain {painLevel}/10
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <div className="flex flex-col items-start gap-1">
+            <div className="max-w-md mx-auto space-y-3">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-medium text-sm sm:text-base" style={{ color: '#E9E7FF' }}>
+                    Pain {painLevel}/10
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -397,14 +397,14 @@ const TodayV2 = () => {
                     </Badge>
                   )}
                 </div>
-                <Button
-                  onClick={handleSaveCheckin}
-                  className="text-sm sm:text-base px-4 sm:px-6"
-                  style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
-                >
-                  Save
-                </Button>
               </div>
+              <Button
+                onClick={handleSaveCheckin}
+                className="w-full text-sm sm:text-base px-4 sm:px-6"
+                style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
+              >
+                Save
+              </Button>
             </div>
           </div>
         )}
