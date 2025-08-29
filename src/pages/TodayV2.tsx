@@ -8,6 +8,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { TodayV2Sparkline } from "@/components/TodayV2Sparkline";
 import { Edit3, Trash2 } from "lucide-react";
@@ -31,6 +33,12 @@ const TodayV2 = () => {
   const [otherMedication, setOtherMedication] = useState<string>("");
   const [showOtherMedInput, setShowOtherMedInput] = useState<boolean>(false);
   
+  // New functional impact state
+  const [functionalImpact, setFunctionalImpact] = useState<string>("none");
+  const [impactTags, setImpactTags] = useState<string[]>([]);
+  const [rxTaken, setRxTaken] = useState<boolean>(false);
+  const [sideEffects, setSideEffects] = useState<string>("");
+  
   // Edit/Delete state
   const [editingEntry, setEditingEntry] = useState<any>(null);
   const [editSheetOpen, setEditSheetOpen] = useState<boolean>(false);
@@ -39,6 +47,10 @@ const TodayV2 = () => {
   const [editMeds, setEditMeds] = useState<string[]>([]);
   const [editNotes, setEditNotes] = useState<string>("");
   const [editTime, setEditTime] = useState<string>("");
+  const [editFunctionalImpact, setEditFunctionalImpact] = useState<string>("none");
+  const [editImpactTags, setEditImpactTags] = useState<string[]>([]);
+  const [editRxTaken, setEditRxTaken] = useState<boolean>(false);
+  const [editSideEffects, setEditSideEffects] = useState<string>("");
 
   // Check if yesterday's pain is still ongoing
   const shouldShowUnresolvedCard = useMemo(() => {
@@ -144,7 +156,11 @@ const TodayV2 = () => {
           pain_level: painLevel,
           activity: selectedActivity || null,
           medications: finalMedications,
-          notes: notes || null
+          notes: notes || null,
+          functional_impact: functionalImpact,
+          impact_tags: impactTags,
+          rx_taken: rxTaken,
+          side_effects: sideEffects || null
         });
 
       if (logError) throw logError;
@@ -158,6 +174,10 @@ const TodayV2 = () => {
       setNotes("");
       setOtherMedication("");
       setShowOtherMedInput(false);
+      setFunctionalImpact("none");
+      setImpactTags([]);
+      setRxTaken(false);
+      setSideEffects("");
 
       refetchAll();
       toast({ description: "Logged." });
@@ -189,6 +209,10 @@ const TodayV2 = () => {
     setEditActivity(log.activity || "");
     setEditMeds(log.medications || []);
     setEditNotes(log.notes || "");
+    setEditFunctionalImpact(log.functional_impact || "none");
+    setEditImpactTags(log.impact_tags || []);
+    setEditRxTaken(log.rx_taken || false);
+    setEditSideEffects(log.side_effects || "");
     
     // Format datetime-local input value
     const date = new Date(log.logged_at);
@@ -206,6 +230,10 @@ const TodayV2 = () => {
       activity: editActivity,
       medications: editMeds,
       notes: editNotes,
+      functional_impact: editFunctionalImpact,
+      impact_tags: editImpactTags,
+      rx_taken: editRxTaken,
+      side_effects: editSideEffects || null,
     });
 
     if (success) {
@@ -349,14 +377,25 @@ const TodayV2 = () => {
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setMedsSheetOpen(true)}
-                  style={{ color: '#A78BFA' }}
-                >
-                  + Add meds/notes
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setMedsSheetOpen(true)}
+                    style={{ color: '#A78BFA' }}
+                  >
+                    + Add meds/notes
+                  </Button>
+                  {painLevel >= 7 && (
+                    <Badge 
+                      variant="secondary" 
+                      className="text-xs px-2 py-0.5"
+                      style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
+                    >
+                      Recommended
+                    </Badge>
+                  )}
+                </div>
                 <Button
                   onClick={handleSaveCheckin}
                   style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
@@ -378,6 +417,98 @@ const TodayV2 = () => {
               <SheetTitle style={{ color: '#E9E7FF' }}>Medications & Notes</SheetTitle>
             </SheetHeader>
             <div className="mt-6 space-y-6">
+              {/* How is this pain affecting you? */}
+              <div>
+                <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                  How is this pain affecting you?
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "No impact", value: "none" },
+                    { label: "Limited", value: "limited" },
+                    { label: "Stopped an activity", value: "stopped" },
+                    { label: "Bed rest", value: "bed" }
+                  ].map((impact) => (
+                    <Button
+                      key={impact.value}
+                      variant="outline"
+                      size="default"
+                      className="text-sm px-4 py-2"
+                      style={{
+                        borderColor: functionalImpact === impact.value ? '#A78BFA' : '#232445',
+                        backgroundColor: functionalImpact === impact.value ? '#A78BFA' : 'transparent',
+                        color: functionalImpact === impact.value ? '#0F1020' : '#E9E7FF'
+                      }}
+                      onClick={() => setFunctionalImpact(impact.value)}
+                    >
+                      {impact.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Impact Tags */}
+              <div>
+                <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                  Impact areas (optional)
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {["Work", "Driving", "Sleep", "Exercise", "Household", "Social"].map((tag) => (
+                    <Button
+                      key={tag}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      style={{
+                        borderColor: impactTags.includes(tag) ? '#A78BFA' : '#232445',
+                        backgroundColor: impactTags.includes(tag) ? '#A78BFA' : 'transparent',
+                        color: impactTags.includes(tag) ? '#0F1020' : '#E9E7FF'
+                      }}
+                      onClick={() => {
+                        setImpactTags(prev =>
+                          prev.includes(tag)
+                            ? prev.filter(t => t !== tag)
+                            : [...prev, tag]
+                        );
+                      }}
+                    >
+                      {tag}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Prescription medication switch */}
+              <div className="flex items-center justify-between">
+                <Label htmlFor="rxTaken" className="text-sm font-medium" style={{ color: '#E9E7FF' }}>
+                  Prescription medication taken
+                </Label>
+                <Switch
+                  id="rxTaken"
+                  checked={rxTaken}
+                  onCheckedChange={setRxTaken}
+                />
+              </div>
+
+              {/* Side effects */}
+              <div>
+                <Label htmlFor="sideEffects" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                  Side effects (optional)
+                </Label>
+                <Textarea
+                  id="sideEffects"
+                  value={sideEffects}
+                  onChange={(e) => setSideEffects(e.target.value)}
+                  placeholder="Any side effects from medications or treatments?"
+                  className="min-h-20"
+                  style={{
+                    backgroundColor: 'transparent',
+                    borderColor: '#232445',
+                    color: '#E9E7FF'
+                  }}
+                />
+              </div>
+
               <div>
                 <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
                   Medications taken
@@ -641,6 +772,98 @@ const TodayV2 = () => {
                     </Button>
                   ))}
                 </div>
+              </div>
+
+              {/* Functional Impact */}
+              <div>
+                <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                  How is this pain affecting you?
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "No impact", value: "none" },
+                    { label: "Limited", value: "limited" },
+                    { label: "Stopped an activity", value: "stopped" },
+                    { label: "Bed rest", value: "bed" }
+                  ].map((impact) => (
+                    <Button
+                      key={impact.value}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      style={{
+                        borderColor: editFunctionalImpact === impact.value ? '#A78BFA' : '#232445',
+                        backgroundColor: editFunctionalImpact === impact.value ? '#A78BFA' : 'transparent',
+                        color: editFunctionalImpact === impact.value ? '#0F1020' : '#E9E7FF'
+                      }}
+                      onClick={() => setEditFunctionalImpact(impact.value)}
+                    >
+                      {impact.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Impact Tags */}
+              <div>
+                <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                  Impact areas (optional)
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {["Work", "Driving", "Sleep", "Exercise", "Household", "Social"].map((tag) => (
+                    <Button
+                      key={tag}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      style={{
+                        borderColor: editImpactTags.includes(tag) ? '#A78BFA' : '#232445',
+                        backgroundColor: editImpactTags.includes(tag) ? '#A78BFA' : 'transparent',
+                        color: editImpactTags.includes(tag) ? '#0F1020' : '#E9E7FF'
+                      }}
+                      onClick={() => {
+                        setEditImpactTags(prev =>
+                          prev.includes(tag)
+                            ? prev.filter(t => t !== tag)
+                            : [...prev, tag]
+                        );
+                      }}
+                    >
+                      {tag}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Prescription medication switch */}
+              <div className="flex items-center justify-between">
+                <Label htmlFor="editRxTaken" className="text-sm font-medium" style={{ color: '#E9E7FF' }}>
+                  Prescription medication taken
+                </Label>
+                <Switch
+                  id="editRxTaken"
+                  checked={editRxTaken}
+                  onCheckedChange={setEditRxTaken}
+                />
+              </div>
+
+              {/* Side effects */}
+              <div>
+                <Label htmlFor="editSideEffects" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                  Side effects (optional)
+                </Label>
+                <Textarea
+                  id="editSideEffects"
+                  value={editSideEffects}
+                  onChange={(e) => setEditSideEffects(e.target.value)}
+                  placeholder="Any side effects from medications or treatments?"
+                  className="min-h-20"
+                  style={{
+                    backgroundColor: 'transparent',
+                    borderColor: '#232445',
+                    color: '#E9E7FF'
+                  }}
+                />
               </div>
 
               {/* Notes */}

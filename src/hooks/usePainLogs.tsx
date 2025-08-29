@@ -14,6 +14,10 @@ interface PainLogData {
   weather?: string;
   pain_strategies?: string[];
   journal_entry?: string;
+  functional_impact?: string;
+  impact_tags?: string[];
+  rx_taken?: boolean;
+  side_effects?: string;
 }
 
 export function usePainLogs() {
@@ -72,6 +76,10 @@ export function usePainLogs() {
           weather: painData.weather,
           pain_strategies: painData.pain_strategies || [],
           journal_entry: painData.journal_entry,
+          functional_impact: painData.functional_impact,
+          impact_tags: painData.impact_tags || [],
+          rx_taken: painData.rx_taken,
+          side_effects: painData.side_effects,
           logged_at: new Date().toISOString()
         });
 
