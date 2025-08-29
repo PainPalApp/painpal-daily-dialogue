@@ -452,79 +452,93 @@ const TodayV2 = () => {
                 <Switch
                   id="rxTaken"
                   checked={rxTaken}
-                  onCheckedChange={setRxTaken}
-                />
-              </div>
-
-              {/* Side effects */}
-              <div>
-                <Label htmlFor="sideEffects" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
-                  Side effects (optional)
-                </Label>
-                <Textarea
-                  id="sideEffects"
-                  value={sideEffects}
-                  onChange={(e) => setSideEffects(e.target.value)}
-                  placeholder="Any side effects from medications or treatments?"
-                  className="min-h-20"
-                  style={{
-                    backgroundColor: 'transparent',
-                    borderColor: '#232445',
-                    color: '#E9E7FF'
+                  onCheckedChange={(checked) => {
+                    setRxTaken(checked);
+                    if (!checked) {
+                      // Clear medications and side effects when toggle is off
+                      setSelectedMeds([]);
+                      setSideEffects("");
+                      setOtherMedication("");
+                      setShowOtherMedInput(false);
+                    }
                   }}
                 />
               </div>
 
-              <div>
-                <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
-                  Medications taken
-                </Label>
-                <div className="flex flex-wrap gap-2">
-                  {medOptions.map((med) => (
-                    <Button
-                      key={med}
-                      variant="outline"
-                      size="sm"
-                      className={`text-sm ${selectedMeds.includes(med) ? 'font-medium border-2' : 'font-normal'}`}
-                      style={{
-                        borderColor: selectedMeds.includes(med) ? '#A78BFA' : '#232445',
-                        backgroundColor: selectedMeds.includes(med) ? '#A78BFA' : 'transparent',
-                        color: selectedMeds.includes(med) ? '#0F1020' : '#E9E7FF'
-                      }}
-                      onClick={() => {
-                        if (med === 'Other') {
-                          setShowOtherMedInput(!showOtherMedInput);
-                          if (showOtherMedInput) {
-                            setSelectedMeds(prev => prev.filter(m => m !== 'Other'));
-                            setOtherMedication("");
-                          } else {
-                            setSelectedMeds(prev => [...prev.filter(m => m !== 'Other'), 'Other']);
-                          }
-                        } else {
-                          setSelectedMeds(prev =>
-                            prev.includes(med)
-                              ? prev.filter(m => m !== med)
-                              : [...prev, med]
-                          );
-                        }
-                      }}
-                    >
-                      {med}
-                    </Button>
-                  ))}
-                </div>
-                
-                {/* Other medication input */}
-                {showOtherMedInput && (
-                  <div className="mt-4">
-                    <Label htmlFor="otherMed" className="text-sm font-medium mb-2 block" style={{ color: '#E9E7FF' }}>
-                      Specify other medication
+              {/* Conditionally show medication selection and side effects */}
+              {rxTaken && (
+                <>
+                  <div className="pl-4">
+                    <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                      Which medications?
                     </Label>
-                    <Input
-                      id="otherMed"
-                      value={otherMedication}
-                      onChange={(e) => setOtherMedication(e.target.value)}
-                      placeholder="Enter medication name"
+                    <div className="flex flex-wrap gap-2">
+                      {medOptions.map((med) => (
+                        <Button
+                          key={med}
+                          variant="outline"
+                          size="sm"
+                          className={`text-sm ${selectedMeds.includes(med) ? 'font-medium border-2' : 'font-normal'}`}
+                          style={{
+                            borderColor: selectedMeds.includes(med) ? '#A78BFA' : '#232445',
+                            backgroundColor: selectedMeds.includes(med) ? '#A78BFA' : 'transparent',
+                            color: selectedMeds.includes(med) ? '#0F1020' : '#E9E7FF'
+                          }}
+                          onClick={() => {
+                            if (med === 'Other') {
+                              setShowOtherMedInput(!showOtherMedInput);
+                              if (showOtherMedInput) {
+                                setSelectedMeds(prev => prev.filter(m => m !== 'Other'));
+                                setOtherMedication("");
+                              } else {
+                                setSelectedMeds(prev => [...prev.filter(m => m !== 'Other'), 'Other']);
+                              }
+                            } else {
+                              setSelectedMeds(prev =>
+                                prev.includes(med)
+                                  ? prev.filter(m => m !== med)
+                                  : [...prev, med]
+                              );
+                            }
+                          }}
+                        >
+                          {med}
+                        </Button>
+                      ))}
+                    </div>
+                    
+                    {/* Other medication input */}
+                    {showOtherMedInput && (
+                      <div className="mt-4">
+                        <Label htmlFor="otherMed" className="text-sm font-medium mb-2 block" style={{ color: '#E9E7FF' }}>
+                          Specify other medication
+                        </Label>
+                        <Input
+                          id="otherMed"
+                          value={otherMedication}
+                          onChange={(e) => setOtherMedication(e.target.value)}
+                          placeholder="Enter medication name"
+                          style={{
+                            backgroundColor: 'transparent',
+                            borderColor: '#232445',
+                            color: '#E9E7FF'
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Side effects */}
+                  <div className="pl-4">
+                    <Label htmlFor="sideEffects" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                      Side effects (optional)
+                    </Label>
+                    <Textarea
+                      id="sideEffects"
+                      value={sideEffects}
+                      onChange={(e) => setSideEffects(e.target.value)}
+                      placeholder="Any side effects from medications or treatments?"
+                      className="min-h-20"
                       style={{
                         backgroundColor: 'transparent',
                         borderColor: '#232445',
@@ -532,8 +546,8 @@ const TodayV2 = () => {
                       }}
                     />
                   </div>
-                )}
-              </div>
+                </>
+              )}
               
               <div>
                 <Label htmlFor="notes" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
@@ -707,98 +721,6 @@ const TodayV2 = () => {
                 />
               </div>
 
-              {/* Medications */}
-              <div>
-                <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
-                  Medications
-                </Label>
-                <div className="flex flex-wrap gap-2">
-                  {medOptions.map((med) => (
-                    <Button
-                      key={med}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs"
-                      style={{
-                        borderColor: editMeds.includes(med) ? '#A78BFA' : '#232445',
-                        backgroundColor: editMeds.includes(med) ? '#A78BFA' : 'transparent',
-                        color: editMeds.includes(med) ? '#0F1020' : '#E9E7FF'
-                      }}
-                      onClick={() => {
-                        setEditMeds(prev =>
-                          prev.includes(med)
-                            ? prev.filter(m => m !== med)
-                            : [...prev, med]
-                        );
-                      }}
-                    >
-                      {med}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Functional Impact */}
-              <div>
-                <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
-                  How is this pain affecting you?
-                </Label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { label: "No impact", value: "none" },
-                    { label: "Limited", value: "limited" },
-                    { label: "Stopped an activity", value: "stopped" },
-                    { label: "Bed rest", value: "bed" }
-                  ].map((impact) => (
-                    <Button
-                      key={impact.value}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs"
-                      style={{
-                        borderColor: editFunctionalImpact === impact.value ? '#A78BFA' : '#232445',
-                        backgroundColor: editFunctionalImpact === impact.value ? '#A78BFA' : 'transparent',
-                        color: editFunctionalImpact === impact.value ? '#0F1020' : '#E9E7FF'
-                      }}
-                      onClick={() => setEditFunctionalImpact(impact.value)}
-                    >
-                      {impact.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Impact Tags */}
-              <div>
-                <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
-                  Impact areas (optional)
-                </Label>
-                <div className="flex flex-wrap gap-2">
-                  {["Work", "Driving", "Sleep", "Exercise", "Household", "Social"].map((tag) => (
-                    <Button
-                      key={tag}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs"
-                      style={{
-                        borderColor: editImpactTags.includes(tag) ? '#A78BFA' : '#232445',
-                        backgroundColor: editImpactTags.includes(tag) ? '#A78BFA' : 'transparent',
-                        color: editImpactTags.includes(tag) ? '#0F1020' : '#E9E7FF'
-                      }}
-                      onClick={() => {
-                        setEditImpactTags(prev =>
-                          prev.includes(tag)
-                            ? prev.filter(t => t !== tag)
-                            : [...prev, tag]
-                        );
-                      }}
-                    >
-                      {tag}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
               {/* Prescription medication switch */}
               <div className="flex items-center justify-between">
                 <Label htmlFor="editRxTaken" className="text-sm font-medium" style={{ color: '#E9E7FF' }}>
@@ -807,28 +729,70 @@ const TodayV2 = () => {
                 <Switch
                   id="editRxTaken"
                   checked={editRxTaken}
-                  onCheckedChange={setEditRxTaken}
-                />
-              </div>
-
-              {/* Side effects */}
-              <div>
-                <Label htmlFor="editSideEffects" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
-                  Side effects (optional)
-                </Label>
-                <Textarea
-                  id="editSideEffects"
-                  value={editSideEffects}
-                  onChange={(e) => setEditSideEffects(e.target.value)}
-                  placeholder="Any side effects from medications or treatments?"
-                  className="min-h-20"
-                  style={{
-                    backgroundColor: 'transparent',
-                    borderColor: '#232445',
-                    color: '#E9E7FF'
+                  onCheckedChange={(checked) => {
+                    setEditRxTaken(checked);
+                    if (!checked) {
+                      // Clear medications and side effects when toggle is off
+                      setEditMeds([]);
+                      setEditSideEffects("");
+                    }
                   }}
                 />
               </div>
+
+              {/* Conditionally show medication selection and side effects */}
+              {editRxTaken && (
+                <>
+                  <div className="pl-4">
+                    <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                      Which medications?
+                    </Label>
+                    <div className="flex flex-wrap gap-2">
+                      {medOptions.map((med) => (
+                        <Button
+                          key={med}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs"
+                          style={{
+                            borderColor: editMeds.includes(med) ? '#A78BFA' : '#232445',
+                            backgroundColor: editMeds.includes(med) ? '#A78BFA' : 'transparent',
+                            color: editMeds.includes(med) ? '#0F1020' : '#E9E7FF'
+                          }}
+                          onClick={() => {
+                            setEditMeds(prev =>
+                              prev.includes(med)
+                                ? prev.filter(m => m !== med)
+                                : [...prev, med]
+                            );
+                          }}
+                        >
+                          {med}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Side effects */}
+                  <div className="pl-4">
+                    <Label htmlFor="editSideEffects" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                      Side effects (optional)
+                    </Label>
+                    <Textarea
+                      id="editSideEffects"
+                      value={editSideEffects}
+                      onChange={(e) => setEditSideEffects(e.target.value)}
+                      placeholder="Any side effects from medications or treatments?"
+                      className="min-h-20"
+                      style={{
+                        backgroundColor: 'transparent',
+                        borderColor: '#232445',
+                        color: '#E9E7FF'
+                      }}
+                    />
+                  </div>
+                </>
+              )}
 
               {/* Notes */}
               <div>
