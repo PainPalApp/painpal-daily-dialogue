@@ -284,7 +284,7 @@ const TodayV2 = () => {
                     <SheetTitle style={{ color: '#E9E7FF' }}>End Pain Level</SheetTitle>
                   </SheetHeader>
                   <div className="mt-4 space-y-6">
-                    <div className="grid grid-cols-6 gap-x-2 gap-y-1.5">
+                    <div className="grid grid-cols-5 gap-x-2 gap-y-1.5">
                       {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
                         <Button
                           key={level}
@@ -300,8 +300,8 @@ const TodayV2 = () => {
                           }}
                           onClick={() => setEndLevel(level)}
                         >
-                          <span className="text-lg">{painEmojis[level]}</span>
-                          <span>{level}</span>
+                          <span style={{ fontSize: '22px' }}>{painEmojis[level]}</span>
+                          <span style={{ fontSize: '10px', lineHeight: '1' }}>{level}</span>
                         </Button>
                       ))}
                     </div>
