@@ -387,15 +387,6 @@ const TodayV2 = () => {
                   >
                     + Add meds/notes
                   </Button>
-                  {painLevel >= 7 && (
-                    <Badge 
-                      variant="secondary" 
-                      className="text-[10px] px-1.5 py-0.5 leading-none"
-                      style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
-                    >
-                      Recommended
-                    </Badge>
-                  )}
                 </div>
               </div>
               <Button
