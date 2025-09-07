@@ -46,11 +46,21 @@ export const InsightsSection = () => {
     const endParam = urlParams.get('end');
     
     if (startParam && endParam) {
-      return {
-        startDate: new Date(startParam),
-        endDate: new Date(endParam),
-        preset: 'custom',
-      };
+      try {
+        const startDate = new Date(startParam);
+        const endDate = new Date(endParam);
+        
+        // Validate dates
+        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+          return {
+            startDate,
+            endDate,
+            preset: 'custom',
+          };
+        }
+      } catch (error) {
+        console.warn('Invalid date parameters in URL:', error);
+      }
     }
     
     // Default to last 30 days
@@ -89,26 +99,34 @@ export const InsightsSection = () => {
       preset,
     };
     setState(newState);
+    
+    // Update URL
+    updateURL(newState.startDate, newState.endDate);
   };
 
   // Handle custom date range selection
   const handleCustomDateChange = (range: DateRange | undefined) => {
     if (range?.from && range?.to) {
-      setState({
+      const newState = {
         startDate: range.from,
         endDate: range.to,
-        preset: 'custom',
-      });
+        preset: 'custom' as const,
+      };
+      setState(newState);
+      
+      // Update URL
+      updateURL(newState.startDate, newState.endDate);
     }
   };
-
-  // Update URL when state changes
-  useEffect(() => {
+  
+  // Function to update URL without page reload
+  const updateURL = (startDate: Date, endDate: Date) => {
     const url = new URL(window.location.href);
-    url.searchParams.set('start', format(state.startDate, 'yyyy-MM-dd'));
-    url.searchParams.set('end', format(state.endDate, 'yyyy-MM-dd'));
+    url.searchParams.set('start', format(startDate, 'yyyy-MM-dd'));
+    url.searchParams.set('end', format(endDate, 'yyyy-MM-dd'));
     window.history.replaceState({}, '', url.toString());
-  }, [state]);
+  };
+
 
   useEffect(() => {
     const loadPainData = async () => {
