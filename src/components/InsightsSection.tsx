@@ -10,9 +10,11 @@ import { Label } from '@/components/ui/label';
 import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X, BarChart3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PainChart } from '@/components/PainChart';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DateRangePicker } from '@/components/DateRangePicker';
 import { usePainLogs } from '@/hooks/usePainLogs';
 import { supabase } from '@/integrations/supabase/client';
+import { DateRange } from 'react-day-picker';
+import { format, subDays, isWithinInterval } from 'date-fns';
 
 interface PainEntry {
   id: number;
@@ -31,7 +33,25 @@ export const InsightsSection = () => {
   const [painData, setPainData] = useState<PainEntry[]>([]);
   const [editingEntry, setEditingEntry] = useState<PainEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('today');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    // Initialize with URL params if available
+    const urlParams = new URLSearchParams(window.location.search);
+    const startParam = urlParams.get('start');
+    const endParam = urlParams.get('end');
+    
+    if (startParam && endParam) {
+      return {
+        from: new Date(startParam),
+        to: new Date(endParam),
+      };
+    }
+    
+    // Default to last 30 days
+    return {
+      from: subDays(new Date(), 30),
+      to: new Date(),
+    };
+  });
   const { toast } = useToast();
   const { getPainLogs, updatePainLog, deletePainLog } = usePainLogs();
 
@@ -50,6 +70,16 @@ export const InsightsSection = () => {
       status: 'active'
     }));
   };
+
+  // Update URL when date range changes
+  useEffect(() => {
+    if (dateRange?.from && dateRange?.to) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('start', format(dateRange.from, 'yyyy-MM-dd'));
+      url.searchParams.set('end', format(dateRange.to, 'yyyy-MM-dd'));
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [dateRange]);
 
   useEffect(() => {
     const loadPainData = async () => {
@@ -86,8 +116,15 @@ export const InsightsSection = () => {
     };
   }, [getPainLogs]);
 
+  // Filter data based on selected date range
+  const filteredPainData = painData.filter(entry => {
+    if (!dateRange?.from || !dateRange?.to) return true;
+    const entryDate = new Date(entry.date);
+    return isWithinInterval(entryDate, { start: dateRange.from, end: dateRange.to });
+  });
+
   // Group entries by date
-  const groupedEntries = painData.reduce((groups, entry) => {
+  const groupedEntries = filteredPainData.reduce((groups, entry) => {
     const date = entry.date;
     if (!groups[date]) {
       groups[date] = [];
@@ -187,17 +224,22 @@ export const InsightsSection = () => {
     handleEditInputChange(field, currentArray.filter((_, i) => i !== index));
   };
 
-  if (painData.length === 0) {
+  if (filteredPainData.length === 0) {
     return (
       <div className="flex-1 bg-background p-6">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-foreground mb-6">Daily Insights</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-6">Insights</h1>
+          <DateRangePicker
+            value={dateRange}
+            onChange={setDateRange}
+            className="mb-6"
+          />
           <Card>
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">No Entries Yet</h3>
-                <p className="text-muted-foreground">Start tracking your pain to see insights here.</p>
+                <h3 className="text-lg font-semibold text-foreground mb-2">No Entries in Selected Range</h3>
+                <p className="text-muted-foreground">Try adjusting your date range to see insights.</p>
               </div>
             </CardContent>
           </Card>
@@ -211,26 +253,26 @@ export const InsightsSection = () => {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-2 mb-6">
           <BarChart3 className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-foreground">Pain Analytics</h1>
+          <h1 className="text-3xl font-bold text-foreground">Insights</h1>
         </div>
         
-        {/* Pain Chart with Time Period Toggle */}
+        {/* Date Range Picker */}
+        <DateRangePicker
+          value={dateRange}
+          onChange={setDateRange}
+          className="mb-6"
+        />
+        
+        {/* Pain Chart */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Pain Levels Over Time</CardTitle>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="lila-tab-container w-full p-1 bg-transparent">
-                <TabsTrigger value="today" className="lila-tab data-[state=active]:lila-tab-active flex-1">Today</TabsTrigger>
-                <TabsTrigger value="week" className="lila-tab data-[state=active]:lila-tab-active flex-1">This Week</TabsTrigger>
-                <TabsTrigger value="month" className="lila-tab data-[state=active]:lila-tab-active flex-1">This Month</TabsTrigger>
-              </TabsList>
-            </Tabs>
           </CardHeader>
           <CardContent>
             <div className="h-64">
               <PainChart 
-                painData={painData}
-                viewMode={activeTab as 'today' | 'week' | 'month'}
+                painData={filteredPainData}
+                viewMode="custom"
                 isCompact={false}
               />
             </div>

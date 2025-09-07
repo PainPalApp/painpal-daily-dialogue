@@ -43,7 +43,7 @@ interface PainEntry {
   status: string;
 }
 
-export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' | 'month') => {
+export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' | 'month' | 'custom') => {
   const chartRef = useRef<ChartJS | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isChartReady, setIsChartReady] = useState(false);
