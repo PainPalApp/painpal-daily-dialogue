@@ -575,20 +575,20 @@ const TodayV2 = () => {
                     size="sm"
                     variant="ghost"
                     onClick={() => handleEditEntry(log)}
-                    className="p-2 h-8 w-8 text-primary"
+                    className="p-2 h-8 w-8 text-icon-default hover:text-icon-active"
                     aria-label="Edit entry"
                   >
-                    <Edit3 size={14} />
+                    <Edit3 size={14} className="icon-default" />
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="p-2 h-8 w-8 text-primary"
+                        className="p-2 h-8 w-8 text-icon-default hover:text-icon-active"
                         aria-label="Delete entry"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={14} className="icon-default" />
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent className="bg-card border-border">

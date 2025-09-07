@@ -61,9 +61,9 @@ export function AppShell({ children }: AppShellProps) {
               variant="ghost"
               size="sm"
               onClick={handleSignOut}
-              className="text-navbar-foreground hover:text-navbar-accent hover:bg-navbar-accent/10"
+              className="text-text-secondary hover:text-icon-active hover:bg-accent-primary/10"
             >
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="h-4 w-4 mr-2 icon-default" />
               Sign Out
             </Button>
           </div>

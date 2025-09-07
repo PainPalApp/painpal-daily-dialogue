@@ -2,109 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ChatGPT-inspired Design System - All colors MUST be HSL */
+/* Lila Dark Theme Design System - All colors MUST be HSL */
 
 @layer base {
   :root {
-    /* Lila Light Colors (for reference/fallback) */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 16%;
-
-    /* Lila theme colors */
-    --navbar: 230 45% 9%;        /* #0F1020 */
-    --navbar-foreground: 254 100% 91%;   /* #E9E7FF */
-    --navbar-accent: 270 95% 75%;        /* #A78BFA */
-    --navbar-border: 230 30% 20%;       /* #232445 */
-
-    --card: 230 32% 13%;         /* #17182B */
-    --card-foreground: 254 100% 91%;    /* #E9E7FF */
-
-    --popover: 230 32% 13%;      /* #17182B */
-    --popover-foreground: 254 100% 91%; /* #E9E7FF */
-
-    --primary: 270 95% 75%;      /* #A78BFA */
-    --primary-foreground: 230 45% 9%;   /* #0F1020 */
-
-    --secondary: 230 32% 13%;    /* #17182B */
-    --secondary-foreground: 254 100% 91%; /* #E9E7FF */
-
-    --muted: 230 32% 13%;        /* #17182B */
-    --muted-foreground: 254 59% 78%;     /* #BDB8E6 */
-
-    --accent: 270 95% 75%;       /* #A78BFA */
-    --accent-foreground: 230 45% 9%;     /* #0F1020 */
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 230 30% 20%;       /* #232445 */
-    --input: 230 32% 13%;        /* #17182B */
-    --ring: 270 95% 75%;         /* #A78BFA */
-
+    /* Lila Design Tokens - Global Application */
+    --background: 230 45% 9%;           /* #0F1020 */
+    --foreground: 254 100% 91%;         /* #E9E7FF */
+    
+    /* Surface Colors */
+    --surface: 230 32% 13%;             /* #17182B */
+    --surface-foreground: 254 100% 91%; /* #E9E7FF */
+    
+    /* Text Colors */
+    --text-primary: 254 100% 91%;       /* #E9E7FF */
+    --text-secondary: 254 59% 78%;      /* #BDB8E6 */
+    --text-secondary-hover: 254 59% 85%; /* #BDB8E6 with 80% opacity hover */
+    
+    /* Icon Colors */
+    --icon-default: 254 59% 78%;        /* #BDB8E6 */
+    --icon-muted: 248 37% 60%;          /* #8A85B6 */
+    --icon-active: 270 95% 75%;         /* #A78BFA */
+    
+    /* Accent Colors */
+    --accent-primary: 270 95% 75%;      /* #A78BFA */
+    --accent-hover: 270 91% 65%;        /* #8B5CF6 */
+    
+    /* Status Colors */
+    --status-ok: 151 55% 53%;           /* #34D399 */
+    --status-warn: 45 93% 58%;          /* #FCD34D */
+    --status-bad: 0 85% 70%;            /* #F87171 */
+    
+    /* Border & Input */
+    --border: 230 30% 20%;              /* #232445 */
+    --input: 230 32% 13%;               /* #17182B */
+    --ring: 270 95% 75%;                /* #A78BFA */
+    
+    /* Standard Tokens (mapped to Lila) */
+    --card: var(--surface);
+    --card-foreground: var(--surface-foreground);
+    --popover: var(--surface);
+    --popover-foreground: var(--surface-foreground);
+    --primary: var(--accent-primary);
+    --primary-foreground: var(--background);
+    --secondary: var(--surface);
+    --secondary-foreground: var(--text-primary);
+    --muted: var(--surface);
+    --muted-foreground: var(--text-secondary);
+    --accent: var(--accent-primary);
+    --accent-foreground: var(--background);
+    --destructive: var(--status-bad);
+    --destructive-foreground: var(--text-primary);
+    
+    /* Navigation */
+    --navbar: var(--background);
+    --navbar-foreground: var(--text-primary);
+    --navbar-accent: var(--accent-primary);
+    --navbar-border: var(--border);
+    
+    /* Sidebar */
+    --sidebar-background: var(--background);
+    --sidebar-foreground: var(--text-primary);
+    --sidebar-primary: var(--accent-primary);
+    --sidebar-primary-foreground: var(--background);
+    --sidebar-accent: var(--surface);
+    --sidebar-accent-foreground: var(--text-primary);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--accent-primary);
+    
+    /* Chat Components */
+    --chat-user-bg: var(--accent-primary);
+    --chat-user-fg: var(--background);
+    --chat-ai-bg: var(--surface);
+    --chat-ai-fg: var(--text-primary);
+    --chat-suggestion: var(--surface);
+    --chat-suggestion-hover: var(--border);
+    
     --radius: 8px;
-
-    /* ChatGPT-specific tokens */
-    --chat-user-bg: 212 100% 48%;
-    --chat-user-fg: 0 0% 100%;
-    --chat-ai-bg: 0 0% 96%;
-    --chat-ai-fg: 0 0% 16%;
-    --chat-suggestion: 0 0% 93%;
-    --chat-suggestion-hover: 0 0% 85%;
   }
 
   .dark {
-    /* Lila Dark Theme - Global Application */
-    --background: 230 45% 9%;    /* #0F1020 */
-    --foreground: 254 100% 91%;  /* #E9E7FF */
-
-    /* Lila navbar theme colors for dark mode */
-    --navbar: 230 45% 9%;        /* #0F1020 */
-    --navbar-foreground: 254 100% 91%;   /* #E9E7FF */
-    --navbar-accent: 270 95% 75%;        /* #A78BFA */
-    --navbar-border: 230 30% 20%;       /* #232445 */
-
-    --card: 230 32% 13%;         /* #17182B */
-    --card-foreground: 254 100% 91%;    /* #E9E7FF */
-
-    --popover: 230 32% 13%;      /* #17182B */
-    --popover-foreground: 254 100% 91%; /* #E9E7FF */
-
-    --primary: 270 95% 75%;      /* #A78BFA */
-    --primary-foreground: 230 45% 9%;   /* #0F1020 */
-
-    --secondary: 230 32% 13%;    /* #17182B */
-    --secondary-foreground: 254 100% 91%; /* #E9E7FF */
-
-    --muted: 230 32% 13%;        /* #17182B */
-    --muted-foreground: 254 59% 78%;     /* #BDB8E6 */
-
-    --accent: 270 95% 75%;       /* #A78BFA */
-    --accent-foreground: 230 45% 9%;     /* #0F1020 */
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 254 100% 91%; /* #E9E7FF */
-
-    --border: 230 30% 20%;       /* #232445 */
-    --input: 230 32% 13%;        /* #17182B */
-    --ring: 270 95% 75%;         /* #A78BFA */
-
-    /* ChatGPT-specific dark tokens */
-    --chat-user-bg: 270 95% 75%;        /* #A78BFA */
-    --chat-user-fg: 230 45% 9%;         /* #0F1020 */
-    --chat-ai-bg: 230 32% 13%;          /* #17182B */
-    --chat-ai-fg: 254 100% 91%;         /* #E9E7FF */
-    --chat-suggestion: 230 32% 13%;     /* #17182B */
-    --chat-suggestion-hover: 230 30% 20%; /* #232445 */
-
-    /* Sidebar variables for consistency */
-    --sidebar-background: 230 45% 9%;   /* #0F1020 */
-    --sidebar-foreground: 254 100% 91%; /* #E9E7FF */
-    --sidebar-primary: 270 95% 75%;     /* #A78BFA */
-    --sidebar-primary-foreground: 230 45% 9%; /* #0F1020 */
-    --sidebar-accent: 230 32% 13%;      /* #17182B */
-    --sidebar-accent-foreground: 254 100% 91%; /* #E9E7FF */
-    --sidebar-border: 230 30% 20%;      /* #232445 */
-    --sidebar-ring: 270 95% 75%;        /* #A78BFA */
+    /* Dark mode uses same tokens as root */
   }
 }
 
@@ -119,13 +97,50 @@
     font-variation-settings: "opsz" 32;
   }
 
-  /* Typography system */
+  /* Lila Typography System */
+  .text-h1 {
+    @apply text-[22px] leading-[28px] font-medium text-[hsl(var(--text-primary))];
+  }
+  
+  .text-section {
+    @apply text-[18px] leading-[24px] font-medium text-[hsl(var(--text-primary))];
+  }
+  
+  .text-body {
+    @apply text-[15px] leading-[22px] font-normal text-[hsl(var(--text-primary))];
+  }
+  
+  .text-caption {
+    @apply text-[12px] leading-[16px] font-normal text-[hsl(var(--text-secondary))];
+  }
+
+  /* Typography system - legacy */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-medium tracking-tight;
+    @apply font-medium tracking-tight text-[hsl(var(--text-primary))];
+  }
+  
+  h1 { @apply text-h1; }
+  h2 { @apply text-section; }
+  
+  /* Global Icon Styles */
+  .icon-default {
+    @apply text-[hsl(var(--icon-default))] transition-colors;
+  }
+  
+  .icon-default:hover {
+    @apply text-[hsl(var(--icon-active))];
+  }
+  
+  .icon-muted {
+    @apply text-[hsl(var(--icon-muted))];
+  }
+  
+  .icon-active {
+    @apply text-[hsl(var(--icon-active))];
   }
 }
 
-/* ChatGPT-style Chat Components */
+/* Lila Component System */
 @layer components {
   .chat-message-user {
     @apply bg-[hsl(var(--chat-user-bg))] text-[hsl(var(--chat-user-fg))] rounded-2xl rounded-br-sm px-4 py-3 max-w-xs sm:max-w-md lg:max-w-lg;
@@ -137,7 +152,7 @@
 
   .chat-suggestion-pill {
     @apply bg-[hsl(var(--chat-suggestion))] hover:bg-[hsl(var(--chat-suggestion-hover))] 
-           text-foreground border border-border rounded-full px-4 py-2 text-sm font-normal
+           text-[hsl(var(--text-primary))] border border-border rounded-full px-4 py-2 text-sm font-normal
            cursor-pointer transition-colors duration-200;
   }
 
@@ -146,69 +161,76 @@
   }
 
   .chat-input {
-    @apply w-full rounded-xl border border-border bg-background px-4 py-3 text-sm 
-           placeholder:text-muted-foreground focus:outline-none focus:ring-2 
-           focus:ring-ring focus:border-transparent resize-none;
+    @apply w-full rounded-xl border border-border bg-[hsl(var(--surface))] px-4 py-3 text-sm 
+           placeholder:text-[hsl(var(--text-secondary))] text-[hsl(var(--text-primary))] 
+           focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] 
+           focus:border-transparent resize-none;
   }
 
   .chat-send-button {
-    @apply h-10 w-10 rounded-lg bg-foreground text-background hover:bg-foreground/90 
-           disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+    @apply h-10 w-10 rounded-lg bg-[hsl(var(--accent-primary))] text-[hsl(var(--background))] 
+           hover:bg-[hsl(var(--accent-hover))] disabled:opacity-50 disabled:cursor-not-allowed 
+           transition-colors;
   }
 
   /* Navigation components */
   .nav-button {
     @apply px-3 py-2 rounded-lg text-sm font-medium transition-colors 
-           text-muted-foreground hover:text-foreground hover:bg-accent;
+           text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] 
+           hover:bg-[hsl(var(--accent-primary))]/10;
   }
 
   .nav-button-active {
-    @apply bg-accent text-accent-foreground;
+    @apply bg-[hsl(var(--accent-primary))]/20 text-[hsl(var(--accent-primary))];
   }
 
   /* Card components */
   .card-clean {
-    @apply bg-card text-card-foreground rounded-xl border border-border shadow-sm;
+    @apply bg-[hsl(var(--surface))] text-[hsl(var(--text-primary))] rounded-xl 
+           border border-[hsl(var(--border))] shadow-sm;
   }
 
   /* Form components */
   .input-clean {
-    @apply w-full rounded-lg border border-border bg-background px-3 py-2 text-sm 
-           placeholder:text-muted-foreground focus:outline-none focus:ring-2 
-           focus:ring-ring focus:border-transparent;
+    @apply w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface))] 
+           px-3 py-2 text-sm placeholder:text-[hsl(var(--text-secondary))] 
+           text-[hsl(var(--text-primary))] focus:outline-none focus:ring-2 
+           focus:ring-[hsl(var(--accent-primary))] focus:border-transparent;
   }
 
   .button-primary {
-    @apply bg-foreground text-background hover:bg-foreground/90 rounded-lg px-4 py-2 
+    @apply bg-[hsl(var(--accent-primary))] text-[hsl(var(--background))] 
+           hover:bg-[hsl(var(--accent-hover))] rounded-lg px-4 py-2 
            text-sm font-medium transition-colors;
   }
 
   .button-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg 
-           px-4 py-2 text-sm font-medium transition-colors;
+    @apply bg-[hsl(var(--surface))] text-[hsl(var(--text-primary))] 
+           hover:bg-[hsl(var(--border))] rounded-lg px-4 py-2 text-sm font-medium transition-colors;
   }
 
   .button-ghost {
-    @apply hover:bg-accent hover:text-accent-foreground rounded-lg px-4 py-2 text-sm 
-           font-medium transition-colors;
+    @apply hover:bg-[hsl(var(--accent-primary))]/10 hover:text-[hsl(var(--accent-primary))] 
+           rounded-lg px-4 py-2 text-sm font-medium transition-colors;
   }
 
   /* Onboarding specific */
   .onboarding-container {
     @apply min-h-screen flex items-center justify-center p-6 bg-gradient-to-br 
-           from-background to-secondary/20;
+           from-[hsl(var(--background))] to-[hsl(var(--surface))];
   }
 
   .onboarding-card {
-    @apply w-full max-w-2xl bg-card rounded-2xl border border-border shadow-lg p-8;
+    @apply w-full max-w-2xl bg-[hsl(var(--surface))] rounded-2xl border 
+           border-[hsl(var(--border))] shadow-lg p-8;
   }
 
   .onboarding-progress {
-    @apply w-full bg-muted rounded-full h-2;
+    @apply w-full bg-[hsl(var(--border))] rounded-full h-2;
   }
 
   .onboarding-progress-bar {
-    @apply h-2 bg-primary rounded-full transition-all duration-300;
+    @apply h-2 bg-[hsl(var(--accent-primary))] rounded-full transition-all duration-300;
   }
 
   /* Loading and states */
@@ -217,7 +239,7 @@
   }
 
   .loading-dot {
-    @apply w-2 h-2 bg-muted-foreground rounded-full animate-bounce;
+    @apply w-2 h-2 bg-[hsl(var(--text-secondary))] rounded-full animate-bounce;
   }
 }
 

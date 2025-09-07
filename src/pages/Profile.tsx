@@ -171,7 +171,7 @@ const Profile = () => {
           <div className="card-clean p-6">
             <div className="mb-6">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-                <User className="h-5 w-5" />
+                <User className="h-5 w-5 icon-default" />
                 Basic Information
               </h2>
             </div>
@@ -204,7 +204,7 @@ const Profile = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
+                <Settings className="h-5 w-5 icon-default" />
                 Medical Information
               </CardTitle>
             </CardHeader>
@@ -226,7 +226,7 @@ const Profile = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
+                <MapPin className="h-5 w-5 icon-default" />
                 Pain Locations
               </CardTitle>
               <CardDescription>
@@ -263,7 +263,7 @@ const Profile = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Pill className="h-5 w-5" />
+                <Pill className="h-5 w-5 icon-default" />
                 Current Medications
               </CardTitle>
               <CardDescription>

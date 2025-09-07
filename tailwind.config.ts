@@ -27,6 +27,35 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				
+				/* Lila Design Tokens */
+				surface: {
+					DEFAULT: 'hsl(var(--surface))',
+					foreground: 'hsl(var(--surface-foreground))'
+				},
+				text: {
+					primary: 'hsl(var(--text-primary))',
+					secondary: 'hsl(var(--text-secondary))',
+					'secondary-hover': 'hsl(var(--text-secondary-hover))'
+				},
+				icon: {
+					default: 'hsl(var(--icon-default))',
+					muted: 'hsl(var(--icon-muted))',
+					active: 'hsl(var(--icon-active))'
+				},
+				accent: {
+					DEFAULT: 'hsl(var(--accent))',
+					foreground: 'hsl(var(--accent-foreground))',
+					primary: 'hsl(var(--accent-primary))',
+					hover: 'hsl(var(--accent-hover))'
+				},
+				status: {
+					ok: 'hsl(var(--status-ok))',
+					warn: 'hsl(var(--status-warn))',
+					bad: 'hsl(var(--status-bad))'
+				},
+				
+				/* Standard tokens mapped to Lila */
 				navbar: {
 					DEFAULT: 'hsl(var(--navbar))',
 					foreground: 'hsl(var(--navbar-foreground))',
@@ -48,10 +77,6 @@ export default {
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))'
-				},
-				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',

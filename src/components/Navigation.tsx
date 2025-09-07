@@ -45,9 +45,9 @@ export function Navigation() {
               variant="ghost"
               size="sm"
               onClick={signOut}
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent"
+              className="h-8 w-8 p-0 text-text-secondary hover:text-icon-active hover:bg-accent/10"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-4 w-4 icon-default" />
             </Button>
           </div>
 
@@ -60,7 +60,7 @@ export function Navigation() {
               className="h-8 w-8 p-0"
             >
               <svg
-                className="h-5 w-5"
+                className="h-5 w-5 icon-default"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -109,9 +109,9 @@ export function Navigation() {
                   signOut();
                   setIsMenuOpen(false);
                 }}
-                className="w-full justify-start text-muted-foreground hover:text-foreground mt-3"
+                className="w-full justify-start text-text-secondary hover:text-icon-active mt-3"
               >
-                <LogOut className="h-4 w-4 mr-2" />
+                <LogOut className="h-4 w-4 mr-2 icon-default" />
                 Sign Out
               </Button>
             </div>

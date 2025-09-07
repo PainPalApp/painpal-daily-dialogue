@@ -364,13 +364,14 @@ export function RecordsSection() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEdit(log)}
+                          className="text-icon-default hover:text-icon-active"
                         >
-                          <Edit3 className="h-4 w-4" />
+                          <Edit3 className="h-4 w-4 icon-default" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <Trash2 className="h-4 w-4" />
+                            <Button variant="ghost" size="sm" className="text-icon-default hover:text-icon-active">
+                              <Trash2 className="h-4 w-4 icon-default" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -612,13 +613,14 @@ export function RecordsSection() {
                           setDaySheetOpen(false);
                           handleEdit(log);
                         }}
+                        className="text-icon-default hover:text-icon-active"
                       >
-                        <Edit3 className="h-4 w-4" />
+                        <Edit3 className="h-4 w-4 icon-default" />
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4" />
+                          <Button variant="ghost" size="sm" className="text-icon-default hover:text-icon-active">
+                            <Trash2 className="h-4 w-4 icon-default" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
