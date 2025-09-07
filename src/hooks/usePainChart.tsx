@@ -92,6 +92,35 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
     return chartData;
   };
 
+  const getCustomData = (data: PainEntry[]) => {
+    // Group entries by date and calculate daily averages
+    const dateGroups: Record<string, PainEntry[]> = {};
+    
+    data.forEach(entry => {
+      if (entry.painLevel !== null && entry.painLevel !== undefined) {
+        if (!dateGroups[entry.date]) {
+          dateGroups[entry.date] = [];
+        }
+        dateGroups[entry.date].push(entry);
+      }
+    });
+    
+    // Calculate daily averages and sort by date
+    const dailyAverages = Object.keys(dateGroups)
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+      .map(date => {
+        const entries = dateGroups[date];
+        const avgPain = entries.reduce((sum, entry) => sum + (entry.painLevel || 0), 0) / entries.length;
+        return {
+          date,
+          avgPain: Math.round(avgPain * 10) / 10, // Round to 1 decimal place
+          entryCount: entries.length
+        };
+      });
+    
+    return dailyAverages;
+  };
+
   // Memoize processed data to prevent unnecessary recalculations
   const processedData = useMemo(() => {
     switch (viewMode) {
@@ -101,6 +130,8 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
         return getWeekData(painData);
       case 'month':
         return getMonthData(painData);
+      case 'custom':
+        return getCustomData(painData);
       default:
         return [];
     }
@@ -288,7 +319,7 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
           }
         }
       });
-    } else {
+    } else if (viewMode === 'month') {
       // Month view - similar to week but with more data points
       const monthData = processedData as any[];
       
@@ -346,6 +377,100 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
           }
         }
       });
+    } else if (viewMode === 'custom') {
+      // Custom date range view - daily averages with purple theme
+      const customData = processedData as any[];
+      
+      if (customData.length === 0) {
+        setIsChartReady(true);
+        isInitializedRef.current = true;
+        return;
+      }
+      
+      const labels = customData.map(d => {
+        const date = new Date(d.date);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      });
+      
+      chartRef.current = new ChartJS(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Daily Average Pain',
+            data: customData.map(d => d.avgPain),
+            borderColor: '#A78BFA', // Purple color
+            backgroundColor: 'rgba(167, 139, 250, 0.1)',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: '#A78BFA',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            fill: false,
+            tension: 0.3,
+            spanGaps: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 200 },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: (context: any) => {
+                  const index = context[0].dataIndex;
+                  const dataPoint = customData[index];
+                  return new Date(dataPoint.date).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  });
+                },
+                label: (context: any) => {
+                  const index = context.dataIndex;
+                  const dataPoint = customData[index];
+                  return [
+                    `Average Pain: ${dataPoint.avgPain}/10`,
+                    `${dataPoint.entryCount} ${dataPoint.entryCount === 1 ? 'entry' : 'entries'}`
+                  ];
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              min: 0,
+              max: 10,
+              ticks: { 
+                stepSize: 1,
+                color: 'hsl(var(--muted-foreground))'
+              },
+              title: {
+                display: true,
+                text: 'Daily Average Pain Level',
+                color: 'hsl(var(--muted-foreground))'
+              },
+              grid: {
+                color: 'hsl(var(--border))'
+              }
+            },
+            x: {
+              ticks: { 
+                color: 'hsl(var(--muted-foreground))',
+                maxTicksLimit: 15,
+                maxRotation: 45
+              },
+              grid: {
+                color: 'hsl(var(--border))'
+              }
+            }
+          }
+        }
+      });
     }
 
     // Set up MutationObserver to watch for DOM changes only once
@@ -392,10 +517,18 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
         const weekData = getWeekData(painData);
         chartRef.current.data.labels = weekData.map(d => d.label);
         chartRef.current.data.datasets[0].data = weekData.map(d => d.pain);
-      } else {
+      } else if (viewMode === 'month') {
         const monthData = getMonthData(painData);
         chartRef.current.data.labels = monthData.map(d => d.label);
         chartRef.current.data.datasets[0].data = monthData.map(d => d.pain);
+      } else if (viewMode === 'custom') {
+        const customData = getCustomData(painData);
+        const labels = customData.map(d => {
+          const date = new Date(d.date);
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+        chartRef.current.data.labels = labels;
+        chartRef.current.data.datasets[0].data = customData.map(d => d.avgPain);
       }
       
       chartRef.current.update('none');

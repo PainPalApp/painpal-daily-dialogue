@@ -113,8 +113,29 @@ export const InsightsSection = () => {
   useEffect(() => {
     const loadPainData = async () => {
       try {
-        const logs = await getPainLogs();
-        const transformedData = transformSupabaseData(logs);
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setPainData([]);
+          return;
+        }
+
+        // Query pain logs filtered by user and date range
+        const { data: logs, error } = await supabase
+          .from('pain_logs')
+          .select('*')
+          .eq('user_id', user.id)
+          .gte('logged_at', state.startDate.toISOString())
+          .lte('logged_at', state.endDate.toISOString())
+          .order('logged_at', { ascending: true });
+
+        if (error) {
+          console.error('Error loading pain data:', error);
+          setPainData([]);
+          return;
+        }
+
+        const transformedData = transformSupabaseData(logs || []);
         setPainData(transformedData);
       } catch (error) {
         console.error('Error loading pain data:', error);
@@ -143,13 +164,10 @@ export const InsightsSection = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [getPainLogs]);
+  }, [state.startDate, state.endDate]); // Reload when date range changes
 
-  // Filter data based on selected date range
-  const filteredPainData = painData.filter(entry => {
-    const entryDate = new Date(entry.date);
-    return isWithinInterval(entryDate, { start: state.startDate, end: state.endDate });
-  });
+  // Since we're now filtering at the database level, use all loaded data
+  const filteredPainData = painData;
 
   // Group entries by date
   const groupedEntries = filteredPainData.reduce((groups, entry) => {
