@@ -11,7 +11,7 @@ export const useTodayQueries = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pain_logs")
-        .select("id, logged_at, pain_level, activity")
+        .select("id, logged_at, pain_level, activity, notes, medications, functional_impact, impact_tags, rx_taken, side_effects")
         .eq("user_id", user!.id)
         .gte("logged_at", new Date().toISOString().split('T')[0])
         .lt("logged_at", new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0])
@@ -29,7 +29,7 @@ export const useTodayQueries = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pain_logs")
-        .select("id, logged_at, pain_level, activity")
+        .select("id, logged_at, pain_level, activity, notes, medications, functional_impact, impact_tags, rx_taken, side_effects")
         .eq("user_id", user!.id)
         .gte("logged_at", new Date().toISOString().split('T')[0])
         .lt("logged_at", new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0])
