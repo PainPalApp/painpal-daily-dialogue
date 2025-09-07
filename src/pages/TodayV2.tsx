@@ -319,14 +319,12 @@ const TodayV2 = () => {
             <h2 className="text-[18px] leading-6 font-medium text-foreground">
               Today
             </h2>
-            <div className="flex items-center gap-4">
+            <div className="text-right">
               {(() => {
                 const latestLog = todayLogs.length > 0 ? todayLogs[todayLogs.length - 1] : lastLog;
                 if (!latestLog) {
                   return (
-                    <div className="text-right">
-                      <div className="text-sm font-medium text-muted-foreground">No data</div>
-                    </div>
+                    <div className="text-sm font-medium text-muted-foreground">No data</div>
                   );
                 }
                 
@@ -338,21 +336,23 @@ const TodayV2 = () => {
                 });
                 
                 return (
-                  <div className="text-right">
+                  <div>
                     <div className="text-sm font-medium text-foreground">{latestLog.pain_level}/10</div>
                     <div className="text-xs text-muted-foreground">{isToday ? timeStr : 'Not today'}</div>
                   </div>
                 );
               })()}
-              <button 
-                onClick={() => window.location.href = '/records'} 
-                className="text-sm hover:underline text-primary"
-              >
-                View full log →
-              </button>
             </div>
           </div>
-          <TodayV2Sparkline savedData={todayLogs} previewPoints={previewPoints} />
+          <div className="relative">
+            <TodayV2Sparkline savedData={todayLogs} previewPoints={previewPoints} />
+            <button 
+              onClick={() => window.location.href = '/records'} 
+              className="absolute bottom-1 right-2 text-sm hover:underline text-primary bg-card/80 backdrop-blur-sm px-2 py-1 rounded"
+            >
+              View full log →
+            </button>
+          </div>
         </div>
 
         {/* NRS-11 Emoji Grid */}
