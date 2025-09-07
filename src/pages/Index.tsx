@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { TodaySection } from "@/components/TodaySection";
 import { InsightsSection } from "@/components/InsightsSection";
+import { RecordsSection } from "@/components/RecordsSection";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,14 +54,7 @@ const Index = () => {
       case "insights":
         return <InsightsSection />;
       case "records":
-        return (
-          <div className="flex-1 bg-background flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Records</h2>
-              <p className="text-muted-foreground">Records section coming soon...</p>
-            </div>
-          </div>
-        );
+        return <RecordsSection />;
       default:
         return <TodaySection onNavigateToInsights={() => setActiveSection('insights')} />;
     }
