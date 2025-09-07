@@ -105,7 +105,16 @@ const TodayV2 = () => {
   };
 
   const handleSaveCheckin = async () => {
-    if (!user?.id || painLevel === null) return;
+    // First check: validate user authentication
+    if (!user?.id) {
+      toast({ 
+        description: "Please sign in to save your check-in.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+    
+    if (painLevel === null) return;
 
     try {
       // Prepare medications list including other medication if specified
@@ -148,20 +157,25 @@ const TodayV2 = () => {
         if (sessionError) console.error('Error creating session:', sessionError);
       }
 
+      // Prepare payload for logging and insertion
+      const painLogPayload = {
+        user_id: user.id,
+        pain_level: painLevel,
+        activity: selectedActivity || null,
+        medications: finalMedications,
+        notes: notes || null,
+        functional_impact: functionalImpact,
+        impact_tags: impactTags,
+        rx_taken: rxTaken,
+        side_effects: sideEffects || null
+      };
+
+      console.log('Saving pain log with payload:', painLogPayload);
+
       // Insert pain log
       const { error: logError } = await supabase
         .from('pain_logs')
-        .insert({
-          user_id: user.id,
-          pain_level: painLevel,
-          activity: selectedActivity || null,
-          medications: finalMedications,
-          notes: notes || null,
-          functional_impact: functionalImpact,
-          impact_tags: impactTags,
-          rx_taken: rxTaken,
-          side_effects: sideEffects || null
-        });
+        .insert(painLogPayload);
 
       if (logError) throw logError;
 
@@ -181,9 +195,12 @@ const TodayV2 = () => {
 
       refetchAll();
       toast({ description: "Check-in saved" });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving check-in:', error);
-      toast({ description: "Failed to save check-in", variant: "destructive" });
+      toast({ 
+        description: error.message || "Failed to save check-in", 
+        variant: "destructive" 
+      });
     }
   };
 
