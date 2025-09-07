@@ -251,37 +251,37 @@ const TodayV2 = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#0F1020' }}>
+    <div className="min-h-screen bg-background">
       <div className="max-w-md mx-auto p-4 space-y-6">
         {/* Header */}
-        <h1 className="text-[22px] leading-7 font-medium" style={{ color: '#E9E7FF' }}>
+        <h1 className="text-[22px] leading-7 font-medium text-foreground">
           Today
         </h1>
 
         {/* Unresolved Pain Card */}
         {shouldShowUnresolvedCard && (
-          <div className="p-4 rounded-lg" style={{ backgroundColor: '#17182B', borderColor: '#232445', border: '1px solid' }}>
-            <p className="text-[15px] leading-[22px] mb-3" style={{ color: '#E9E7FF' }}>
+          <div className="p-4 rounded-lg bg-card border border-border">
+            <p className="text-[15px] leading-[22px] mb-3 text-foreground">
               Yesterday's pain still ongoing?
             </p>
             <div className="flex gap-2">
               <Button
                 size="sm"
                 onClick={() => setShowUnresolvedCard(false)}
-                className="bg-transparent border" 
-                style={{ borderColor: '#232445', color: '#BDB8E6' }}
+                variant="outline"
+                className="bg-transparent border-border text-muted-foreground"
               >
                 Still ongoing
               </Button>
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button size="sm" style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}>
+                  <Button size="sm" className="bg-primary text-primary-foreground">
                     Resolve now
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="p-6" style={{ backgroundColor: '#17182B', borderColor: '#232445' }}>
+                <SheetContent className="p-6 bg-card border-border">
                   <SheetHeader>
-                    <SheetTitle style={{ color: '#E9E7FF' }}>End Pain Level</SheetTitle>
+                    <SheetTitle className="text-foreground">End Pain Level</SheetTitle>
                   </SheetHeader>
                   <div className="mt-4 space-y-6">
                     <div className="grid grid-cols-5 gap-x-2 gap-y-1.5">
@@ -291,13 +291,8 @@ const TodayV2 = () => {
                           variant="outline"
                           size="sm"
                           className={`min-w-11 min-h-11 flex-col text-xs p-1 ${
-                            endLevel === level ? '' : ''
-                          }`}
-                          style={{
-                            borderColor: endLevel === level ? '#A78BFA' : '#232445',
-                            backgroundColor: 'transparent',
-                            color: '#E9E7FF'
-                          }}
+                            endLevel === level ? 'border-primary' : 'border-border'
+                          } bg-transparent text-foreground`}
                           onClick={() => setEndLevel(level)}
                         >
                           <span style={{ fontSize: '22px' }}>{painEmojis[level]}</span>
@@ -307,8 +302,7 @@ const TodayV2 = () => {
                     </div>
                     <Button 
                       onClick={handleResolveSession}
-                      className="w-full"
-                      style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
+                      className="w-full bg-primary text-primary-foreground"
                     >
                       Save Resolution
                     </Button>
@@ -320,15 +314,14 @@ const TodayV2 = () => {
         )}
 
         {/* Mini Sparkline Card */}
-        <div className="p-4 rounded-lg" style={{ backgroundColor: '#17182B', borderColor: '#232445', border: '1px solid' }}>
+        <div className="p-4 rounded-lg bg-card border border-border">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-[18px] leading-6 font-medium" style={{ color: '#E9E7FF' }}>
+            <h2 className="text-[18px] leading-6 font-medium text-foreground">
               Today
             </h2>
             <button 
               onClick={() => window.location.href = '/records'} 
-              className="text-sm hover:underline" 
-              style={{ color: '#A78BFA' }}
+              className="text-sm hover:underline text-primary"
             >
               View full log →
             </button>
@@ -338,7 +331,7 @@ const TodayV2 = () => {
 
         {/* NRS-11 Emoji Grid */}
         <div className="space-y-6 py-2">
-          <h2 className="text-[18px] leading-6 font-medium" style={{ color: '#E9E7FF' }}>
+          <h2 className="text-[18px] leading-6 font-medium text-foreground">
             How's your pain right now?
           </h2>
           
@@ -346,15 +339,11 @@ const TodayV2 = () => {
             {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
               <button
                 key={level}
-                className={`min-w-11 min-h-11 flex flex-col items-center justify-center p-1 rounded border bg-transparent transition-all ${
+                className={`min-w-11 min-h-11 flex flex-col items-center justify-center p-1 rounded border bg-transparent transition-all text-foreground ${
                   painLevel === level 
-                    ? 'ring-2 ring-offset-2 ring-offset-transparent ring-purple-400' 
-                    : ''
+                    ? 'ring-2 ring-offset-2 ring-offset-transparent ring-primary border-primary' 
+                    : 'border-border'
                 }`}
-                style={{
-                  borderColor: painLevel === level ? '#A78BFA' : '#232445',
-                  color: '#E9E7FF'
-                }}
                 onClick={() => handlePainLevelSelect(level)}
                 aria-label={`Pain level ${level}`}
               >
@@ -365,7 +354,7 @@ const TodayV2 = () => {
           </div>
           
           {painLevel !== null && (
-            <p className="text-center text-sm" style={{ color: '#BDB8E6' }}>
+            <p className="text-center text-sm text-muted-foreground">
               {getPainLevelLabel(painLevel)}
             </p>
           )}
@@ -373,11 +362,11 @@ const TodayV2 = () => {
 
         {/* Sticky Save Bar */}
         {painLevel !== null && (
-          <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4" style={{ backgroundColor: '#17182B', borderTop: '1px solid #232445' }}>
+          <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-card border-t border-border">
             <div className="max-w-md mx-auto space-y-3">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-medium text-sm sm:text-base" style={{ color: '#E9E7FF' }}>
+                  <p className="font-medium text-sm sm:text-base text-foreground">
                     Pain {painLevel}/10
                   </p>
                 </div>
@@ -386,8 +375,7 @@ const TodayV2 = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setMedsSheetOpen(true)}
-                    className="text-xs sm:text-sm"
-                    style={{ color: '#A78BFA' }}
+                    className="text-xs sm:text-sm text-primary"
                   >
                     + Add meds/notes
                   </Button>
@@ -395,8 +383,7 @@ const TodayV2 = () => {
               </div>
               <Button
                 onClick={handleSaveCheckin}
-                className="w-full text-sm sm:text-base px-4 sm:px-6"
-                style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
+                className="w-full text-sm sm:text-base px-4 sm:px-6 bg-primary text-primary-foreground"
               >
                 Save
               </Button>
@@ -406,17 +393,17 @@ const TodayV2 = () => {
 
         {/* Meds/Notes Sheet */}
         <Sheet open={medsSheetOpen} onOpenChange={setMedsSheetOpen}>
-          <SheetContent className="p-6" style={{ backgroundColor: '#17182B', borderColor: '#232445' }} aria-describedby="medsDesc">
+          <SheetContent className="p-6 bg-card border-border" aria-describedby="medsDesc">
             <div id="medsDesc" className="sr-only">
               Select your medications and optionally add notes.
             </div>
             <SheetHeader>
-              <SheetTitle style={{ color: '#E9E7FF' }}>Medications & Notes</SheetTitle>
+              <SheetTitle className="text-foreground">Medications & Notes</SheetTitle>
             </SheetHeader>
             <div className="mt-6 space-y-6">
               {/* How is the pain affecting you? */}
               <div>
-                <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                <Label className="text-sm font-medium mb-3 block text-foreground">
                   How is the pain affecting you?
                 </Label>
                 <div className="flex flex-wrap gap-2">
@@ -434,12 +421,11 @@ const TodayV2 = () => {
                       key={impact.value}
                       variant="outline"
                       size="default"
-                      className={`text-sm px-4 py-2 ${functionalImpact === impact.value ? 'font-medium' : 'font-normal'}`}
-                      style={{
-                        borderColor: functionalImpact === impact.value ? '#A78BFA' : '#232445',
-                        backgroundColor: functionalImpact === impact.value ? '#A78BFA' : 'transparent',
-                        color: functionalImpact === impact.value ? '#0F1020' : '#E9E7FF'
-                      }}
+                      className={`text-sm px-4 py-2 ${
+                        functionalImpact === impact.value 
+                          ? 'font-medium border-primary bg-primary text-primary-foreground' 
+                          : 'font-normal border-border bg-transparent text-foreground'
+                      }`}
                       onClick={() => setFunctionalImpact(impact.value)}
                     >
                       {impact.label}
@@ -450,7 +436,7 @@ const TodayV2 = () => {
 
               {/* Prescription medication switch */}
               <div className="flex items-center justify-between">
-                <Label htmlFor="rxTaken" className="text-sm font-medium" style={{ color: '#E9E7FF' }}>
+                <Label htmlFor="rxTaken" className="text-sm font-medium text-foreground">
                   Prescription medication taken
                 </Label>
                 <Switch
@@ -473,7 +459,7 @@ const TodayV2 = () => {
               {rxTaken && (
                 <>
                   <div className="pl-4">
-                    <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                    <Label className="text-sm font-medium mb-3 block text-foreground">
                       Which medications?
                     </Label>
                     <div className="flex flex-wrap gap-2">
@@ -482,12 +468,11 @@ const TodayV2 = () => {
                           key={med}
                           variant="outline"
                           size="sm"
-                          className={`text-sm ${selectedMeds.includes(med) ? 'font-medium border-2' : 'font-normal'}`}
-                          style={{
-                            borderColor: selectedMeds.includes(med) ? '#A78BFA' : '#232445',
-                            backgroundColor: selectedMeds.includes(med) ? '#A78BFA' : 'transparent',
-                            color: selectedMeds.includes(med) ? '#0F1020' : '#E9E7FF'
-                          }}
+                          className={`text-sm ${
+                            selectedMeds.includes(med) 
+                              ? 'font-medium border-2 border-primary bg-primary text-primary-foreground' 
+                              : 'font-normal border-border bg-transparent text-foreground'
+                          }`}
                           onClick={() => {
                             if (med === 'Other') {
                               setShowOtherMedInput(!showOtherMedInput);
@@ -514,7 +499,7 @@ const TodayV2 = () => {
                     {/* Other medication input */}
                     {showOtherMedInput && (
                       <div className="mt-4">
-                        <Label htmlFor="otherMed" className="text-sm font-medium mb-2 block" style={{ color: '#E9E7FF' }}>
+                        <Label htmlFor="otherMed" className="text-sm font-medium mb-2 block text-foreground">
                           Specify other medication
                         </Label>
                         <Input
@@ -522,11 +507,7 @@ const TodayV2 = () => {
                           value={otherMedication}
                           onChange={(e) => setOtherMedication(e.target.value)}
                           placeholder="Enter medication name"
-                          style={{
-                            backgroundColor: 'transparent',
-                            borderColor: '#232445',
-                            color: '#E9E7FF'
-                          }}
+                          className="bg-transparent border-border text-foreground"
                         />
                       </div>
                     )}
@@ -534,7 +515,7 @@ const TodayV2 = () => {
 
                   {/* Side effects */}
                   <div className="pl-4">
-                    <Label htmlFor="sideEffects" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                    <Label htmlFor="sideEffects" className="text-sm font-medium mb-3 block text-foreground">
                       Side effects (optional)
                     </Label>
                     <Textarea
@@ -542,19 +523,14 @@ const TodayV2 = () => {
                       value={sideEffects}
                       onChange={(e) => setSideEffects(e.target.value)}
                       placeholder="Any side effects from medications or treatments?"
-                      className="min-h-20"
-                      style={{
-                        backgroundColor: 'transparent',
-                        borderColor: '#232445',
-                        color: '#E9E7FF'
-                      }}
+                      className="min-h-20 bg-transparent border-border text-foreground"
                     />
                   </div>
                 </>
               )}
               
               <div>
-                <Label htmlFor="notes" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                <Label htmlFor="notes" className="text-sm font-medium mb-3 block text-foreground">
                   Notes (optional)
                 </Label>
                 <Textarea
@@ -562,19 +538,13 @@ const TodayV2 = () => {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="How are you feeling? What might have triggered this pain?"
-                  className="min-h-24"
-                  style={{
-                    backgroundColor: 'transparent',
-                    borderColor: '#232445',
-                    color: '#E9E7FF'
-                  }}
+                  className="min-h-24 bg-transparent border-border text-foreground"
                 />
               </div>
 
               <Button
                 onClick={() => setMedsSheetOpen(false)}
-                className="w-full"
-                style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
+                className="w-full bg-primary text-primary-foreground"
               >
                 Done
               </Button>
@@ -584,21 +554,20 @@ const TodayV2 = () => {
 
         {/* Last 3 Entries */}
         <div className="space-y-3 pb-20">
-          <h2 className="text-[18px] leading-6 font-medium" style={{ color: '#E9E7FF' }}>
+          <h2 className="text-[18px] leading-6 font-medium text-foreground">
             Recent entries
           </h2>
           {last3Logs.length === 0 ? (
-            <p className="text-[15px] leading-[22px]" style={{ color: '#BDB8E6' }}>
+            <p className="text-[15px] leading-[22px] text-muted-foreground">
               No entries today yet
             </p>
           ) : (
             last3Logs.map((log) => (
               <div
                 key={log.id}
-                className="p-4 rounded-lg flex justify-between items-center"
-                style={{ backgroundColor: '#17182B', borderColor: '#232445', border: '1px solid' }}
+                className="p-4 rounded-lg flex justify-between items-center bg-card border border-border"
               >
-                <p className="text-[15px] leading-[22px]" style={{ color: '#E9E7FF' }}>
+                <p className="text-[15px] leading-[22px] text-foreground">
                   {formatTime(log.ts)} — Pain {log.pain_level}/10 · {log.activity || '—'}
                 </p>
                 <div className="flex gap-2 ml-2">
@@ -606,8 +575,7 @@ const TodayV2 = () => {
                     size="sm"
                     variant="ghost"
                     onClick={() => handleEditEntry(log)}
-                    className="p-2 h-8 w-8"
-                    style={{ color: '#A78BFA' }}
+                    className="p-2 h-8 w-8 text-primary"
                     aria-label="Edit entry"
                   >
                     <Edit3 size={14} />
@@ -617,29 +585,26 @@ const TodayV2 = () => {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="p-2 h-8 w-8"
-                        style={{ color: '#A78BFA' }}
+                        className="p-2 h-8 w-8 text-primary"
                         aria-label="Delete entry"
                       >
                         <Trash2 size={14} />
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent style={{ backgroundColor: '#17182B', borderColor: '#232445' }}>
+                    <AlertDialogContent className="bg-card border-border">
                       <AlertDialogHeader>
-                        <AlertDialogTitle style={{ color: '#E9E7FF' }}>Delete Entry</AlertDialogTitle>
-                        <AlertDialogDescription style={{ color: '#BDB8E6' }}>
+                        <AlertDialogTitle className="text-foreground">Delete Entry</AlertDialogTitle>
+                        <AlertDialogDescription className="text-muted-foreground">
                           Are you sure you want to delete this pain entry? This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel
-                          style={{ backgroundColor: 'transparent', borderColor: '#232445', color: '#BDB8E6' }}
-                        >
+                        <AlertDialogCancel className="bg-transparent border-border text-muted-foreground">
                           Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => handleDeleteEntry(log.id)}
-                          style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
+                          className="bg-primary text-primary-foreground"
                         >
                           Delete
                         </AlertDialogAction>
@@ -654,9 +619,9 @@ const TodayV2 = () => {
 
         {/* Edit Entry Sheet */}
         <Sheet open={editSheetOpen} onOpenChange={setEditSheetOpen}>
-          <SheetContent className="p-6" style={{ backgroundColor: '#17182B', borderColor: '#232445' }}>
+          <SheetContent className="p-6 bg-card border-border">
             <SheetHeader>
-              <SheetTitle style={{ color: '#E9E7FF' }}>Edit Entry</SheetTitle>
+              <SheetTitle className="text-foreground">Edit Entry</SheetTitle>
             </SheetHeader>
             <div className="mt-6 space-y-6">
               {/* Pain Level */}
@@ -748,7 +713,7 @@ const TodayV2 = () => {
               {editRxTaken && (
                 <>
                   <div className="pl-4">
-                    <Label className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                    <Label className="text-sm font-medium mb-3 block text-foreground">
                       Which medications?
                     </Label>
                     <div className="flex flex-wrap gap-2">
@@ -757,12 +722,11 @@ const TodayV2 = () => {
                           key={med}
                           variant="outline"
                           size="sm"
-                          className="text-xs"
-                          style={{
-                            borderColor: editMeds.includes(med) ? '#A78BFA' : '#232445',
-                            backgroundColor: editMeds.includes(med) ? '#A78BFA' : 'transparent',
-                            color: editMeds.includes(med) ? '#0F1020' : '#E9E7FF'
-                          }}
+                          className={`text-xs ${
+                            editMeds.includes(med) 
+                              ? 'font-medium border-primary bg-primary text-primary-foreground' 
+                              : 'font-normal border-border bg-transparent text-foreground'
+                          }`}
                           onClick={() => {
                             setEditMeds(prev =>
                               prev.includes(med)
@@ -779,7 +743,7 @@ const TodayV2 = () => {
 
                   {/* Side effects */}
                   <div className="pl-4">
-                    <Label htmlFor="editSideEffects" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                    <Label htmlFor="editSideEffects" className="text-sm font-medium mb-3 block text-foreground">
                       Side effects (optional)
                     </Label>
                     <Textarea
@@ -787,12 +751,7 @@ const TodayV2 = () => {
                       value={editSideEffects}
                       onChange={(e) => setEditSideEffects(e.target.value)}
                       placeholder="Any side effects from medications or treatments?"
-                      className="min-h-20"
-                      style={{
-                        backgroundColor: 'transparent',
-                        borderColor: '#232445',
-                        color: '#E9E7FF'
-                      }}
+                      className="min-h-20 bg-transparent border-border text-foreground"
                     />
                   </div>
                 </>
@@ -800,7 +759,7 @@ const TodayV2 = () => {
 
               {/* Notes */}
               <div>
-                <Label htmlFor="editNotes" className="text-sm font-medium mb-3 block" style={{ color: '#E9E7FF' }}>
+                <Label htmlFor="editNotes" className="text-sm font-medium mb-3 block text-foreground">
                   Notes
                 </Label>
                 <Textarea
@@ -808,12 +767,7 @@ const TodayV2 = () => {
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
                   placeholder="Additional notes..."
-                  className="min-h-24"
-                  style={{
-                    backgroundColor: 'transparent',
-                    borderColor: '#232445',
-                    color: '#E9E7FF'
-                  }}
+                  className="min-h-24 bg-transparent border-border text-foreground"
                 />
               </div>
 
@@ -822,15 +776,13 @@ const TodayV2 = () => {
                 <Button
                   variant="outline"
                   onClick={() => setEditSheetOpen(false)}
-                  className="flex-1"
-                  style={{ backgroundColor: 'transparent', borderColor: '#232445', color: '#BDB8E6' }}
+                  className="flex-1 bg-transparent border-border text-muted-foreground"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSaveEdit}
-                  className="flex-1"
-                  style={{ backgroundColor: '#A78BFA', color: '#0F1020' }}
+                  className="flex-1 bg-primary text-primary-foreground"
                 >
                   Save Changes
                 </Button>

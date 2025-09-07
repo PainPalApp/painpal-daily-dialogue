@@ -6,40 +6,40 @@
 
 @layer base {
   :root {
-    /* ChatGPT Light Colors (for reference) */
+    /* Lila Light Colors (for reference/fallback) */
     --background: 0 0% 100%;
     --foreground: 0 0% 16%;
 
-    /* Lila navbar theme colors */
+    /* Lila theme colors */
     --navbar: 230 45% 9%;        /* #0F1020 */
     --navbar-foreground: 254 100% 91%;   /* #E9E7FF */
     --navbar-accent: 270 95% 75%;        /* #A78BFA */
-    --navbar-border: 230 45% 15%;
+    --navbar-border: 230 30% 20%;       /* #232445 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 16%;
+    --card: 230 32% 13%;         /* #17182B */
+    --card-foreground: 254 100% 91%;    /* #E9E7FF */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 16%;
+    --popover: 230 32% 13%;      /* #17182B */
+    --popover-foreground: 254 100% 91%; /* #E9E7FF */
 
-    --primary: 236 47% 72%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 270 95% 75%;      /* #A78BFA */
+    --primary-foreground: 230 45% 9%;   /* #0F1020 */
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 16%;
+    --secondary: 230 32% 13%;    /* #17182B */
+    --secondary-foreground: 254 100% 91%; /* #E9E7FF */
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 230 32% 13%;        /* #17182B */
+    --muted-foreground: 254 59% 78%;     /* #BDB8E6 */
 
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 16%;
+    --accent: 270 95% 75%;       /* #A78BFA */
+    --accent-foreground: 230 45% 9%;     /* #0F1020 */
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 16%;
+    --border: 230 30% 20%;       /* #232445 */
+    --input: 230 32% 13%;        /* #17182B */
+    --ring: 270 95% 75%;         /* #A78BFA */
 
     --radius: 8px;
 
@@ -53,58 +53,58 @@
   }
 
   .dark {
-    /* ChatGPT Dark Colors - Main theme */
-    --background: 217 33% 11%;
-    --foreground: 0 0% 98%;
+    /* Lila Dark Theme - Global Application */
+    --background: 230 45% 9%;    /* #0F1020 */
+    --foreground: 254 100% 91%;  /* #E9E7FF */
 
     /* Lila navbar theme colors for dark mode */
     --navbar: 230 45% 9%;        /* #0F1020 */
     --navbar-foreground: 254 100% 91%;   /* #E9E7FF */
     --navbar-accent: 270 95% 75%;        /* #A78BFA */
-    --navbar-border: 230 45% 15%;
+    --navbar-border: 230 30% 20%;       /* #232445 */
 
-    --card: 217 33% 13%;
-    --card-foreground: 0 0% 98%;
+    --card: 230 32% 13%;         /* #17182B */
+    --card-foreground: 254 100% 91%;    /* #E9E7FF */
 
-    --popover: 217 33% 13%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 230 32% 13%;      /* #17182B */
+    --popover-foreground: 254 100% 91%; /* #E9E7FF */
 
-    --primary: 0 0% 98%;
-    --primary-foreground: 217 33% 11%;
+    --primary: 270 95% 75%;      /* #A78BFA */
+    --primary-foreground: 230 45% 9%;   /* #0F1020 */
 
-    --secondary: 217 33% 15%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 230 32% 13%;    /* #17182B */
+    --secondary-foreground: 254 100% 91%; /* #E9E7FF */
 
-    --muted: 217 33% 15%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 230 32% 13%;        /* #17182B */
+    --muted-foreground: 254 59% 78%;     /* #BDB8E6 */
 
-    --accent: 217 33% 17%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 270 95% 75%;       /* #A78BFA */
+    --accent-foreground: 230 45% 9%;     /* #0F1020 */
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 254 100% 91%; /* #E9E7FF */
 
-    --border: 217 33% 20%;
-    --input: 217 33% 15%;
-    --ring: 0 0% 83%;
+    --border: 230 30% 20%;       /* #232445 */
+    --input: 230 32% 13%;        /* #17182B */
+    --ring: 270 95% 75%;         /* #A78BFA */
 
     /* ChatGPT-specific dark tokens */
-    --chat-user-bg: 212 100% 48%;
-    --chat-user-fg: 0 0% 100%;
-    --chat-ai-bg: 217 33% 15%;
-    --chat-ai-fg: 0 0% 98%;
-    --chat-suggestion: 217 33% 17%;
-    --chat-suggestion-hover: 217 33% 22%;
+    --chat-user-bg: 270 95% 75%;        /* #A78BFA */
+    --chat-user-fg: 230 45% 9%;         /* #0F1020 */
+    --chat-ai-bg: 230 32% 13%;          /* #17182B */
+    --chat-ai-fg: 254 100% 91%;         /* #E9E7FF */
+    --chat-suggestion: 230 32% 13%;     /* #17182B */
+    --chat-suggestion-hover: 230 30% 20%; /* #232445 */
 
     /* Sidebar variables for consistency */
-    --sidebar-background: 217 33% 11%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 212 100% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 15%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 217 33% 20%;
-    --sidebar-ring: 212 100% 48%;
+    --sidebar-background: 230 45% 9%;   /* #0F1020 */
+    --sidebar-foreground: 254 100% 91%; /* #E9E7FF */
+    --sidebar-primary: 270 95% 75%;     /* #A78BFA */
+    --sidebar-primary-foreground: 230 45% 9%; /* #0F1020 */
+    --sidebar-accent: 230 32% 13%;      /* #17182B */
+    --sidebar-accent-foreground: 254 100% 91%; /* #E9E7FF */
+    --sidebar-border: 230 30% 20%;      /* #232445 */
+    --sidebar-ring: 270 95% 75%;        /* #A78BFA */
   }
 }
 

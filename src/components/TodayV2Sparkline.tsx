@@ -56,13 +56,13 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
           ...savedData.map(d => d.pain_level),
           ...previewPoints.map(p => p.pain_level)
         ],
-        borderColor: '#A78BFA',
+        borderColor: 'hsl(var(--primary))',        /* #A78BFA */
         backgroundColor: 'transparent',
-        pointBackgroundColor: savedData.map(() => '#A78BFA').concat(
+        pointBackgroundColor: savedData.map(() => 'hsl(var(--primary))').concat(
           previewPoints.map(() => 'transparent')
         ),
-        pointBorderColor: savedData.map(() => '#A78BFA').concat(
-          previewPoints.map(() => '#BDB8E6')
+        pointBorderColor: savedData.map(() => 'hsl(var(--primary))').concat(
+          previewPoints.map(() => 'hsl(var(--muted-foreground))')
         ),
         pointBorderWidth: savedData.map(() => 1).concat(
           previewPoints.map(() => 2)
@@ -83,10 +83,10 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
       },
       tooltip: {
         enabled: true,
-        backgroundColor: '#17182B',
-        titleColor: '#E9E7FF',
-        bodyColor: '#BDB8E6',
-        borderColor: '#232445',
+        backgroundColor: 'hsl(var(--card))',     /* #17182B */
+        titleColor: 'hsl(var(--foreground))',   /* #E9E7FF */
+        bodyColor: 'hsl(var(--muted-foreground))', /* #BDB8E6 */
+        borderColor: 'hsl(var(--border))',      /* #232445 */
         borderWidth: 1,
       },
     },
