@@ -10,6 +10,12 @@
     --background: 0 0% 100%;
     --foreground: 0 0% 16%;
 
+    /* Lila navbar theme colors */
+    --navbar: 230 45% 9%;        /* #0F1020 */
+    --navbar-foreground: 254 100% 91%;   /* #E9E7FF */
+    --navbar-accent: 270 95% 75%;        /* #A78BFA */
+    --navbar-border: 230 45% 15%;
+
     --card: 0 0% 100%;
     --card-foreground: 0 0% 16%;
 
@@ -50,6 +56,12 @@
     /* ChatGPT Dark Colors - Main theme */
     --background: 217 33% 11%;
     --foreground: 0 0% 98%;
+
+    /* Lila navbar theme colors for dark mode */
+    --navbar: 230 45% 9%;        /* #0F1020 */
+    --navbar-foreground: 254 100% 91%;   /* #E9E7FF */
+    --navbar-accent: 270 95% 75%;        /* #A78BFA */
+    --navbar-border: 230 45% 15%;
 
     --card: 217 33% 13%;
     --card-foreground: 0 0% 98%;
