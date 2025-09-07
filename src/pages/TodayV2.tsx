@@ -688,7 +688,7 @@ const TodayV2 = () => {
                   type="datetime-local"
                   value={editTime}
                   onChange={(e) => setEditTime(e.target.value)}
-                  className="bg-transparent border-border text-foreground [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:hover:opacity-100"
+                  className="bg-transparent border-border text-foreground [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:hue-rotate-[240deg] [&::-webkit-calendar-picker-indicator]:saturate-150 [&::-webkit-calendar-picker-indicator]:brightness-150"
                 />
               </div>
 
