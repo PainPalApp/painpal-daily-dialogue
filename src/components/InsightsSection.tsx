@@ -33,7 +33,13 @@ export const InsightsSection = () => {
   const [painData, setPainData] = useState<PainEntry[]>([]);
   const [editingEntry, setEditingEntry] = useState<PainEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+  
+  // Page state for date range and preset
+  const [state, setState] = useState<{
+    startDate: Date;
+    endDate: Date;
+    preset: '30d' | '60d' | '90d' | 'custom';
+  }>(() => {
     // Initialize with URL params if available
     const urlParams = new URLSearchParams(window.location.search);
     const startParam = urlParams.get('start');
@@ -41,17 +47,20 @@ export const InsightsSection = () => {
     
     if (startParam && endParam) {
       return {
-        from: new Date(startParam),
-        to: new Date(endParam),
+        startDate: new Date(startParam),
+        endDate: new Date(endParam),
+        preset: 'custom',
       };
     }
     
     // Default to last 30 days
     return {
-      from: subDays(new Date(), 30),
-      to: new Date(),
+      startDate: subDays(new Date(), 30),
+      endDate: new Date(),
+      preset: '30d',
     };
   });
+
   const { toast } = useToast();
   const { getPainLogs, updatePainLog, deletePainLog } = usePainLogs();
 
@@ -71,15 +80,35 @@ export const InsightsSection = () => {
     }));
   };
 
-  // Update URL when date range changes
-  useEffect(() => {
-    if (dateRange?.from && dateRange?.to) {
-      const url = new URL(window.location.href);
-      url.searchParams.set('start', format(dateRange.from, 'yyyy-MM-dd'));
-      url.searchParams.set('end', format(dateRange.to, 'yyyy-MM-dd'));
-      window.history.replaceState({}, '', url.toString());
+  // Handle preset selection
+  const handlePresetChange = (preset: '30d' | '60d' | '90d') => {
+    const days = parseInt(preset.replace('d', ''));
+    const newState = {
+      startDate: subDays(new Date(), days),
+      endDate: new Date(),
+      preset,
+    };
+    setState(newState);
+  };
+
+  // Handle custom date range selection
+  const handleCustomDateChange = (range: DateRange | undefined) => {
+    if (range?.from && range?.to) {
+      setState({
+        startDate: range.from,
+        endDate: range.to,
+        preset: 'custom',
+      });
     }
-  }, [dateRange]);
+  };
+
+  // Update URL when state changes
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('start', format(state.startDate, 'yyyy-MM-dd'));
+    url.searchParams.set('end', format(state.endDate, 'yyyy-MM-dd'));
+    window.history.replaceState({}, '', url.toString());
+  }, [state]);
 
   useEffect(() => {
     const loadPainData = async () => {
@@ -118,9 +147,8 @@ export const InsightsSection = () => {
 
   // Filter data based on selected date range
   const filteredPainData = painData.filter(entry => {
-    if (!dateRange?.from || !dateRange?.to) return true;
     const entryDate = new Date(entry.date);
-    return isWithinInterval(entryDate, { start: dateRange.from, end: dateRange.to });
+    return isWithinInterval(entryDate, { start: state.startDate, end: state.endDate });
   });
 
   // Group entries by date
@@ -228,12 +256,10 @@ export const InsightsSection = () => {
     return (
       <div className="flex-1 bg-background p-6">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-foreground mb-6">Insights</h1>
-          <DateRangePicker
-            value={dateRange}
-            onChange={setDateRange}
-            className="mb-6"
-          />
+          <h1 className="text-3xl font-bold text-foreground mb-2">Insights</h1>
+          <p className="text-sm text-muted-foreground mb-6">
+            Showing {format(state.startDate, 'MMM d, yyyy')} → {format(state.endDate, 'MMM d, yyyy')}
+          </p>
           <Card>
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
@@ -251,17 +277,48 @@ export const InsightsSection = () => {
   return (
     <div className="flex-1 bg-background p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2 mb-2">
           <BarChart3 className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-foreground">Insights</h1>
         </div>
         
+        <p className="text-sm text-muted-foreground mb-6">
+          Showing {format(state.startDate, 'MMM d, yyyy')} → {format(state.endDate, 'MMM d, yyyy')}
+        </p>
+        
         {/* Date Range Picker */}
-        <DateRangePicker
-          value={dateRange}
-          onChange={setDateRange}
-          className="mb-6"
-        />
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            {['30d', '60d', '90d'].map((preset) => (
+              <Button
+                key={preset}
+                variant={state.preset === preset ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePresetChange(preset as '30d' | '60d' | '90d')}
+                className="text-sm"
+              >
+                Last {preset.replace('d', '')} days
+              </Button>
+            ))}
+            <Button
+              variant={state.preset === 'custom' ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                // This will be handled by the DateRangePicker component
+              }}
+              className="text-sm"
+            >
+              Custom range
+            </Button>
+          </div>
+          {state.preset === 'custom' && (
+            <DateRangePicker
+              value={{ from: state.startDate, to: state.endDate }}
+              onChange={handleCustomDateChange}
+              className="mb-4"
+            />
+          )}
+        </div>
         
         {/* Pain Chart */}
         <Card className="mb-6">
