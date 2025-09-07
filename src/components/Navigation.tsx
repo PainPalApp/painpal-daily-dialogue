@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { NavLink, useLocation } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, Activity } from "lucide-react";
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,9 +21,16 @@ export function Navigation() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center h-14">
           {/* Logo */}
-          <div className="flex-shrink-0">
-            <h1 className="text-lg font-semibold text-foreground tracking-tight">PainPal</h1>
-          </div>
+          <NavLink to="/" className="flex-shrink-0 flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Activity 
+              className="h-4 w-4" 
+              style={{ color: '#A78BFA' }}
+              strokeWidth={2.5}
+            />
+            <span className="text-lg font-medium text-[hsl(var(--text-primary))] tracking-tight">
+              Lila
+            </span>
+          </NavLink>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
