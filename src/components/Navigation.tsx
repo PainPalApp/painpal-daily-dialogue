@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { NavLink, useLocation } from "react-router-dom";
-import { LogOut, Activity } from "lucide-react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { LogOut, Activity, LogIn } from "lucide-react";
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
     { id: "today", label: "Today", href: "/" },
@@ -48,14 +49,26 @@ export function Navigation() {
               ))}
             </nav>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={signOut}
-              className="h-8 w-8 p-0 text-text-secondary hover:text-icon-active hover:bg-accent/10"
-            >
-              <LogOut className="h-4 w-4 icon-default" />
-            </Button>
+            {user ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={signOut}
+                className="h-8 w-8 p-0 text-text-secondary hover:text-icon-active hover:bg-accent/10"
+              >
+                <LogOut className="h-4 w-4 icon-default" />
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/auth')}
+                className="h-8 px-3 text-text-secondary hover:text-icon-active hover:bg-accent/10"
+              >
+                <LogIn className="h-4 w-4 mr-2 icon-default" />
+                Sign in
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -106,21 +119,36 @@ export function Navigation() {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}
-                </NavLink>
+              </NavLink>
               ))}
               
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  signOut();
-                  setIsMenuOpen(false);
-                }}
-                className="w-full justify-start text-text-secondary hover:text-icon-active mt-3"
-              >
-                <LogOut className="h-4 w-4 mr-2 icon-default" />
-                Sign Out
-              </Button>
+              {user ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    signOut();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full justify-start text-text-secondary hover:text-icon-active mt-3"
+                >
+                  <LogOut className="h-4 w-4 mr-2 icon-default" />
+                  Sign Out
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    navigate('/auth');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full justify-start text-text-secondary hover:text-icon-active mt-3"
+                >
+                  <LogIn className="h-4 w-4 mr-2 icon-default" />
+                  Sign in
+                </Button>
+              )}
             </div>
           </div>
         )}
