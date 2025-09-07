@@ -326,7 +326,7 @@ const TodayV2 = () => {
               Today
             </h2>
             <button 
-              onClick={() => window.location.href = '/today-old?section=records'} 
+              onClick={() => window.location.href = '/records'} 
               className="text-sm hover:underline" 
               style={{ color: '#A78BFA' }}
             >

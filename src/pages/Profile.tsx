@@ -10,7 +10,6 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Navigation } from "@/components/Navigation";
 import { User, Settings, Pill, MapPin, Edit } from "lucide-react";
 
 interface Medication {
@@ -151,9 +150,8 @@ const Profile = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10">
-        <Navigation activeSection="profile" onSectionChange={() => {}} />
-        <div className="container mx-auto p-4 pt-20">
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto p-4">
           <div className="text-center">Loading...</div>
         </div>
       </div>
@@ -162,8 +160,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation activeSection="profile" onSectionChange={() => {}} />
-      <div className="container mx-auto p-6 pt-20 space-y-8 max-w-4xl">
+      <div className="container mx-auto p-6 space-y-8 max-w-4xl">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-semibold text-foreground">Profile Settings</h1>
           <p className="text-sm text-muted-foreground">Manage your personal information and pain tracking preferences</p>
