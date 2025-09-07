@@ -688,13 +688,7 @@ const TodayV2 = () => {
                   type="datetime-local"
                   value={editTime}
                   onChange={(e) => setEditTime(e.target.value)}
-                  style={{
-                    backgroundColor: 'transparent',
-                    borderColor: '#232445',
-                    color: '#E9E7FF',
-                    colorScheme: 'dark'
-                  }}
-                  className="[&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                  className="bg-transparent border-border text-foreground [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:hover:opacity-100"
                 />
               </div>
 
