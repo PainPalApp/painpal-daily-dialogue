@@ -56,17 +56,16 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
           ...savedData.map(d => d.pain_level),
           ...previewPoints.map(p => p.pain_level)
         ],
-        borderColor: 'hsl(var(--primary))',        /* #A78BFA */
-        backgroundColor: 'transparent',
-        pointBackgroundColor: savedData.map(() => 'hsl(var(--primary))').concat(
-          previewPoints.map(() => 'transparent')
+        borderColor: 'hsl(var(--accent-primary))',     /* #A78BFA */
+        backgroundColor: 'hsl(var(--accent-primary) / 0.12)', /* 12% opacity fill */
+        fill: true,
+        pointBackgroundColor: savedData.map(() => 'white').concat(
+          previewPoints.map(() => 'white')
         ),
-        pointBorderColor: savedData.map(() => 'hsl(var(--primary))').concat(
-          previewPoints.map(() => 'hsl(var(--muted-foreground))')
+        pointBorderColor: savedData.map(() => 'hsl(var(--accent-primary))').concat(
+          previewPoints.map(() => 'hsl(var(--accent-primary))')
         ),
-        pointBorderWidth: savedData.map(() => 1).concat(
-          previewPoints.map(() => 2)
-        ),
+        pointBorderWidth: 2,
         pointRadius: 4,
         tension: 0.1,
         borderWidth: 2,
@@ -83,21 +82,53 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
       },
       tooltip: {
         enabled: true,
-        backgroundColor: 'hsl(var(--card))',     /* #17182B */
-        titleColor: 'hsl(var(--foreground))',   /* #E9E7FF */
-        bodyColor: 'hsl(var(--muted-foreground))', /* #BDB8E6 */
-        borderColor: 'hsl(var(--border))',      /* #232445 */
+        backgroundColor: 'hsl(var(--surface))',
+        titleColor: 'hsl(var(--text-primary))',
+        bodyColor: 'hsl(var(--text-secondary))',
+        borderColor: 'hsl(var(--border))',
         borderWidth: 1,
       },
     },
     scales: {
       x: {
-        display: false,
+        display: true,
+        grid: {
+          display: true,
+          color: 'hsl(var(--border))',  /* #232445 */
+          lineWidth: 0.5,
+        },
+        ticks: {
+          display: true,
+          color: 'hsl(var(--text-secondary))',  /* #BDB8E6 */
+          font: {
+            size: 10,
+          },
+          maxTicksLimit: 4,
+        },
+        border: {
+          display: false,
+        },
       },
       y: {
-        display: false,
+        display: true,
         min: 0,
         max: 10,
+        grid: {
+          display: true,
+          color: 'hsl(var(--border))',  /* #232445 */
+          lineWidth: 0.5,
+        },
+        ticks: {
+          display: true,
+          color: 'hsl(var(--text-secondary))',  /* #BDB8E6 */
+          font: {
+            size: 10,
+          },
+          stepSize: 2,
+        },
+        border: {
+          display: false,
+        },
       },
     },
     elements: {
@@ -108,7 +139,7 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
   };
 
   return (
-    <div className="h-16 w-full">
+    <div className="h-20 w-full bg-transparent">
       <Line data={data} options={options} />
     </div>
   );
