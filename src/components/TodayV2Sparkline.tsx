@@ -90,9 +90,23 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
         display: false,
       },
       y: {
-        display: false,
+        display: true,
         min: 0,
         max: 10,
+        position: 'left' as const,
+        ticks: {
+          stepSize: 5,
+          font: {
+            size: 10,
+          },
+          color: 'hsl(var(--muted-foreground))',
+        },
+        grid: {
+          display: false,
+        },
+        border: {
+          display: false,
+        },
       },
     },
     elements: {

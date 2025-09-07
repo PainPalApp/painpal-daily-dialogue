@@ -319,12 +319,38 @@ const TodayV2 = () => {
             <h2 className="text-[18px] leading-6 font-medium text-foreground">
               Today
             </h2>
-            <button 
-              onClick={() => window.location.href = '/records'} 
-              className="text-sm hover:underline text-primary"
-            >
-              View full log →
-            </button>
+            <div className="flex items-center gap-4">
+              {(() => {
+                const latestLog = todayLogs.length > 0 ? todayLogs[todayLogs.length - 1] : lastLog;
+                if (!latestLog) {
+                  return (
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-muted-foreground">No data</div>
+                    </div>
+                  );
+                }
+                
+                const isToday = new Date(latestLog.ts).toDateString() === new Date().toDateString();
+                const timeStr = new Date(latestLog.ts).toLocaleTimeString('en-US', { 
+                  hour: 'numeric', 
+                  minute: '2-digit', 
+                  hour12: true 
+                });
+                
+                return (
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-foreground">{latestLog.pain_level}/10</div>
+                    <div className="text-xs text-muted-foreground">{isToday ? timeStr : 'Not today'}</div>
+                  </div>
+                );
+              })()}
+              <button 
+                onClick={() => window.location.href = '/records'} 
+                className="text-sm hover:underline text-primary"
+              >
+                View full log →
+              </button>
+            </div>
           </div>
           <TodayV2Sparkline savedData={todayLogs} previewPoints={previewPoints} />
         </div>
