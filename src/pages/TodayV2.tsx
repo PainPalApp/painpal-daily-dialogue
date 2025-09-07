@@ -325,9 +325,13 @@ const TodayV2 = () => {
             <h2 className="text-[18px] leading-6 font-medium" style={{ color: '#E9E7FF' }}>
               Today
             </h2>
-            <a href="/insights" className="text-sm" style={{ color: '#A78BFA' }}>
+            <button 
+              onClick={() => window.location.href = '/today-old?section=records'} 
+              className="text-sm hover:underline" 
+              style={{ color: '#A78BFA' }}
+            >
               View full log →
-            </a>
+            </button>
           </div>
           <TodayV2Sparkline savedData={todayLogs} previewPoints={previewPoints} />
         </div>
