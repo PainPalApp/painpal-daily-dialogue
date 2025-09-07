@@ -258,28 +258,25 @@ export function RecordsSection() {
 
         {/* Filters */}
         <div className="mb-6 flex flex-wrap gap-4 items-center">
-          <div className="flex gap-2">
-            <Button
-              variant={filterPeriod === "week" ? "default" : "outline"}
-              size="sm"
+          <div className="lila-tab-container">
+            <button
+              className={`lila-tab ${filterPeriod === "week" ? "lila-tab-active" : ""}`}
               onClick={() => setFilterPeriod("week")}
             >
               This Week
-            </Button>
-            <Button
-              variant={filterPeriod === "month" ? "default" : "outline"}
-              size="sm"
+            </button>
+            <button
+              className={`lila-tab ${filterPeriod === "month" ? "lila-tab-active" : ""}`}
               onClick={() => setFilterPeriod("month")}
             >
               This Month
-            </Button>
-            <Button
-              variant={filterPeriod === "custom" ? "default" : "outline"}
-              size="sm"
+            </button>
+            <button
+              className={`lila-tab ${filterPeriod === "custom" ? "lila-tab-active" : ""}`}
               onClick={() => setFilterPeriod("custom")}
             >
               Custom Range
-            </Button>
+            </button>
           </div>
           
           {filterPeriod === "custom" && (
@@ -303,12 +300,18 @@ export function RecordsSection() {
 
         {/* View Toggle */}
         <Tabs value={activeView} onValueChange={(value) => setActiveView(value as "timeline" | "calendar")}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="timeline" className="flex items-center gap-2">
+          <TabsList className="lila-tab-container mb-6 p-1 bg-transparent">
+            <TabsTrigger 
+              value="timeline" 
+              className="lila-tab data-[state=active]:lila-tab-active flex items-center gap-2"
+            >
               <CalendarDays className="h-4 w-4" />
               Timeline
             </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="calendar" 
+              className="lila-tab data-[state=active]:lila-tab-active flex items-center gap-2"
+            >
               <Calendar className="h-4 w-4" />
               Calendar
             </TabsTrigger>

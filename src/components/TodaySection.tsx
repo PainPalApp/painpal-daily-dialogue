@@ -438,10 +438,10 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
           <CardHeader>
             <CardTitle>Pain Levels Over Time</CardTitle>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="today">Today</TabsTrigger>
-                <TabsTrigger value="week">This Week</TabsTrigger>
-                <TabsTrigger value="month">This Month</TabsTrigger>
+              <TabsList className="lila-tab-container w-full p-1 bg-transparent">
+                <TabsTrigger value="today" className="lila-tab data-[state=active]:lila-tab-active flex-1">Today</TabsTrigger>
+                <TabsTrigger value="week" className="lila-tab data-[state=active]:lila-tab-active flex-1">This Week</TabsTrigger>
+                <TabsTrigger value="month" className="lila-tab data-[state=active]:lila-tab-active flex-1">This Month</TabsTrigger>
               </TabsList>
             </Tabs>
           </CardHeader>
