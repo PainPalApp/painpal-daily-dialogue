@@ -1,22 +1,19 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { NavLink, useLocation } from "react-router-dom";
 import { LogOut } from "lucide-react";
 
-interface NavigationProps {
-  activeSection: string;
-  onSectionChange: (section: string) => void;
-}
-
-export function Navigation({ activeSection, onSectionChange }: NavigationProps) {
+export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { signOut } = useAuth();
+  const location = useLocation();
 
   const navItems = [
-    { id: "today", label: "Today" },
-    { id: "insights", label: "Insights" },
-    { id: "records", label: "Records" },
-    { id: "profile", label: "Profile", isLink: true, href: "/profile" },
+    { id: "today", label: "Today", href: "/" },
+    { id: "insights", label: "Insights", href: "/insights" },
+    { id: "records", label: "Records", href: "/records" },
+    { id: "profile", label: "Profile", href: "/profile" },
   ];
 
   return (
@@ -32,25 +29,15 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
           <div className="hidden md:flex items-center gap-6">
             <nav className="flex gap-1">
               {navItems.map((item) => (
-                item.isLink ? (
-                  <a
-                    key={item.id}
-                    href={item.href}
-                    className="nav-button"
-                  >
-                    {item.label}
-                  </a>
-                ) : (
-                  <button
-                    key={item.id}
-                    onClick={() => onSectionChange(item.id)}
-                    className={`nav-button ${
-                      activeSection === item.id ? "nav-button-active" : ""
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                )
+                <NavLink
+                  key={item.id}
+                  to={item.href}
+                  className={({ isActive }) =>
+                    `nav-button ${isActive ? "nav-button-active" : ""}`
+                  }
+                >
+                  {item.label}
+                </NavLink>
               ))}
             </nav>
             
@@ -103,29 +90,16 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
           <div className="md:hidden border-t border-border animate-fade-in">
             <div className="py-4 space-y-1">
               {navItems.map((item) => (
-                item.isLink ? (
-                  <a
-                    key={item.id}
-                    href={item.href}
-                    className="block w-full text-left nav-button"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.label}
-                  </a>
-                ) : (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      onSectionChange(item.id);
-                      setIsMenuOpen(false);
-                    }}
-                    className={`block w-full text-left nav-button ${
-                      activeSection === item.id ? "nav-button-active" : ""
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                )
+                <NavLink
+                  key={item.id}
+                  to={item.href}
+                  className={({ isActive }) =>
+                    `block w-full text-left nav-button ${isActive ? "nav-button-active" : ""}`
+                  }
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.label}
+                </NavLink>
               ))}
               
               <Button

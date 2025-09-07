@@ -9,8 +9,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  const [searchParams] = useSearchParams();
-  const [activeSection, setActiveSection] = useState(searchParams.get('section') || "today");
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -48,16 +46,7 @@ const Index = () => {
   };
 
   const renderContent = () => {
-    switch (activeSection) {
-      case "today":
-        return <TodaySection onNavigateToInsights={() => setActiveSection('insights')} />;
-      case "insights":
-        return <InsightsSection />;
-      case "records":
-        return <RecordsSection />;
-      default:
-        return <TodaySection onNavigateToInsights={() => setActiveSection('insights')} />;
-    }
+    return <TodaySection onNavigateToInsights={() => navigate('/insights')} />;
   };
 
   if (loading || profileLoading) {
@@ -81,7 +70,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Navigation activeSection={activeSection} onSectionChange={setActiveSection} />
+      <Navigation />
       {renderContent()}
     </div>
   );
