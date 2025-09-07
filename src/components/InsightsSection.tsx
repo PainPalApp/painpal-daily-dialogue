@@ -324,36 +324,10 @@ export const InsightsSection = () => {
         
         {/* Date Range Picker */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            {['30d', '60d', '90d'].map((preset) => (
-              <Button
-                key={preset}
-                variant={state.preset === preset ? "default" : "outline"}
-                size="sm"
-                onClick={() => handlePresetChange(preset as '30d' | '60d' | '90d')}
-                className="text-sm"
-              >
-                Last {preset.replace('d', '')} days
-              </Button>
-            ))}
-            <Button
-              variant={state.preset === 'custom' ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                // This will be handled by the DateRangePicker component
-              }}
-              className="text-sm"
-            >
-              Custom range
-            </Button>
-          </div>
-          {state.preset === 'custom' && (
-            <DateRangePicker
-              value={{ from: state.startDate, to: state.endDate }}
-              onChange={handleCustomDateChange}
-              className="mb-4"
-            />
-          )}
+          <DateRangePicker
+            value={{ from: state.startDate, to: state.endDate }}
+            onChange={handleCustomDateChange}
+          />
         </div>
         
         {/* Pain Chart */}
