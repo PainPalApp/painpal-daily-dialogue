@@ -233,6 +233,27 @@
     @apply h-2 bg-[hsl(var(--accent-primary))] rounded-full transition-all duration-300;
   }
 
+  /* Lila Pain Indicator System */
+  .pain-indicator {
+    @apply w-4 h-4 rounded-full text-xs flex items-center justify-center text-white font-medium;
+  }
+
+  .pain-indicator-container {
+    @apply flex items-center justify-center;
+  }
+
+  .pain-indicator-severe {
+    @apply bg-[hsl(var(--status-bad))];
+  }
+
+  .pain-indicator-moderate {
+    @apply bg-[hsl(var(--status-warn))];
+  }
+
+  .pain-indicator-mild {
+    @apply bg-[hsl(var(--status-ok))];
+  }
+
   /* Lila Tab System */
   .lila-tab-container {
     @apply flex gap-1 rounded-lg border border-[hsl(var(--border))] bg-transparent p-1;

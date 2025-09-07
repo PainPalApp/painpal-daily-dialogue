@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, CalendarDays, Edit3, Trash2, Filter } from "lucide-react";
 import { format, startOfWeek, startOfMonth, endOfMonth, isSameDay, getDay, addDays, parseISO } from "date-fns";
+import { PainIndicator } from './PainIndicator';
 
 interface PainLog {
   id: string;
@@ -434,15 +435,10 @@ export function RecordsSection() {
                       `}
                       onClick={() => handleDayClick(date)}
                     >
-                      <div className="text-sm">{date.getDate()}</div>
-                      {painLevel !== null && (
-                        <div className={`
-                          w-4 h-4 rounded-full text-xs flex items-center justify-center text-white
-                          ${painLevel >= 7 ? 'bg-destructive' : painLevel >= 4 ? 'bg-yellow-500' : 'bg-green-500'}
-                        `}>
-                          {painLevel}
-                        </div>
-                      )}
+                       <div className="text-sm">{date.getDate()}</div>
+                       {painLevel !== null && (
+                         <PainIndicator painLevel={painLevel} />
+                       )}
                     </div>
                   );
                 })}
