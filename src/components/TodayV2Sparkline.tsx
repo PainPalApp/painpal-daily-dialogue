@@ -56,11 +56,11 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
           ...savedData.map(d => d.pain_level),
           ...previewPoints.map(p => p.pain_level)
         ],
-        borderColor: 'hsl(var(--accent-primary))',     /* #A78BFA */
+        borderColor: 'hsl(var(--primary))',
         backgroundColor: 'transparent',
         fill: false,
-        pointBackgroundColor: 'hsl(var(--accent-primary))',
-        pointBorderColor: 'hsl(var(--accent-primary))',
+        pointBackgroundColor: 'hsl(var(--primary))',
+        pointBorderColor: 'hsl(var(--primary))',
         pointBorderWidth: 1,
         pointRadius: 4,
         tension: 0.1,
