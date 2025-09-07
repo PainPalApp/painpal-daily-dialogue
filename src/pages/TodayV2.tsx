@@ -203,6 +203,11 @@ const TodayV2 = () => {
     return "Worst";
   };
 
+  const truncateUserId = (userId: string) => {
+    if (userId.length <= 12) return userId;
+    return `${userId.slice(0, 6)}...${userId.slice(-6)}`;
+  };
+
   const handleEditEntry = (log: any) => {
     setEditingEntry(log);
     setEditPainLevel(log.pain_level);
@@ -257,6 +262,14 @@ const TodayV2 = () => {
         <h1 className="text-[22px] leading-7 font-medium text-foreground">
           Today
         </h1>
+        
+        {/* Authentication Status */}
+        <p className="text-xs text-muted-foreground -mt-2">
+          {user 
+            ? `Signed in as ${truncateUserId(user.id)}`
+            : "Not signed in — you need to sign in to save check-ins."
+          }
+        </p>
 
         {/* Unresolved Pain Card */}
         {shouldShowUnresolvedCard && (
