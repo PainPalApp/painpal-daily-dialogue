@@ -180,7 +180,7 @@ const TodayV2 = () => {
       setSideEffects("");
 
       refetchAll();
-      toast({ description: "Logged." });
+      toast({ description: "Check-in saved" });
     } catch (error) {
       console.error('Error saving check-in:', error);
       toast({ description: "Failed to save check-in", variant: "destructive" });
