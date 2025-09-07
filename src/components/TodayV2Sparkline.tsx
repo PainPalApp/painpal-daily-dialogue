@@ -57,15 +57,11 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
           ...previewPoints.map(p => p.pain_level)
         ],
         borderColor: 'hsl(var(--accent-primary))',     /* #A78BFA */
-        backgroundColor: 'hsl(var(--accent-primary) / 0.12)', /* 12% opacity fill */
-        fill: true,
-        pointBackgroundColor: savedData.map(() => 'white').concat(
-          previewPoints.map(() => 'white')
-        ),
-        pointBorderColor: savedData.map(() => 'hsl(var(--accent-primary))').concat(
-          previewPoints.map(() => 'hsl(var(--accent-primary))')
-        ),
-        pointBorderWidth: 2,
+        backgroundColor: 'transparent',
+        fill: false,
+        pointBackgroundColor: 'hsl(var(--accent-primary))',
+        pointBorderColor: 'hsl(var(--accent-primary))',
+        pointBorderWidth: 1,
         pointRadius: 4,
         tension: 0.1,
         borderWidth: 2,
@@ -91,44 +87,12 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
     },
     scales: {
       x: {
-        display: true,
-        grid: {
-          display: true,
-          color: 'hsl(var(--border))',  /* #232445 */
-          lineWidth: 0.5,
-        },
-        ticks: {
-          display: true,
-          color: 'hsl(var(--text-secondary))',  /* #BDB8E6 */
-          font: {
-            size: 10,
-          },
-          maxTicksLimit: 4,
-        },
-        border: {
-          display: false,
-        },
+        display: false,
       },
       y: {
-        display: true,
+        display: false,
         min: 0,
         max: 10,
-        grid: {
-          display: true,
-          color: 'hsl(var(--border))',  /* #232445 */
-          lineWidth: 0.5,
-        },
-        ticks: {
-          display: true,
-          color: 'hsl(var(--text-secondary))',  /* #BDB8E6 */
-          font: {
-            size: 10,
-          },
-          stepSize: 2,
-        },
-        border: {
-          display: false,
-        },
       },
     },
     elements: {
