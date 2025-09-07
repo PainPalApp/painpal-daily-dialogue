@@ -16,7 +16,6 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
     { id: "today", label: "Today" },
     { id: "insights", label: "Insights" },
     { id: "records", label: "Records" },
-    { id: "today-v2", label: "Today V2", isLink: true, href: "/today-v2" },
     { id: "profile", label: "Profile", isLink: true, href: "/profile" },
   ];
 
