@@ -34,11 +34,10 @@ export const InsightsSection = () => {
   const [editingEntry, setEditingEntry] = useState<PainEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
-  // Page state for date range and preset
+  // Page state for date range
   const [state, setState] = useState<{
     startDate: Date;
     endDate: Date;
-    preset: '30d' | '60d' | '90d' | 'custom';
   }>(() => {
     // Initialize with URL params if available
     const urlParams = new URLSearchParams(window.location.search);
@@ -55,7 +54,6 @@ export const InsightsSection = () => {
           return {
             startDate,
             endDate,
-            preset: 'custom',
           };
         }
       } catch (error) {
@@ -67,7 +65,6 @@ export const InsightsSection = () => {
     return {
       startDate: subDays(new Date(), 30),
       endDate: new Date(),
-      preset: '30d',
     };
   });
 
@@ -90,27 +87,12 @@ export const InsightsSection = () => {
     }));
   };
 
-  // Handle preset selection
-  const handlePresetChange = (preset: '30d' | '60d' | '90d') => {
-    const days = parseInt(preset.replace('d', ''));
-    const newState = {
-      startDate: subDays(new Date(), days),
-      endDate: new Date(),
-      preset,
-    };
-    setState(newState);
-    
-    // Update URL
-    updateURL(newState.startDate, newState.endDate);
-  };
-
-  // Handle custom date range selection
+  // Handle date range selection
   const handleCustomDateChange = (range: DateRange | undefined) => {
     if (range?.from && range?.to) {
       const newState = {
         startDate: range.from,
         endDate: range.to,
-        preset: 'custom' as const,
       };
       setState(newState);
       
