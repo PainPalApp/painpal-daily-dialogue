@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { format, subDays } from "date-fns";
+import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 
@@ -17,6 +17,20 @@ export function DateRangePicker({ value, onChange, className }: DateRangePickerP
   const [isOpen, setIsOpen] = useState(false);
 
   const presets = [
+    {
+      label: "Today",
+      value: {
+        from: startOfDay(new Date()),
+        to: endOfDay(new Date()),
+      },
+    },
+    {
+      label: "Last 7 days",
+      value: {
+        from: subDays(new Date(), 7),
+        to: new Date(),
+      },
+    },
     {
       label: "Last 30 days",
       value: {

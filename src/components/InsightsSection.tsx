@@ -61,9 +61,9 @@ export const InsightsSection = () => {
       }
     }
     
-    // Default to last 30 days
+    // Default to last 7 days
     return {
-      startDate: subDays(new Date(), 30),
+      startDate: subDays(new Date(), 7),
       endDate: new Date(),
     };
   });
