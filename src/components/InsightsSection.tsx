@@ -14,7 +14,7 @@ import { DateRangePicker } from '@/components/DateRangePicker';
 import { usePainLogs } from '@/hooks/usePainLogs';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from 'react-day-picker';
-import { format, subDays, isWithinInterval } from 'date-fns';
+import { format, subDays, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 
 interface PainEntry {
   id: number;
@@ -270,20 +270,58 @@ export const InsightsSection = () => {
     handleEditInputChange(field, currentArray.filter((_, i) => i !== index));
   };
 
+  // Handle empty state button actions
+  const handleUseLast7Days = () => {
+    const last7Range = {
+      from: subDays(new Date(), 7),
+      to: new Date(),
+    };
+    handleCustomDateChange(last7Range);
+  };
+
+  const handleJumpToToday = () => {
+    const todayRange = {
+      from: startOfDay(new Date()),
+      to: endOfDay(new Date()),
+    };
+    handleCustomDateChange(todayRange);
+  };
+
   if (filteredPainData.length === 0) {
     return (
       <div className="flex-1 bg-background p-6">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Insights</h1>
+          <div className="flex items-center gap-2 mb-2">
+            <BarChart3 className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold text-foreground">Insights</h1>
+          </div>
+          
           <p className="text-sm text-muted-foreground mb-6">
             Showing {format(state.startDate, 'MMM d, yyyy')} → {format(state.endDate, 'MMM d, yyyy')}
           </p>
+          
+          {/* Date Range Picker */}
+          <div className="mb-6">
+            <DateRangePicker
+              value={{ from: state.startDate, to: state.endDate }}
+              onChange={handleCustomDateChange}
+            />
+          </div>
+          
           <Card>
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">No Entries in Selected Range</h3>
-                <p className="text-muted-foreground">Try adjusting your date range to see insights.</p>
+                <p className="text-muted-foreground mb-6">Try adjusting your date range to see insights.</p>
+                <div className="flex gap-3 justify-center">
+                  <Button onClick={handleUseLast7Days} variant="outline">
+                    Use Last 7 days
+                  </Button>
+                  <Button onClick={handleJumpToToday} variant="outline">
+                    Jump to Today
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
