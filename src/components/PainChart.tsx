@@ -32,7 +32,7 @@ const PainChartComponent = ({ painData, viewMode, isCompact = false }: PainChart
   }
 
   return (
-    <div className="relative" style={{ height: isCompact ? '80px' : '200px' }}>
+    <div className="relative h-20 sm:h-48 md:h-64">
       <canvas 
         ref={canvasRef}
         className="w-full h-full"

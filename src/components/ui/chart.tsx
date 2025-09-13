@@ -51,7 +51,7 @@ const ChartContainer = React.forwardRef<
         data-chart={chartId}
         ref={ref}
         className={cn(
-          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-[--chart-text-secondary] [&_.recharts-cartesian-grid_line]:stroke-[--chart-grid] [&_.recharts-curve.recharts-tooltip-cursor]:stroke-[--chart-border] [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_line]:stroke-[--chart-border] [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_line]:stroke-[--chart-border] [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
+          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-[--chart-text-secondary] [&_.recharts-cartesian-grid_line]:stroke-[--chart-border] [&_.recharts-curve.recharts-tooltip-cursor]:stroke-[--chart-border] [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_line]:stroke-[--chart-border] [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_line]:stroke-[--chart-border] [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none sm:h-20 h-16",
           className
         )}
         style={{
@@ -60,7 +60,7 @@ const ChartContainer = React.forwardRef<
           '--chart-text-primary': CHART_COLORS.textPrimary,
           '--chart-accent': CHART_COLORS.accent,
           '--chart-surface': CHART_COLORS.surface,
-          '--chart-grid': `${CHART_COLORS.gridLines}99`,
+          '--chart-grid': CHART_COLORS.border, // Use solid border color for visibility
           '--chart-accent-faded': CHART_COLORS.accentFaded,
         } as React.CSSProperties}
         {...props}

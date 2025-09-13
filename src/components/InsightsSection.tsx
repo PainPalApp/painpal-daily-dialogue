@@ -356,7 +356,7 @@ export const InsightsSection = () => {
             <CardTitle>Pain Levels Over Time</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-20 sm:h-48 md:h-64">
               <PainChart 
                 painData={filteredPainData}
                 viewMode="custom"

@@ -29,9 +29,12 @@ export const getChartJSTheme = () => ({
     x: {
       ticks: {
         color: CHART_COLORS.textSecondary,
+        font: {
+          size: 11, // Slightly smaller for mobile
+        },
       },
       grid: {
-        color: `${CHART_COLORS.gridLines}99`, // 60% opacity
+        color: CHART_COLORS.border, // Use solid border color for visibility
         drawOnChartArea: true,
         drawTicks: true,
         lineWidth: 1,
@@ -44,9 +47,12 @@ export const getChartJSTheme = () => ({
     y: {
       ticks: {
         color: CHART_COLORS.textSecondary,
+        font: {
+          size: 11, // Slightly smaller for mobile
+        },
       },
       grid: {
-        color: `${CHART_COLORS.gridLines}99`, // 60% opacity
+        color: CHART_COLORS.border, // Use solid border color for visibility
         drawOnChartArea: true,
         drawTicks: true,
         lineWidth: 1,
@@ -69,10 +75,20 @@ export const getChartJSTheme = () => ({
       cornerRadius: 8,
       displayColors: true,
       padding: 12,
+      titleFont: {
+        size: 12,
+        weight: '600',
+      },
+      bodyFont: {
+        size: 11,
+      },
     },
     legend: {
       labels: {
         color: CHART_COLORS.textSecondary,
+        font: {
+          size: 11,
+        },
       },
     },
   },

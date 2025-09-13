@@ -107,7 +107,7 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
   });
 
   return (
-    <div className="h-20 w-full bg-transparent">
+    <div className="h-16 sm:h-20 w-full bg-transparent">
       <Line data={data} options={options} />
     </div>
   );
