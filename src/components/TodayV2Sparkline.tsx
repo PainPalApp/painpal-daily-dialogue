@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { CHART_COLORS, mergeChartJSOptions } from '@/lib/chartTheme';
 
 ChartJS.register(
   CategoryScale,
@@ -56,33 +57,23 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
           ...savedData.map(d => d.pain_level),
           ...previewPoints.map(p => p.pain_level)
         ],
-        borderColor: '#A78BFA',
-        backgroundColor: 'transparent',
+        borderColor: CHART_COLORS.accent,
+        backgroundColor: CHART_COLORS.transparent,
         fill: false,
-        pointBackgroundColor: '#A78BFA',
-        pointBorderColor: '#A78BFA',
-        pointBorderWidth: 1,
+        pointBackgroundColor: CHART_COLORS.white,
+        pointBorderColor: CHART_COLORS.accent,
+        pointBorderWidth: 2,
         pointRadius: 4,
-        tension: 0.1,
+        tension: 0.3,
         borderWidth: 2,
       },
     ],
   };
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
+  const options = mergeChartJSOptions({
     plugins: {
       legend: {
         display: false,
-      },
-      tooltip: {
-        enabled: true,
-        backgroundColor: 'hsl(var(--surface))',
-        titleColor: 'hsl(var(--text-primary))',
-        bodyColor: 'hsl(var(--text-secondary))',
-        borderColor: 'hsl(var(--border))',
-        borderWidth: 1,
       },
     },
     scales: {
@@ -99,7 +90,6 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
           font: {
             size: 10,
           },
-          color: 'hsl(var(--muted-foreground))',
         },
         grid: {
           display: false,
@@ -114,7 +104,7 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
         borderJoinStyle: 'round' as const,
       },
     },
-  };
+  });
 
   return (
     <div className="h-20 w-full bg-transparent">

@@ -1,5 +1,6 @@
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
+import { CHART_COLORS } from "@/lib/chartTheme"
 
 import { cn } from "@/lib/utils"
 
@@ -50,9 +51,18 @@ const ChartContainer = React.forwardRef<
         data-chart={chartId}
         ref={ref}
         className={cn(
-          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
+          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-[--chart-text-secondary] [&_.recharts-cartesian-grid_line]:stroke-[--chart-grid] [&_.recharts-curve.recharts-tooltip-cursor]:stroke-[--chart-border] [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_line]:stroke-[--chart-border] [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_line]:stroke-[--chart-border] [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
           className
         )}
+        style={{
+          '--chart-border': CHART_COLORS.border,
+          '--chart-text-secondary': CHART_COLORS.textSecondary,
+          '--chart-text-primary': CHART_COLORS.textPrimary,
+          '--chart-accent': CHART_COLORS.accent,
+          '--chart-surface': CHART_COLORS.surface,
+          '--chart-grid': `${CHART_COLORS.gridLines}99`,
+          '--chart-accent-faded': CHART_COLORS.accentFaded,
+        } as React.CSSProperties}
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
@@ -177,9 +187,14 @@ const ChartTooltipContent = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
+          "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-[--chart-border] bg-[--chart-surface] px-2.5 py-1.5 text-xs shadow-xl text-[--chart-text-primary]",
           className
         )}
+        style={{
+          '--chart-border': CHART_COLORS.border,
+          '--chart-surface': CHART_COLORS.surface,
+          '--chart-text-primary': CHART_COLORS.textPrimary,
+        } as React.CSSProperties}
       >
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">

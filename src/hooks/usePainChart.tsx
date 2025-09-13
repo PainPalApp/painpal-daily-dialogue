@@ -14,6 +14,7 @@ import {
   Filler
 } from 'chart.js';
 import 'chartjs-adapter-date-fns';
+import { CHART_COLORS, mergeChartJSOptions } from '@/lib/chartTheme';
 
 // Register all Chart.js components including LineController
 ChartJS.register(
@@ -192,23 +193,20 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
           datasets: [{
             label: 'Pain Level',
             data: timelineData,
-            borderColor: '#ef4444',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            borderWidth: 3,
+            borderColor: CHART_COLORS.accent,
+            backgroundColor: CHART_COLORS.accentFaded,
+            borderWidth: 2,
             pointRadius: 4,
             pointHoverRadius: 6,
-            pointBackgroundColor: '#ef4444',
-            pointBorderColor: '#ffffff',
+            pointBackgroundColor: CHART_COLORS.white,
+            pointBorderColor: CHART_COLORS.accent,
             pointBorderWidth: 2,
             fill: true,
-            tension: 0.4,
+            tension: 0.3,
             cubicInterpolationMode: 'monotone' as const
           }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: { duration: 200 },
+        options: mergeChartJSOptions({
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -242,10 +240,7 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
               title: {
                 display: true,
                 text: 'Time Today',
-                color: '#94a3b8'
               },
-              ticks: { color: '#94a3b8' },
-              grid: { color: '#334155' }
             },
             y: {
               min: 0,
@@ -253,16 +248,13 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
               title: {
                 display: true,
                 text: 'Pain Level',
-                color: '#94a3b8'
               },
               ticks: { 
                 stepSize: 1,
-                color: '#94a3b8'
               },
-              grid: { color: '#334155' }
             }
           }
-        }
+        })
       });
     } else if (viewMode === 'week') {
       // Week view - simplified line chart
@@ -275,20 +267,20 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
           datasets: [{
             label: 'Pain Level',
             data: weekData.map(d => d.pain),
-            borderColor: 'hsl(var(--primary))',
-            backgroundColor: 'hsl(var(--primary) / 0.1)',
+            borderColor: CHART_COLORS.accent,
+            backgroundColor: CHART_COLORS.accentFaded,
             borderWidth: 2,
             pointRadius: 4,
             pointHoverRadius: 6,
+            pointBackgroundColor: CHART_COLORS.white,
+            pointBorderColor: CHART_COLORS.accent,
+            pointBorderWidth: 2,
             fill: false,
             tension: 0.3,
             spanGaps: true
           }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: { duration: 200 },
+        options: mergeChartJSOptions({
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -305,19 +297,14 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
               max: 10,
               ticks: { 
                 stepSize: 1,
-                color: 'hsl(var(--muted-foreground))'
               },
               title: {
                 display: true,
                 text: 'Pain Level',
-                color: 'hsl(var(--muted-foreground))'
               }
             },
-            x: {
-              ticks: { color: 'hsl(var(--muted-foreground))' }
-            }
           }
-        }
+        })
       });
     } else if (viewMode === 'month') {
       // Month view - similar to week but with more data points
@@ -330,20 +317,20 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
           datasets: [{
             label: 'Pain Level',
             data: monthData.map(d => d.pain),
-            borderColor: 'hsl(var(--primary))',
-            backgroundColor: 'hsl(var(--primary) / 0.1)',
+            borderColor: CHART_COLORS.accent,
+            backgroundColor: CHART_COLORS.accentFaded,
             borderWidth: 2,
             pointRadius: 2,
             pointHoverRadius: 4,
+            pointBackgroundColor: CHART_COLORS.white,
+            pointBorderColor: CHART_COLORS.accent,
+            pointBorderWidth: 2,
             fill: false,
             tension: 0.3,
             spanGaps: true
           }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: { duration: 200 },
+        options: mergeChartJSOptions({
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -360,22 +347,19 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
               max: 10,
               ticks: { 
                 stepSize: 1,
-                color: 'hsl(var(--muted-foreground))'
               },
               title: {
                 display: true,
                 text: 'Pain Level',
-                color: 'hsl(var(--muted-foreground))'
               }
             },
             x: {
               ticks: { 
-                color: 'hsl(var(--muted-foreground))',
                 maxTicksLimit: 10
               }
             }
           }
-        }
+        })
       });
     } else if (viewMode === 'custom') {
       // Custom date range view - daily averages with purple theme
@@ -399,23 +383,20 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
           datasets: [{
             label: 'Daily Average Pain',
             data: customData.map(d => d.avgPain),
-            borderColor: '#A78BFA', // Purple color
-            backgroundColor: 'rgba(167, 139, 250, 0.1)',
+            borderColor: CHART_COLORS.accent,
+            backgroundColor: CHART_COLORS.accentFaded,
             borderWidth: 2,
             pointRadius: 4,
             pointHoverRadius: 6,
-            pointBackgroundColor: '#A78BFA',
-            pointBorderColor: '#ffffff',
+            pointBackgroundColor: CHART_COLORS.white,
+            pointBorderColor: CHART_COLORS.accent,
             pointBorderWidth: 2,
             fill: false,
             tension: 0.3,
             spanGaps: false
           }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: { duration: 200 },
+        options: mergeChartJSOptions({
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -447,29 +428,20 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
               max: 10,
               ticks: { 
                 stepSize: 1,
-                color: 'hsl(var(--muted-foreground))'
               },
               title: {
                 display: true,
                 text: 'Daily Average Pain Level',
-                color: 'hsl(var(--muted-foreground))'
               },
-              grid: {
-                color: 'hsl(var(--border))'
-              }
             },
             x: {
               ticks: { 
-                color: 'hsl(var(--muted-foreground))',
                 maxTicksLimit: 15,
                 maxRotation: 45
               },
-              grid: {
-                color: 'hsl(var(--border))'
-              }
             }
           }
-        }
+        })
       });
     }
 
