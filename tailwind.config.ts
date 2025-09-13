@@ -95,6 +95,16 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				
+				/* Chart Design Tokens */
+				chart: {
+					line: 'hsl(var(--chart-line))',
+					point: 'hsl(var(--chart-point))',
+					grid: 'hsl(var(--chart-grid))',
+					axis: 'hsl(var(--chart-axis))',
+					label: 'hsl(var(--chart-label))',
+					background: 'var(--chart-background)'
 				}
 			},
 			borderRadius: {

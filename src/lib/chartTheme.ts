@@ -2,7 +2,15 @@
 // Design tokens based on app theme
 
 export const CHART_COLORS = {
-  // Primary colors
+  // Chart-specific tokens from design system
+  line: '#8B5CF6',           // chart.line - mid purple
+  point: '#A78BFA',          // chart.point - accent
+  grid: '#232445',           // chart.grid - border at 60% opacity when used
+  axis: '#232445',           // chart.axis - border
+  label: '#BDB8E6',          // chart.label - text secondary
+  background: 'transparent', // chart.background
+  
+  // Legacy colors for compatibility
   border: '#232445',
   textSecondary: '#BDB8E6',
   textPrimary: '#FFFFFF',
@@ -10,9 +18,9 @@ export const CHART_COLORS = {
   surface: '#17182B',
   
   // Derived colors
-  gridLines: '#232445', // 60% opacity applied in usage
-  accentFaded: 'rgba(167, 139, 250, 0.12)', // 12% opacity
-  accentMedium: 'rgba(167, 139, 250, 0.6)', // 60% opacity
+  gridLines: '#232445',
+  accentFaded: 'rgba(139, 92, 246, 0.12)', // Using chart.line at 12% opacity
+  accentMedium: 'rgba(139, 92, 246, 0.6)', // Using chart.line at 60% opacity
   white: '#FFFFFF',
   transparent: 'transparent',
 } as const;
@@ -28,37 +36,37 @@ export const getChartJSTheme = () => ({
   scales: {
     x: {
       ticks: {
-        color: CHART_COLORS.textSecondary,
+        color: CHART_COLORS.label,
         font: {
           size: 11, // Slightly smaller for mobile
         },
       },
       grid: {
-        color: CHART_COLORS.border, // Use solid border color for visibility
+        color: `${CHART_COLORS.grid}99`, // 60% opacity
         drawOnChartArea: true,
         drawTicks: true,
         lineWidth: 1,
       },
       border: {
-        color: CHART_COLORS.border,
+        color: CHART_COLORS.axis,
         width: 1,
       },
     },
     y: {
       ticks: {
-        color: CHART_COLORS.textSecondary,
+        color: CHART_COLORS.label,
         font: {
           size: 11, // Slightly smaller for mobile
         },
       },
       grid: {
-        color: CHART_COLORS.border, // Use solid border color for visibility
+        color: `${CHART_COLORS.grid}99`, // 60% opacity
         drawOnChartArea: true,
         drawTicks: true,
         lineWidth: 1,
       },
       border: {
-        color: CHART_COLORS.border,
+        color: CHART_COLORS.axis,
         width: 1,
       },
     },
@@ -85,7 +93,7 @@ export const getChartJSTheme = () => ({
     },
     legend: {
       labels: {
-        color: CHART_COLORS.textSecondary,
+        color: CHART_COLORS.label,
         font: {
           size: 11,
         },
@@ -96,11 +104,11 @@ export const getChartJSTheme = () => ({
   // Dataset defaults
   datasets: {
     line: {
-      borderColor: CHART_COLORS.accent,
-      backgroundColor: CHART_COLORS.accentFaded,
+      borderColor: CHART_COLORS.line,
+      backgroundColor: CHART_COLORS.background,
       borderWidth: 2,
       pointBackgroundColor: CHART_COLORS.white,
-      pointBorderColor: CHART_COLORS.accent,
+      pointBorderColor: CHART_COLORS.point,
       pointBorderWidth: 2,
       pointRadius: 4,
       pointHoverRadius: 6,
@@ -108,11 +116,11 @@ export const getChartJSTheme = () => ({
       tension: 0.3,
     },
     area: {
-      borderColor: CHART_COLORS.accent,
+      borderColor: CHART_COLORS.line,
       backgroundColor: CHART_COLORS.accentFaded,
       borderWidth: 2,
       pointBackgroundColor: CHART_COLORS.white,
-      pointBorderColor: CHART_COLORS.accent,
+      pointBorderColor: CHART_COLORS.point,
       pointBorderWidth: 2,
       pointRadius: 4,
       pointHoverRadius: 6,
@@ -126,36 +134,36 @@ export const getChartJSTheme = () => ({
 export const getRechartsTheme = () => ({
   // Grid and axis colors
   cartesianGrid: {
-    stroke: `${CHART_COLORS.gridLines}99`, // 60% opacity
+    stroke: `${CHART_COLORS.grid}99`, // 60% opacity
     strokeDasharray: '3 3',
     strokeWidth: 1,
   },
   
   // Axis styling
   xAxis: {
-    tick: { fill: CHART_COLORS.textSecondary, fontSize: 12 },
-    axisLine: { stroke: CHART_COLORS.border, strokeWidth: 1 },
-    tickLine: { stroke: CHART_COLORS.border, strokeWidth: 1 },
+    tick: { fill: CHART_COLORS.label, fontSize: 12 },
+    axisLine: { stroke: CHART_COLORS.axis, strokeWidth: 1 },
+    tickLine: { stroke: CHART_COLORS.axis, strokeWidth: 1 },
   },
   
   yAxis: {
-    tick: { fill: CHART_COLORS.textSecondary, fontSize: 12 },
-    axisLine: { stroke: CHART_COLORS.border, strokeWidth: 1 },
-    tickLine: { stroke: CHART_COLORS.border, strokeWidth: 1 },
+    tick: { fill: CHART_COLORS.label, fontSize: 12 },
+    axisLine: { stroke: CHART_COLORS.axis, strokeWidth: 1 },
+    tickLine: { stroke: CHART_COLORS.axis, strokeWidth: 1 },
   },
   
   // Line styling
   line: {
-    stroke: CHART_COLORS.accent,
+    stroke: CHART_COLORS.line,
     strokeWidth: 2,
     dot: {
       fill: CHART_COLORS.white,
-      stroke: CHART_COLORS.accent,
+      stroke: CHART_COLORS.point,
       strokeWidth: 2,
       r: 4,
     },
     activeDot: {
-      fill: CHART_COLORS.accent,
+      fill: CHART_COLORS.point,
       stroke: CHART_COLORS.white,
       strokeWidth: 2,
       r: 6,
@@ -165,13 +173,13 @@ export const getRechartsTheme = () => ({
   // Area styling
   area: {
     fill: CHART_COLORS.accentFaded,
-    stroke: CHART_COLORS.accent,
+    stroke: CHART_COLORS.line,
     strokeWidth: 2,
   },
   
   // Bar styling
   bar: {
-    fill: CHART_COLORS.accent,
+    fill: CHART_COLORS.line,
   },
   
   // Tooltip styling
@@ -214,11 +222,17 @@ export const mergeChartJSOptions = (customOptions: any = {}) => {
 
 // CSS variables for chart styling (if needed)
 export const CHART_CSS_VARS = {
+  '--chart-line': CHART_COLORS.line,
+  '--chart-point': CHART_COLORS.point,
+  '--chart-grid': CHART_COLORS.grid,
+  '--chart-axis': CHART_COLORS.axis,
+  '--chart-label': CHART_COLORS.label,
+  '--chart-background': CHART_COLORS.background,
   '--chart-border': CHART_COLORS.border,
   '--chart-text-secondary': CHART_COLORS.textSecondary,
   '--chart-text-primary': CHART_COLORS.textPrimary,
   '--chart-accent': CHART_COLORS.accent,
   '--chart-surface': CHART_COLORS.surface,
-  '--chart-grid': `${CHART_COLORS.gridLines}99`,
+  '--chart-grid-opacity': `${CHART_COLORS.grid}99`,
   '--chart-accent-faded': CHART_COLORS.accentFaded,
 } as const;

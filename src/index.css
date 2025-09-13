@@ -70,6 +70,14 @@
     --sidebar-border: var(--border);
     --sidebar-ring: var(--accent-primary);
     
+    /* Chart Design Tokens */
+    --chart-line: 270 91% 65%;              /* #8B5CF6 - mid purple */
+    --chart-point: var(--accent-primary);   /* #A78BFA - accent */
+    --chart-grid: var(--border);            /* #232445 - at 60% opacity */
+    --chart-axis: var(--border);            /* #232445 */
+    --chart-label: var(--text-secondary);   /* #BDB8E6 */
+    --chart-background: transparent;
+    
     /* Chat Components */
     --chat-user-bg: var(--accent-primary);
     --chat-user-fg: var(--background);

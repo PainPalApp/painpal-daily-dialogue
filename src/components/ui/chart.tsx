@@ -55,12 +55,17 @@ const ChartContainer = React.forwardRef<
           className
         )}
         style={{
+          '--chart-line': CHART_COLORS.line,
+          '--chart-point': CHART_COLORS.point,
+          '--chart-grid': `${CHART_COLORS.grid}99`, // 60% opacity
+          '--chart-axis': CHART_COLORS.axis,
+          '--chart-label': CHART_COLORS.label,
+          '--chart-background': CHART_COLORS.background,
           '--chart-border': CHART_COLORS.border,
           '--chart-text-secondary': CHART_COLORS.textSecondary,
           '--chart-text-primary': CHART_COLORS.textPrimary,
           '--chart-accent': CHART_COLORS.accent,
           '--chart-surface': CHART_COLORS.surface,
-          '--chart-grid': CHART_COLORS.border, // Use solid border color for visibility
           '--chart-accent-faded': CHART_COLORS.accentFaded,
         } as React.CSSProperties}
         {...props}
