@@ -296,7 +296,7 @@ export const InsightsSection = () => {
             <h1 className="text-3xl font-bold text-foreground">Insights</h1>
           </div>
           
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-sm text-muted-foreground mb-6" aria-live="polite">
             Showing {format(state.startDate, 'MMM d, yyyy')} → {format(state.endDate, 'MMM d, yyyy')}
           </p>
           
@@ -338,7 +338,7 @@ export const InsightsSection = () => {
           <h1 className="text-3xl font-bold text-foreground">Insights</h1>
         </div>
         
-        <p className="text-sm text-muted-foreground mb-6">
+        <p className="text-sm text-muted-foreground mb-6" aria-live="polite">
           Showing {format(state.startDate, 'MMM d, yyyy')} → {format(state.endDate, 'MMM d, yyyy')}
         </p>
         

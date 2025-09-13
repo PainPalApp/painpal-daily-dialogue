@@ -146,14 +146,11 @@ export function DateRangePicker({ value, onChange, className }: DateRangePickerP
     return isAfter(date, new Date());
   }, []);
 
-  const renderTriggerLabel = () => {
+  const renderCustomRangeText = () => {
     if (activePreset === "custom" && value?.from && value?.to) {
-      return `${format(value.from, "MMM d")} - ${format(value.to, "MMM d, yyyy")}`;
+      return `${format(value.from, "MMM d")} – ${format(value.to, "MMM d, yyyy")}`;
     }
-    if (activePreset !== "custom") {
-      return PRESETS[activePreset].label;
-    }
-    return "Select dates";
+    return null;
   };
 
   const CustomCalendarContent = () => (
@@ -229,10 +226,20 @@ export function DateRangePicker({ value, onChange, className }: DateRangePickerP
         </Button>
       </div>
 
-      {/* Current selection display */}
-      <div className="text-sm text-muted-foreground">
-        {renderTriggerLabel()}
-      </div>
+      {/* Custom range display - only show for custom preset and hide on mobile */}
+      {activePreset === "custom" && !isMobile && renderCustomRangeText() && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>{renderCustomRangeText()}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleResetClick}
+            className="text-xs text-muted-foreground hover:text-foreground h-auto p-1"
+          >
+            Reset to Last 7 days
+          </Button>
+        </div>
+      )}
 
       {/* Custom date picker */}
       {isMobile ? (
