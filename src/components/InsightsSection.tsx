@@ -389,7 +389,7 @@ export const InsightsSection = () => {
                       {!isNaN(avgPain) && (
                         <Badge 
                           variant="outline" 
-                          className={`text-white badge-responsive ${getPainLevelColor(Math.round(avgPain))}`}
+                          className={`text-white text-[12px] ${getPainLevelColor(Math.round(avgPain))}`}
                         >
                           Avg: {avgPain.toFixed(1)}/10
                         </Badge>
@@ -404,10 +404,11 @@ export const InsightsSection = () => {
                       .map((entry, index) => (
                         <div key={entry.id}>
                           {index > 0 && <Separator className="my-4" />}
-                          <div className="grid gap-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-muted-foreground">
+                          <div className="grid gap-3 min-h-[56px] md:min-h-auto">
+                            {/* Mobile-First Layout: Time + Pain + Edit on first row */}
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex flex-wrap items-center gap-2 flex-1">
+                                <span className="text-body font-medium text-muted-foreground">
                                   {formatTime(entry.timestamp)}
                                 </span>
                                 {entry.painLevel !== null && (
@@ -423,56 +424,59 @@ export const InsightsSection = () => {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleEditEntry(entry)}
-                                className="h-8 w-8 p-0"
+                                className="h-11 w-11 p-0 min-h-[44px] min-w-[44px] flex-shrink-0"
                               >
-                                <Edit className="h-4 w-4" />
+                                <Edit className="h-5 w-5" />
                               </Button>
                             </div>
                             
-                            {entry.location && entry.location.length > 0 && (
-                              <div className="flex items-center gap-2">
-                                <MapPin className="h-4 w-4 text-muted-foreground" />
-                                <div className="flex flex-wrap gap-1">
-                                  {entry.location.map((loc, i) => (
-                                    <Badge key={i} variant="secondary" className="badge-responsive">
-                                      {loc}
-                                    </Badge>
-                                  ))}
+                            {/* Secondary content: Location, Triggers, Meds */}
+                            <div className="space-y-2 md:space-y-1">
+                              {entry.location && entry.location.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                  <div className="flex flex-wrap gap-1">
+                                    {entry.location.map((loc, i) => (
+                                      <Badge key={i} variant="secondary" className="badge-responsive">
+                                        {loc}
+                                      </Badge>
+                                    ))}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
 
-                            {entry.triggers && entry.triggers.length > 0 && (
-                              <div className="flex items-center gap-2">
-                                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-                                <div className="flex flex-wrap gap-1">
-                                  {entry.triggers.map((trigger, i) => (
-                                    <Badge key={i} variant="outline" className="badge-responsive">
-                                      {trigger}
-                                    </Badge>
-                                  ))}
+                              {entry.triggers && entry.triggers.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <AlertTriangle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                  <div className="flex flex-wrap gap-1">
+                                    {entry.triggers.map((trigger, i) => (
+                                      <Badge key={i} variant="outline" className="badge-responsive">
+                                        {trigger}
+                                      </Badge>
+                                    ))}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
 
-                            {entry.medications && entry.medications.length > 0 && (
-                              <div className="flex items-center gap-2">
-                                <Pill className="h-4 w-4 text-muted-foreground" />
-                                <div className="flex flex-wrap gap-1">
-                                  {entry.medications.map((med, i) => (
-                                    <Badge key={i} variant="secondary" className="badge-responsive">
-                                      {typeof med === 'string' ? med : med.name || 'Medication'}
-                                    </Badge>
-                                  ))}
+                              {entry.medications && entry.medications.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <Pill className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                  <div className="flex flex-wrap gap-1">
+                                    {entry.medications.map((med, i) => (
+                                      <Badge key={i} variant="secondary" className="badge-responsive">
+                                        {typeof med === 'string' ? med : med.name || 'Medication'}
+                                      </Badge>
+                                    ))}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
 
-                            {entry.notes && (
-                              <div className="bg-muted/50 rounded-lg p-3">
-                                <p className="text-body text-foreground">{entry.notes}</p>
-                              </div>
-                            )}
+                              {entry.notes && (
+                                <div className="bg-muted/50 rounded-lg p-3">
+                                  <p className="text-body text-foreground">{entry.notes}</p>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
