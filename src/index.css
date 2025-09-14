@@ -131,12 +131,12 @@
 
   /* Mobile-First Page Padding */
   .page-padding {
-    @apply px-4 sm:px-4 md:px-5 lg:px-6;
+    @apply px-4 md:px-5 lg:px-6;
   }
 
   /* Mobile Badge Styles */
   .badge-responsive {
-    @apply text-xs sm:text-[12px] md:text-xs;
+    @apply text-[12px] md:text-xs;
   }
 
   /* Typography system - legacy */
@@ -292,7 +292,7 @@
 
   .lila-tab-container-mobile {
     @apply flex gap-1 rounded-lg border border-[hsl(var(--border))] bg-transparent p-1 
-           sm:overflow-x-auto sm:scrollbar-hide md:overflow-visible;
+           overflow-x-auto scrollbar-hide;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -301,7 +301,7 @@
            text-[hsl(var(--text-secondary))] bg-transparent 
            hover:text-[hsl(var(--text-primary))] 
            focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:ring-offset-2 focus:ring-offset-background
-           sm:min-h-[44px] sm:min-w-[44px] sm:flex-shrink-0;
+           min-h-[44px] min-w-[44px] flex-shrink-0;
   }
 
   .lila-tab-active {
@@ -341,7 +341,7 @@
 
   /* Mobile-First Scroll Utilities */
   .scroll-mobile {
-    @apply sm:overflow-x-auto sm:scrollbar-hide md:overflow-visible;
+    @apply overflow-x-auto scrollbar-hide;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -356,11 +356,11 @@
 
   /* Mobile Typography Weights */
   .font-light-mobile {
-    @apply sm:font-light md:font-normal lg:font-medium;
+    @apply font-light lg:font-medium;
   }
 
   .font-medium-mobile {
-    @apply sm:font-medium md:font-medium lg:font-semibold;
+    @apply font-medium lg:font-semibold;
   }
 }
 

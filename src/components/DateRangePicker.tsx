@@ -202,14 +202,14 @@ export function DateRangePicker({ value, onChange, className }: DateRangePickerP
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
       {/* Preset buttons */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide lg:overflow-visible" style={{ WebkitOverflowScrolling: 'touch' }}>
         {Object.entries(PRESETS).map(([key, preset]) => (
           <Button
             key={key}
             variant={activePreset === key ? "default" : "outline"}
             size="sm"
             onClick={() => handlePresetClick(key as PresetKey)}
-            className="text-sm"
+            className="text-sm min-h-[44px] min-w-[44px] whitespace-nowrap flex-shrink-0"
           >
             {preset.label}
           </Button>
@@ -220,7 +220,7 @@ export function DateRangePicker({ value, onChange, className }: DateRangePickerP
           variant={activePreset === "custom" ? "default" : "outline"}
           size="sm"
           onClick={handleCustomClick}
-          className="text-sm"
+          className="text-sm min-h-[44px] min-w-[44px] whitespace-nowrap flex-shrink-0"
         >
           Custom
         </Button>

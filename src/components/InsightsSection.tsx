@@ -289,11 +289,11 @@ export const InsightsSection = () => {
 
   if (filteredPainData.length === 0) {
     return (
-      <div className="flex-1 bg-background p-6">
+    <div className="flex-1 bg-background page-padding py-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-2 mb-2">
             <BarChart3 className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold text-foreground">Insights</h1>
+            <h1 style={{ fontSize: 'clamp(18px, 4.8vw, 22px)', fontWeight: 500 }} className="text-foreground">Insights</h1>
           </div>
           
           <p className="text-sm text-muted-foreground mb-6" aria-live="polite">
@@ -314,11 +314,11 @@ export const InsightsSection = () => {
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">No Entries in Selected Range</h3>
                 <p className="text-muted-foreground mb-6">Try adjusting your date range to see insights.</p>
-                <div className="flex gap-3 justify-center">
-                  <Button onClick={handleUseLast7Days} variant="outline">
+                <div className="flex gap-2 justify-center overflow-x-auto scrollbar-hide lg:justify-center lg:overflow-visible" style={{ WebkitOverflowScrolling: 'touch' }}>
+                  <Button onClick={handleUseLast7Days} variant="outline" className="min-h-[44px] min-w-[44px] whitespace-nowrap flex-shrink-0">
                     Use Last 7 days
                   </Button>
-                  <Button onClick={handleJumpToToday} variant="outline">
+                  <Button onClick={handleJumpToToday} variant="outline" className="min-h-[44px] min-w-[44px] whitespace-nowrap flex-shrink-0">
                     Jump to Today
                   </Button>
                 </div>
@@ -331,11 +331,11 @@ export const InsightsSection = () => {
   }
 
   return (
-    <div className="flex-1 bg-background p-6">
+    <div className="flex-1 bg-background page-padding py-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-2 mb-2">
           <BarChart3 className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-foreground">Insights</h1>
+          <h1 style={{ fontSize: 'clamp(18px, 4.8vw, 22px)', fontWeight: 500 }} className="text-foreground">Insights</h1>
         </div>
         
         <p className="text-sm text-muted-foreground mb-6" aria-live="polite">
@@ -383,13 +383,13 @@ export const InsightsSection = () => {
                       {formatDate(date)}
                     </CardTitle>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-sm">
+                      <Badge variant="outline" className="badge-responsive">
                         {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
                       </Badge>
                       {!isNaN(avgPain) && (
                         <Badge 
                           variant="outline" 
-                          className={`text-white ${getPainLevelColor(Math.round(avgPain))}`}
+                          className={`text-white badge-responsive ${getPainLevelColor(Math.round(avgPain))}`}
                         >
                           Avg: {avgPain.toFixed(1)}/10
                         </Badge>
@@ -413,7 +413,7 @@ export const InsightsSection = () => {
                                 {entry.painLevel !== null && (
                                   <Badge 
                                     variant="outline"
-                                    className={`text-white ${getPainLevelColor(entry.painLevel)}`}
+                                    className={`text-white badge-responsive ${getPainLevelColor(entry.painLevel)}`}
                                   >
                                     Pain: {entry.painLevel}/10
                                   </Badge>
@@ -434,7 +434,7 @@ export const InsightsSection = () => {
                                 <MapPin className="h-4 w-4 text-muted-foreground" />
                                 <div className="flex flex-wrap gap-1">
                                   {entry.location.map((loc, i) => (
-                                    <Badge key={i} variant="secondary" className="text-xs">
+                                    <Badge key={i} variant="secondary" className="badge-responsive">
                                       {loc}
                                     </Badge>
                                   ))}
@@ -447,7 +447,7 @@ export const InsightsSection = () => {
                                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
                                 <div className="flex flex-wrap gap-1">
                                   {entry.triggers.map((trigger, i) => (
-                                    <Badge key={i} variant="outline" className="text-xs">
+                                    <Badge key={i} variant="outline" className="badge-responsive">
                                       {trigger}
                                     </Badge>
                                   ))}
@@ -460,7 +460,7 @@ export const InsightsSection = () => {
                                 <Pill className="h-4 w-4 text-muted-foreground" />
                                 <div className="flex flex-wrap gap-1">
                                   {entry.medications.map((med, i) => (
-                                    <Badge key={i} variant="secondary" className="text-xs">
+                                    <Badge key={i} variant="secondary" className="badge-responsive">
                                       {typeof med === 'string' ? med : med.name || 'Medication'}
                                     </Badge>
                                   ))}
