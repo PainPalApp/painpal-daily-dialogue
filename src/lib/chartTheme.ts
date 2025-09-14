@@ -21,6 +21,7 @@ export const CHART_COLORS = {
   gridLines: '#232445',
   accentFaded: 'rgba(139, 92, 246, 0.12)', // Using chart.line at 12% opacity
   accentMedium: 'rgba(139, 92, 246, 0.6)', // Using chart.line at 60% opacity
+  pointGlow: 'rgba(167, 139, 250, 0.4)', // Using chart.point at 40% opacity for glow
   white: '#FFFFFF',
   transparent: 'transparent',
 } as const;
@@ -107,11 +108,13 @@ export const getChartJSTheme = () => ({
       borderColor: CHART_COLORS.line,
       backgroundColor: CHART_COLORS.background,
       borderWidth: 2,
-      pointBackgroundColor: CHART_COLORS.white,
-      pointBorderColor: CHART_COLORS.point,
-      pointBorderWidth: 2,
+      pointBackgroundColor: CHART_COLORS.point,
+      pointBorderColor: 'transparent',
+      pointBorderWidth: 0,
       pointRadius: 4,
       pointHoverRadius: 6,
+      pointHoverBorderWidth: 0,
+      pointHoverBackgroundColor: CHART_COLORS.point,
       fill: false,
       tension: 0.3,
     },
@@ -119,11 +122,13 @@ export const getChartJSTheme = () => ({
       borderColor: CHART_COLORS.line,
       backgroundColor: CHART_COLORS.accentFaded,
       borderWidth: 2,
-      pointBackgroundColor: CHART_COLORS.white,
-      pointBorderColor: CHART_COLORS.point,
-      pointBorderWidth: 2,
+      pointBackgroundColor: CHART_COLORS.point,
+      pointBorderColor: 'transparent',
+      pointBorderWidth: 0,
       pointRadius: 4,
       pointHoverRadius: 6,
+      pointHoverBorderWidth: 0,
+      pointHoverBackgroundColor: CHART_COLORS.point,
       fill: true,
       tension: 0.3,
     },
@@ -157,16 +162,17 @@ export const getRechartsTheme = () => ({
     stroke: CHART_COLORS.line,
     strokeWidth: 2,
     dot: {
-      fill: CHART_COLORS.white,
-      stroke: CHART_COLORS.point,
-      strokeWidth: 2,
+      fill: CHART_COLORS.point,
+      stroke: 'none',
+      strokeWidth: 0,
       r: 4,
     },
     activeDot: {
       fill: CHART_COLORS.point,
-      stroke: CHART_COLORS.white,
-      strokeWidth: 2,
+      stroke: 'none',
+      strokeWidth: 0,
       r: 6,
+      filter: `drop-shadow(0 0 8px ${CHART_COLORS.point}66)`, // 40% opacity glow
     },
   },
   
@@ -224,6 +230,7 @@ export const mergeChartJSOptions = (customOptions: any = {}) => {
 export const CHART_CSS_VARS = {
   '--chart-line': CHART_COLORS.line,
   '--chart-point': CHART_COLORS.point,
+  '--chart-point-glow': CHART_COLORS.pointGlow,
   '--chart-grid': CHART_COLORS.grid,
   '--chart-axis': CHART_COLORS.axis,
   '--chart-label': CHART_COLORS.label,

@@ -73,6 +73,7 @@
     /* Chart Design Tokens */
     --chart-line: 270 91% 65%;              /* #8B5CF6 - mid purple */
     --chart-point: var(--accent-primary);   /* #A78BFA - accent */
+    --chart-point-glow: var(--accent-primary); /* #A78BFA at 40% for glow */
     --chart-grid: var(--border);            /* #232445 - at 60% opacity */
     --chart-axis: var(--border);            /* #232445 */
     --chart-label: var(--text-secondary);   /* #BDB8E6 */
@@ -278,13 +279,13 @@
     @apply text-[hsl(var(--text-primary))] bg-[hsl(var(--surface))];
   }
 
-  /* Loading and states */
-  .loading-dots {
-    @apply flex space-x-1;
+  /* Chart components */
+  .chart-container canvas {
+    @apply transition-all duration-200;
   }
-
-  .loading-dot {
-    @apply w-2 h-2 bg-[hsl(var(--text-secondary))] rounded-full animate-bounce;
+  
+  .chart-point-glow {
+    filter: drop-shadow(0 0 8px hsl(var(--chart-point) / 0.4));
   }
 }
 
