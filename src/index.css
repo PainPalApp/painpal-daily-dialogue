@@ -106,21 +106,37 @@
     font-variation-settings: "opsz" 32;
   }
 
-  /* Lila Typography System */
+  /* Lila Mobile-First Typography System */
   .text-h1 {
-    @apply text-[22px] leading-[28px] font-medium text-[hsl(var(--text-primary))];
+    font-size: clamp(18px, 4.8vw, 22px);
+    line-height: 1.3;
+    @apply font-medium sm:font-medium lg:font-semibold text-[hsl(var(--text-primary))];
   }
   
   .text-section {
-    @apply text-[18px] leading-[24px] font-medium text-[hsl(var(--text-primary))];
+    font-size: clamp(16px, 3.6vw, 18px);
+    line-height: 1.3;
+    @apply font-medium text-[hsl(var(--text-primary))];
   }
   
   .text-body {
-    @apply text-[15px] leading-[22px] font-normal text-[hsl(var(--text-primary))];
+    font-size: clamp(14px, 3.2vw, 15px);
+    line-height: 1.5;
+    @apply font-normal text-[hsl(var(--text-primary))];
   }
   
   .text-caption {
     @apply text-[12px] leading-[16px] font-normal text-[hsl(var(--text-secondary))];
+  }
+
+  /* Mobile-First Page Padding */
+  .page-padding {
+    @apply px-4 sm:px-4 md:px-5 lg:px-6;
+  }
+
+  /* Mobile Badge Styles */
+  .badge-responsive {
+    @apply text-xs sm:text-[12px] md:text-xs;
   }
 
   /* Typography system - legacy */
@@ -196,7 +212,13 @@
   /* Card components */
   .card-clean {
     @apply bg-[hsl(var(--surface))] text-[hsl(var(--text-primary))] rounded-xl 
-           border border-[hsl(var(--border))] shadow-sm;
+           border border-[#232445] shadow-sm;
+    padding: clamp(12px, 2vw, 20px);
+  }
+
+  /* Mobile-First Card Padding */
+  .card-mobile {
+    @apply p-3 sm:p-3 md:p-4 lg:p-5 border border-[#232445];
   }
 
   /* Form components */
@@ -263,20 +285,34 @@
     @apply bg-[hsl(var(--status-ok))];
   }
 
-  /* Lila Tab System */
+  /* Lila Tab System - Mobile-First */
   .lila-tab-container {
     @apply flex gap-1 rounded-lg border border-[hsl(var(--border))] bg-transparent p-1;
+  }
+
+  .lila-tab-container-mobile {
+    @apply flex gap-1 rounded-lg border border-[hsl(var(--border))] bg-transparent p-1 
+           sm:overflow-x-auto sm:scrollbar-hide md:overflow-visible;
+    -webkit-overflow-scrolling: touch;
   }
 
   .lila-tab {
     @apply px-3 py-2 rounded text-sm font-medium transition-all duration-200 
            text-[hsl(var(--text-secondary))] bg-transparent 
            hover:text-[hsl(var(--text-primary))] 
-           focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:ring-offset-2 focus:ring-offset-background;
+           focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:ring-offset-2 focus:ring-offset-background
+           sm:min-h-[44px] sm:min-w-[44px] sm:flex-shrink-0;
   }
 
   .lila-tab-active {
     @apply text-[hsl(var(--text-primary))] bg-[hsl(var(--surface))];
+  }
+
+  /* Chip/Tab Mobile Touch Target */
+  .chip-mobile {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center px-4 py-2 
+           rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--surface))] 
+           text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0;
   }
 
   /* Chart components */
@@ -301,6 +337,30 @@
 
   .animate-scale-in {
     animation: scale-in 0.2s ease-out;
+  }
+
+  /* Mobile-First Scroll Utilities */
+  .scroll-mobile {
+    @apply sm:overflow-x-auto sm:scrollbar-hide md:overflow-visible;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile Typography Weights */
+  .font-light-mobile {
+    @apply sm:font-light md:font-normal lg:font-medium;
+  }
+
+  .font-medium-mobile {
+    @apply sm:font-medium md:font-medium lg:font-semibold;
   }
 }
 

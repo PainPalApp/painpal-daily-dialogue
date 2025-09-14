@@ -10,6 +10,11 @@ export default {
 	],
 	prefix: "",
 	theme: {
+		screens: {
+			'sm': {'max': '640px'},     // Mobile-first: sm ≤ 640px
+			'md': {'min': '641px', 'max': '1024px'}, // Tablet: 641-1024px  
+			'lg': {'min': '1025px'},    // Desktop: ≥ 1025px
+		},
 		container: {
 			center: true,
 			padding: '2rem',
