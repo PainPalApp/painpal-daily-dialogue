@@ -301,11 +301,13 @@ export const InsightsSection = () => {
           </p>
           
           {/* Date Range Picker */}
-          <div className="mb-6">
-            <DateRangePicker
-              value={{ from: state.startDate, to: state.endDate }}
-              onChange={handleCustomDateChange}
-            />
+          <div className="mb-6 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div style={{ whiteSpace: 'nowrap', gap: '8px' }}>
+              <DateRangePicker
+                value={{ from: state.startDate, to: state.endDate }}
+                onChange={handleCustomDateChange}
+              />
+            </div>
           </div>
           
           <Card className="insights-card">
@@ -343,11 +345,13 @@ export const InsightsSection = () => {
         </p>
         
         {/* Date Range Picker */}
-        <div className="mb-6">
-          <DateRangePicker
-            value={{ from: state.startDate, to: state.endDate }}
-            onChange={handleCustomDateChange}
-          />
+        <div className="mb-6 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div style={{ whiteSpace: 'nowrap', gap: '8px' }}>
+            <DateRangePicker
+              value={{ from: state.startDate, to: state.endDate }}
+              onChange={handleCustomDateChange}
+            />
+          </div>
         </div>
         
         {/* Pain Chart */}
@@ -408,13 +412,13 @@ export const InsightsSection = () => {
                             {/* Mobile-First Layout: Time + Pain + Edit on first row */}
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex flex-wrap items-center gap-2 flex-1">
-                                <span className="text-body font-medium text-muted-foreground">
+                                <span className="text-caption font-medium text-muted-foreground">
                                   {formatTime(entry.timestamp)}
                                 </span>
                                 {entry.painLevel !== null && (
                                   <Badge 
                                     variant="outline"
-                                    className={`text-white badge-responsive ${getPainLevelColor(entry.painLevel)}`}
+                                    className={`text-white text-[12px] ${getPainLevelColor(entry.painLevel)}`}
                                   >
                                     Pain: {entry.painLevel}/10
                                   </Badge>
@@ -437,9 +441,9 @@ export const InsightsSection = () => {
                                   <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                   <div className="flex flex-wrap gap-1">
                                     {entry.location.map((loc, i) => (
-                                      <Badge key={i} variant="secondary" className="badge-responsive">
-                                        {loc}
-                                      </Badge>
+                                    <Badge key={i} variant="secondary" className="text-[12px]">
+                                      {loc}
+                                    </Badge>
                                     ))}
                                   </div>
                                 </div>
@@ -450,9 +454,9 @@ export const InsightsSection = () => {
                                   <AlertTriangle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                   <div className="flex flex-wrap gap-1">
                                     {entry.triggers.map((trigger, i) => (
-                                      <Badge key={i} variant="outline" className="badge-responsive">
-                                        {trigger}
-                                      </Badge>
+                                    <Badge key={i} variant="outline" className="text-[12px]">
+                                      {trigger}
+                                    </Badge>
                                     ))}
                                   </div>
                                 </div>
@@ -463,9 +467,9 @@ export const InsightsSection = () => {
                                   <Pill className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                   <div className="flex flex-wrap gap-1">
                                     {entry.medications.map((med, i) => (
-                                      <Badge key={i} variant="secondary" className="badge-responsive">
-                                        {typeof med === 'string' ? med : med.name || 'Medication'}
-                                      </Badge>
+                                    <Badge key={i} variant="secondary" className="text-[12px]">
+                                      {typeof med === 'string' ? med : med.name || 'Medication'}
+                                    </Badge>
                                     ))}
                                   </div>
                                 </div>
@@ -473,7 +477,7 @@ export const InsightsSection = () => {
 
                               {entry.notes && (
                                 <div className="bg-muted/50 rounded-lg p-3">
-                                  <p className="text-body text-foreground">{entry.notes}</p>
+                                  <p className="text-caption text-foreground">{entry.notes}</p>
                                 </div>
                               )}
                             </div>
