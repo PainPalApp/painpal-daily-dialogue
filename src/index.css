@@ -116,7 +116,7 @@
   .text-section {
     font-size: clamp(16px, 3.6vw, 18px);
     line-height: 1.3;
-    @apply font-medium text-[hsl(var(--text-primary))];
+    @apply font-semibold text-[hsl(var(--text-primary))];
   }
   
   .text-body {
@@ -218,7 +218,13 @@
 
   /* Mobile-First Card Padding */
   .card-mobile {
-    @apply p-3 sm:p-3 md:p-4 lg:p-5 border border-[#232445];
+    @apply p-3 md:p-4 lg:p-5 border border-[#232445];
+  }
+
+  /* Insights Card Padding */
+  .insights-card {
+    padding: clamp(12px, 2vw, 20px);
+    @apply border border-[#232445] bg-[hsl(var(--surface))] text-[hsl(var(--text-primary))] rounded-xl shadow-sm;
   }
 
   /* Form components */

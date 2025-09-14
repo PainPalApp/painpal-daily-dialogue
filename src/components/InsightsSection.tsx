@@ -308,12 +308,12 @@ export const InsightsSection = () => {
             />
           </div>
           
-          <Card>
-            <CardContent className="flex items-center justify-center py-12">
+          <Card className="insights-card">
+            <CardContent style={{ padding: 'clamp(12px, 2vw, 20px)' }} className="flex items-center justify-center py-12">
               <div className="text-center">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">No Entries in Selected Range</h3>
-                <p className="text-muted-foreground mb-6">Try adjusting your date range to see insights.</p>
+                <h3 className="text-section mb-2">No Entries in Selected Range</h3>
+                <p className="text-body text-muted-foreground mb-6">Try adjusting your date range to see insights.</p>
                 <div className="flex gap-2 justify-center overflow-x-auto scrollbar-hide lg:justify-center lg:overflow-visible" style={{ WebkitOverflowScrolling: 'touch' }}>
                   <Button onClick={handleUseLast7Days} variant="outline" className="min-h-[44px] min-w-[44px] whitespace-nowrap flex-shrink-0">
                     Use Last 7 days
@@ -351,11 +351,11 @@ export const InsightsSection = () => {
         </div>
         
         {/* Pain Chart */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Pain Levels Over Time</CardTitle>
+        <Card className="insights-card mb-6">
+          <CardHeader style={{ padding: 'clamp(12px, 2vw, 20px) clamp(12px, 2vw, 20px) 0' }}>
+            <CardTitle className="text-section">Pain Levels Over Time</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent style={{ padding: '0 clamp(12px, 2vw, 20px) clamp(12px, 2vw, 20px)' }}>
             <div className="h-20 sm:h-48 md:h-64">
               <PainChart 
                 painData={filteredPainData}
@@ -375,10 +375,10 @@ export const InsightsSection = () => {
               entries.filter(e => e.painLevel !== null).length;
 
             return (
-              <Card key={date}>
-                <CardHeader>
+              <Card key={date} className="insights-card">
+                <CardHeader style={{ padding: 'clamp(12px, 2vw, 20px) clamp(12px, 2vw, 20px) 0' }}>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="text-section flex items-center gap-2">
                       <Calendar className="h-5 w-5" />
                       {formatDate(date)}
                     </CardTitle>
@@ -397,7 +397,7 @@ export const InsightsSection = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent style={{ padding: '0 clamp(12px, 2vw, 20px) clamp(12px, 2vw, 20px)' }}>
                   <div className="space-y-4">
                     {entries
                       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
@@ -470,7 +470,7 @@ export const InsightsSection = () => {
 
                             {entry.notes && (
                               <div className="bg-muted/50 rounded-lg p-3">
-                                <p className="text-sm text-foreground">{entry.notes}</p>
+                                <p className="text-body text-foreground">{entry.notes}</p>
                               </div>
                             )}
                           </div>
