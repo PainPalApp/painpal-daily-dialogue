@@ -148,6 +148,18 @@ export const getChartJSTheme = () => ({
       tension: 0.3,
     },
   },
+  
+  // Bar chart defaults
+  bar: {
+    datasets: {
+      backgroundColor: `${CHART_COLORS.line}D9`, // 85% opacity
+      borderColor: 'transparent',
+      borderWidth: 0,
+      hoverBackgroundColor: CHART_COLORS.point,
+      hoverBorderColor: 'transparent',
+      hoverBorderWidth: 0,
+    },
+  },
 });
 
 // Recharts theme configuration
@@ -200,7 +212,9 @@ export const getRechartsTheme = () => ({
   
   // Bar styling
   bar: {
-    fill: CHART_COLORS.line,
+    fill: `${CHART_COLORS.line}D9`, // 85% opacity
+    stroke: 'none',
+    strokeWidth: 0,
   },
   
   // Tooltip styling
@@ -244,6 +258,7 @@ export const mergeChartJSOptions = (customOptions: any = {}) => {
 // CSS variables for chart styling (if needed)
 export const CHART_CSS_VARS = {
   '--chart-line': CHART_COLORS.line,
+  '--chart-line-85': `${CHART_COLORS.line}D9`, // 85% opacity for bars
   '--chart-point': CHART_COLORS.point,
   '--chart-point-glow': CHART_COLORS.pointGlow,
   '--chart-grid': CHART_COLORS.grid,
