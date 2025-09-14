@@ -41,9 +41,19 @@ export const getChartJSTheme = () => ({
         font: {
           size: 11, // Slightly smaller for mobile
         },
+        maxTicksLimit: 4, // Mobile: max 4 ticks (start, midpoints, end)
+        callback: function(value: any, index: number) {
+          // Short date format for mobile
+          const label = this.getLabelForValue(value);
+          if (typeof label === 'string' && label.includes('/')) {
+            const date = new Date(label);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          }
+          return label;
+        },
       },
       grid: {
-        color: `${CHART_COLORS.grid}99`, // 60% opacity
+        color: `${CHART_COLORS.grid}66`, // 40% opacity for mobile
         drawOnChartArea: true,
         drawTicks: true,
         lineWidth: 1,
@@ -54,6 +64,9 @@ export const getChartJSTheme = () => ({
       },
     },
     y: {
+      display: {
+        title: false, // Hide Y-axis title on mobile
+      },
       ticks: {
         color: CHART_COLORS.label,
         font: {
@@ -61,7 +74,7 @@ export const getChartJSTheme = () => ({
         },
       },
       grid: {
-        color: `${CHART_COLORS.grid}99`, // 60% opacity
+        color: `${CHART_COLORS.grid}66`, // 40% opacity for mobile
         drawOnChartArea: true,
         drawTicks: true,
         lineWidth: 1,
@@ -115,6 +128,7 @@ export const getChartJSTheme = () => ({
       pointHoverRadius: 6,
       pointHoverBorderWidth: 0,
       pointHoverBackgroundColor: CHART_COLORS.point,
+      pointHitRadius: 12, // Touch-friendly hit area (min 12px)
       fill: false,
       tension: 0.3,
     },
@@ -129,6 +143,7 @@ export const getChartJSTheme = () => ({
       pointHoverRadius: 6,
       pointHoverBorderWidth: 0,
       pointHoverBackgroundColor: CHART_COLORS.point,
+      pointHitRadius: 12, // Touch-friendly hit area (min 12px)
       fill: true,
       tension: 0.3,
     },
@@ -139,7 +154,7 @@ export const getChartJSTheme = () => ({
 export const getRechartsTheme = () => ({
   // Grid and axis colors
   cartesianGrid: {
-    stroke: `${CHART_COLORS.grid}99`, // 60% opacity
+    stroke: `${CHART_COLORS.grid}66`, // 40% opacity for mobile
     strokeDasharray: '3 3',
     strokeWidth: 1,
   },

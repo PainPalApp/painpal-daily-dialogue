@@ -67,6 +67,7 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
         pointHoverRadius: 6,
         pointHoverBorderWidth: 0,
         pointHoverBackgroundColor: CHART_COLORS.point,
+        pointHitRadius: 12, // Touch-friendly hit area
         tension: 0.3,
         borderWidth: 2,
       },
@@ -110,7 +111,7 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
   });
 
   return (
-    <div className="h-16 sm:h-20 w-full bg-transparent">
+    <div className="h-[72px] sm:h-20 w-full bg-transparent">
       <Line data={data} options={options} />
     </div>
   );

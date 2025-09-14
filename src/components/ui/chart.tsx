@@ -51,13 +51,13 @@ const ChartContainer = React.forwardRef<
         data-chart={chartId}
         ref={ref}
         className={cn(
-          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-[--chart-text-secondary] [&_.recharts-cartesian-grid_line]:stroke-[--chart-border] [&_.recharts-curve.recharts-tooltip-cursor]:stroke-[--chart-border] [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_line]:stroke-[--chart-border] [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_line]:stroke-[--chart-border] [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none sm:h-20 h-16",
+          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-[--chart-text-secondary] [&_.recharts-cartesian-grid_line]:stroke-[--chart-border] [&_.recharts-curve.recharts-tooltip-cursor]:stroke-[--chart-border] [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_line]:stroke-[--chart-border] [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_line]:stroke-[--chart-border] [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none sm:h-20 h-[72px]",
           className
         )}
         style={{
           '--chart-line': CHART_COLORS.line,
           '--chart-point': CHART_COLORS.point,
-          '--chart-grid': `${CHART_COLORS.grid}99`, // 60% opacity
+          '--chart-grid': `${CHART_COLORS.grid}66`, // 40% opacity for mobile
           '--chart-axis': CHART_COLORS.axis,
           '--chart-label': CHART_COLORS.label,
           '--chart-background': CHART_COLORS.background,
