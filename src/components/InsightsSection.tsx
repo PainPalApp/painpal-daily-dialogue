@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X, BarChart3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PainChart } from '@/components/PainChart';
 import { DateRangePicker } from '@/components/DateRangePicker';
+import { ChartCard, StatBadge, ChipPill, DayGroupCard, EntryRow, EmptyState } from '@/components/lila';
 import { usePainLogs } from '@/hooks/usePainLogs';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from 'react-day-picker';
@@ -310,23 +309,21 @@ export const InsightsSection = () => {
             </div>
           </div>
           
-          <Card className="insights-card">
-            <CardContent style={{ padding: 'clamp(12px, 2vw, 20px)' }} className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-section mb-2">No Entries in Selected Range</h3>
-                <p className="text-body text-muted-foreground mb-6">Try adjusting your date range to see insights.</p>
-                <div className="flex gap-2 justify-center overflow-x-auto scrollbar-hide lg:justify-center lg:overflow-visible" style={{ WebkitOverflowScrolling: 'touch' }}>
-                  <Button onClick={handleUseLast7Days} variant="outline" className="min-h-[44px] min-w-[44px] whitespace-nowrap flex-shrink-0">
-                    Use Last 7 days
-                  </Button>
-                  <Button onClick={handleJumpToToday} variant="outline" className="min-h-[44px] min-w-[44px] whitespace-nowrap flex-shrink-0">
-                    Jump to Today
-                  </Button>
-                </div>
+          <EmptyState 
+            icon={<FileText className="h-12 w-12 text-muted-foreground" />}
+            title="No Entries in Selected Range"
+            description="Try adjusting your date range to see insights."
+            actions={
+              <div className="flex gap-2 justify-center overflow-x-auto scrollbar-hide lg:justify-center lg:overflow-visible" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <Button onClick={handleUseLast7Days} variant="outline" className="min-h-[44px] min-w-[44px] whitespace-nowrap flex-shrink-0">
+                  Use Last 7 days
+                </Button>
+                <Button onClick={handleJumpToToday} variant="outline" className="min-h-[44px] min-w-[44px] whitespace-nowrap flex-shrink-0">
+                  Jump to Today
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+            }
+          />
         </div>
       </div>
     );
@@ -355,20 +352,19 @@ export const InsightsSection = () => {
         </div>
         
         {/* Pain Chart */}
-        <Card className="insights-card mb-6">
-          <CardHeader style={{ padding: 'clamp(12px, 2vw, 20px) clamp(12px, 2vw, 20px) 0' }}>
-            <CardTitle className="text-section">Pain Levels Over Time</CardTitle>
-          </CardHeader>
-          <CardContent style={{ padding: '0 clamp(12px, 2vw, 20px) clamp(12px, 2vw, 20px)' }}>
-            <div className="h-20 sm:h-48 md:h-64">
-              <PainChart 
-                painData={filteredPainData}
-                viewMode="custom"
-                isCompact={false}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <ChartCard 
+          title="Pain Levels Over Time"
+          heightSm={80}
+          heightMd={120}
+          heightLg={160}
+          className="mb-6"
+        >
+          <PainChart 
+            painData={filteredPainData}
+            viewMode="custom"
+            isCompact={false}
+          />
+        </ChartCard>
         
         <div className="space-y-6">
           {sortedDates.map((date) => {
@@ -379,114 +375,82 @@ export const InsightsSection = () => {
               entries.filter(e => e.painLevel !== null).length;
 
             return (
-              <Card key={date} className="insights-card">
-                <CardHeader style={{ padding: 'clamp(12px, 2vw, 20px) clamp(12px, 2vw, 20px) 0' }}>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-section flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      {formatDate(date)}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="badge-responsive">
-                        {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
-                      </Badge>
-                      {!isNaN(avgPain) && (
-                        <Badge 
-                          variant="outline" 
-                          className={`text-white text-[12px] ${getPainLevelColor(Math.round(avgPain))}`}
-                        >
-                          Avg: {avgPain.toFixed(1)}/10
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent style={{ padding: '0 clamp(12px, 2vw, 20px) clamp(12px, 2vw, 20px)' }}>
-                  <div className="space-y-4">
-                    {entries
-                      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-                      .map((entry, index) => (
-                        <div key={entry.id}>
-                          {index > 0 && <Separator className="my-4" />}
-                          <div className="grid gap-3 min-h-[56px] md:min-h-auto">
-                            {/* Mobile-First Layout: Time + Pain + Edit on first row */}
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex flex-wrap items-center gap-2 flex-1">
-                                <span className="text-caption font-medium text-muted-foreground">
-                                  {formatTime(entry.timestamp)}
-                                </span>
-                                {entry.painLevel !== null && (
-                                  <Badge 
-                                    variant="outline"
-                                    className={`text-white text-[12px] ${getPainLevelColor(entry.painLevel)}`}
-                                  >
-                                    Pain: {entry.painLevel}/10
-                                  </Badge>
-                                )}
+              <DayGroupCard
+                key={date}
+                dateLabel={formatDate(date)}
+                entryCount={entries.length}
+                avgLabel={
+                  !isNaN(avgPain) ? `Avg: ${avgPain.toFixed(1)}/10` : undefined
+                }
+              >
+                <div className="space-y-0">
+                  {entries
+                    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+                    .map((entry) => (
+                      <EntryRow
+                        key={entry.id}
+                        time={formatTime(entry.timestamp)}
+                        painChip={
+                          entry.painLevel !== null ? (
+                            <StatBadge 
+                              size="sm" 
+                              color={entry.painLevel <= 3 ? 'good' : entry.painLevel <= 6 ? 'warn' : 'bad'}
+                            >
+                              Pain: {entry.painLevel}/10
+                            </StatBadge>
+                          ) : undefined
+                        }
+                        meta={
+                          <div className="space-y-1">
+                            {/* Location tags */}
+                            {entry.location && entry.location.length > 0 && (
+                              <div className="flex items-center gap-1 flex-wrap">
+                                <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                {entry.location.map((loc, i) => (
+                                  <ChipPill key={i} color="neutral">
+                                    {loc}
+                                  </ChipPill>
+                                ))}
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditEntry(entry)}
-                                className="h-11 w-11 p-0 min-h-[44px] min-w-[44px] flex-shrink-0"
-                              >
-                                <Edit className="h-5 w-5" />
-                              </Button>
-                            </div>
+                            )}
                             
-                            {/* Secondary content: Location, Triggers, Meds */}
-                            <div className="space-y-2 md:space-y-1">
-                              {entry.location && entry.location.length > 0 && (
-                                <div className="flex items-center gap-2">
-                                  <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                  <div className="flex flex-wrap gap-1">
-                                    {entry.location.map((loc, i) => (
-                                    <Badge key={i} variant="secondary" className="text-[12px]">
-                                      {loc}
-                                    </Badge>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {entry.triggers && entry.triggers.length > 0 && (
-                                <div className="flex items-center gap-2">
-                                  <AlertTriangle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                  <div className="flex flex-wrap gap-1">
-                                    {entry.triggers.map((trigger, i) => (
-                                    <Badge key={i} variant="outline" className="text-[12px]">
-                                      {trigger}
-                                    </Badge>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {entry.medications && entry.medications.length > 0 && (
-                                <div className="flex items-center gap-2">
-                                  <Pill className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                  <div className="flex flex-wrap gap-1">
-                                    {entry.medications.map((med, i) => (
-                                    <Badge key={i} variant="secondary" className="text-[12px]">
-                                      {typeof med === 'string' ? med : med.name || 'Medication'}
-                                    </Badge>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {entry.notes && (
-                                <div className="bg-muted/50 rounded-lg p-3">
-                                  <p className="text-caption text-foreground">{entry.notes}</p>
-                                </div>
-                              )}
-                            </div>
+                            {/* Trigger tags */}
+                            {entry.triggers && entry.triggers.length > 0 && (
+                              <div className="flex items-center gap-1 flex-wrap">
+                                <AlertTriangle className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                {entry.triggers.map((trigger, i) => (
+                                  <ChipPill key={i} color="warn">
+                                    {trigger}
+                                  </ChipPill>
+                                ))}
+                              </div>
+                            )}
+                            
+                            {/* Medication tags */}
+                            {entry.medications && entry.medications.length > 0 && (
+                              <div className="flex items-center gap-1 flex-wrap">
+                                <Pill className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                {entry.medications.map((med, i) => (
+                                  <ChipPill key={i} color="accent">
+                                    {typeof med === 'string' ? med : med.name || 'Medication'}
+                                  </ChipPill>
+                                ))}
+                              </div>
+                            )}
+                            
+                            {/* Notes */}
+                            {entry.notes && (
+                              <div className="bg-muted/50 rounded-lg p-2 mt-2">
+                                <p className="text-caption text-foreground">{entry.notes}</p>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
+                        }
+                        onEdit={() => handleEditEntry(entry)}
+                      />
+                    ))}
+                </div>
+              </DayGroupCard>
             );
           })}
         </div>
