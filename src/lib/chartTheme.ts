@@ -2,13 +2,14 @@
 // Design tokens based on app theme
 
 export const CHART_COLORS = {
-  // Chart-specific tokens from design system
-  line: '#8B5CF6',           // chart.line - mid purple
-  point: '#A78BFA',          // chart.point - accent
-  grid: '#232445',           // chart.grid - border at 60% opacity when used
-  axis: '#232445',           // chart.axis - border
-  label: '#BDB8E6',          // chart.label - text secondary
-  background: 'transparent', // chart.background
+  // Chart tokens as specified
+  line: '#8B5CF6',           // Primary line color
+  point: '#A78BFA',          // Point color - solid
+  axis: '#232445',           // Axis lines
+  grid: '#232445',           // Grid base color
+  gridOpacity: 'rgba(35, 36, 69, 0.6)', // Grid at 60% opacity
+  label: '#BDB8E6',          // Text labels
+  background: 'transparent',
   
   // Legacy colors for compatibility
   border: '#232445',
@@ -18,7 +19,7 @@ export const CHART_COLORS = {
   surface: '#17182B',
   
   // Derived colors
-  gridLines: '#232445',
+  gridLines: 'rgba(35, 36, 69, 0.6)', // Grid at 60% opacity
   accentFaded: 'rgba(139, 92, 246, 0.12)', // Using chart.line at 12% opacity
   accentMedium: 'rgba(139, 92, 246, 0.6)', // Using chart.line at 60% opacity
   pointGlow: 'rgba(167, 139, 250, 0.4)', // Using chart.point at 40% opacity for glow
@@ -53,7 +54,7 @@ export const getChartJSTheme = () => ({
         },
       },
       grid: {
-        color: `${CHART_COLORS.grid}66`, // 40% opacity for mobile
+        color: CHART_COLORS.gridOpacity, // 60% opacity
         drawOnChartArea: true,
         drawTicks: true,
         lineWidth: 1,
@@ -64,8 +65,9 @@ export const getChartJSTheme = () => ({
       },
     },
     y: {
-      display: {
-        title: false, // Hide Y-axis title on mobile
+      display: true,
+      title: {
+        display: false, // Hide Y-axis title on mobile
       },
       ticks: {
         color: CHART_COLORS.label,
@@ -74,7 +76,7 @@ export const getChartJSTheme = () => ({
         },
       },
       grid: {
-        color: `${CHART_COLORS.grid}66`, // 40% opacity for mobile
+        color: CHART_COLORS.gridOpacity, // 60% opacity
         drawOnChartArea: true,
         drawTicks: true,
         lineWidth: 1,
@@ -122,15 +124,18 @@ export const getChartJSTheme = () => ({
       backgroundColor: CHART_COLORS.background,
       borderWidth: 2,
       pointBackgroundColor: CHART_COLORS.point,
-      pointBorderColor: 'transparent',
+      pointBorderColor: 'transparent', // Solid points
       pointBorderWidth: 0,
       pointRadius: 4,
-      pointHoverRadius: 6,
+      pointHoverRadius: 6, // Increased radius on hover
       pointHoverBorderWidth: 0,
       pointHoverBackgroundColor: CHART_COLORS.point,
       pointHitRadius: 12, // Touch-friendly hit area (min 12px)
       fill: false,
       tension: 0.3,
+      // Add glow effect on hover via CSS class
+      pointHoverShadowColor: CHART_COLORS.pointGlow,
+      pointHoverShadowBlur: 8,
     },
     area: {
       borderColor: CHART_COLORS.line,
@@ -166,7 +171,7 @@ export const getChartJSTheme = () => ({
 export const getRechartsTheme = () => ({
   // Grid and axis colors
   cartesianGrid: {
-    stroke: `${CHART_COLORS.grid}66`, // 40% opacity for mobile
+    stroke: CHART_COLORS.gridOpacity, // 60% opacity
     strokeDasharray: '3 3',
     strokeWidth: 1,
   },
