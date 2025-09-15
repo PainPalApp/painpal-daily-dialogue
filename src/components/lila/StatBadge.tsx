@@ -10,7 +10,7 @@ const statBadgeVariants = cva(
         sm: "h-5 px-2 text-[11px]",
         md: "h-6 px-2.5 text-xs",
       },
-      variant: {
+      colorScheme: {
         neutral: "bg-muted text-muted-foreground",
         good: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
         warn: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400", 
@@ -20,7 +20,7 @@ const statBadgeVariants = cva(
     },
     defaultVariants: {
       size: "md",
-      variant: "neutral",
+      colorScheme: "neutral",
     },
   }
 )
@@ -30,10 +30,10 @@ export interface StatBadgeProps
     VariantProps<typeof statBadgeVariants> {}
 
 const StatBadge = React.forwardRef<HTMLSpanElement, StatBadgeProps>(
-  ({ className, size, variant, ...props }, ref) => {
+  ({ className, size, colorScheme, ...props }, ref) => {
     return (
       <span
-        className={cn(statBadgeVariants({ size, variant }), className)}
+        className={cn(statBadgeVariants({ size, colorScheme }), className)}
         ref={ref}
         {...props}
       />

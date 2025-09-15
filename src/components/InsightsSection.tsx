@@ -394,7 +394,7 @@ export const InsightsSection = () => {
                           entry.painLevel !== null ? (
                             <StatBadge 
                               size="sm" 
-                              color={entry.painLevel <= 3 ? 'good' : entry.painLevel <= 6 ? 'warn' : 'bad'}
+                              colorScheme={entry.painLevel <= 3 ? 'good' : entry.painLevel <= 6 ? 'warn' : 'bad'}
                             >
                               Pain: {entry.painLevel}/10
                             </StatBadge>
@@ -407,7 +407,7 @@ export const InsightsSection = () => {
                               <div className="flex items-center gap-1 flex-wrap">
                                 <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                 {entry.location.map((loc, i) => (
-                                  <ChipPill key={i} color="neutral">
+                                  <ChipPill key={i} colorScheme="neutral">
                                     {loc}
                                   </ChipPill>
                                 ))}
@@ -419,7 +419,7 @@ export const InsightsSection = () => {
                               <div className="flex items-center gap-1 flex-wrap">
                                 <AlertTriangle className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                 {entry.triggers.map((trigger, i) => (
-                                  <ChipPill key={i} color="warn">
+                                  <ChipPill key={i} colorScheme="warn">
                                     {trigger}
                                   </ChipPill>
                                 ))}
@@ -431,7 +431,7 @@ export const InsightsSection = () => {
                               <div className="flex items-center gap-1 flex-wrap">
                                 <Pill className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                 {entry.medications.map((med, i) => (
-                                  <ChipPill key={i} color="accent">
+                                  <ChipPill key={i} colorScheme="accent">
                                     {typeof med === 'string' ? med : med.name || 'Medication'}
                                   </ChipPill>
                                 ))}

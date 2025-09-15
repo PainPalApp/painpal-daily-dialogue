@@ -24,12 +24,12 @@ const DayGroupCard = React.forwardRef<HTMLDivElement, DayGroupCardProps>(
             </div>
             
             <div className="flex items-center gap-2 flex-shrink-0">
-              <StatBadge size="sm" variant="neutral">
+              <StatBadge size="sm" colorScheme="neutral">
                 {entryCount} {entryCount === 1 ? 'entry' : 'entries'}
               </StatBadge>
               
               {avgLabel && (
-                <StatBadge size="sm" variant="accent">
+                <StatBadge size="sm" colorScheme="accent">
                   {avgLabel}
                 </StatBadge>
               )}
