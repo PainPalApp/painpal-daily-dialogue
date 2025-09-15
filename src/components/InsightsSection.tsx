@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -9,7 +8,7 @@ import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X, BarChar
 import { useToast } from '@/hooks/use-toast';
 import { PainChart } from '@/components/PainChart';
 import { DateRangePicker } from '@/components/DateRangePicker';
-import { ChartCard, StatBadge, ChipPill, DayGroupCard, EntryRow, EmptyState } from '@/components/lila';
+import { ChartCard, StatBadge, ChipPill, DayGroupCard, EntryRow, EmptyState, DrawerSheet } from '@/components/lila';
 import { usePainLogs } from '@/hooks/usePainLogs';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from 'react-day-picker';
@@ -457,143 +456,142 @@ export const InsightsSection = () => {
         </div>
       </div>
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Pain Entry</DialogTitle>
-          </DialogHeader>
-          
-          {editingEntry && (
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="painLevel">Pain Level (0-10)</Label>
+      {/* Edit Drawer */}
+      <DrawerSheet
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        title="Edit Pain Entry"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEntry}>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
+          </div>
+        }
+      >
+        {editingEntry && (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="painLevel">Pain Level (0-10)</Label>
+              <Input
+                id="painLevel"
+                type="number"
+                min="0"
+                max="10"
+                value={editingEntry.painLevel || ''}
+                onChange={(e) => handleEditInputChange('painLevel', e.target.value ? parseInt(e.target.value) : null)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={editingEntry.notes}
+                onChange={(e) => handleEditInputChange('notes', e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label>Pain Locations</Label>
+              <div className="flex flex-wrap gap-1 mb-2">
+                {editingEntry.location.map((loc, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {loc}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-4 w-4 p-0 ml-1"
+                      onClick={() => handleRemoveArrayItem('location', index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
                 <Input
-                  id="painLevel"
-                  type="number"
-                  min="0"
-                  max="10"
-                  value={editingEntry.painLevel || ''}
-                  onChange={(e) => handleEditInputChange('painLevel', e.target.value ? parseInt(e.target.value) : null)}
+                  placeholder="Add location..."
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddArrayItem('location', e.currentTarget.value);
+                      e.currentTarget.value = '';
+                    }
+                  }}
                 />
-              </div>
-
-              <div>
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={editingEntry.notes}
-                  onChange={(e) => handleEditInputChange('notes', e.target.value)}
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label>Pain Locations</Label>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {editingEntry.location.map((loc, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {loc}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 ml-1"
-                        onClick={() => handleRemoveArrayItem('location', index)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add location..."
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleAddArrayItem('location', e.currentTarget.value);
-                        e.currentTarget.value = '';
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>Triggers</Label>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {editingEntry.triggers.map((trigger, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {trigger}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 ml-1"
-                        onClick={() => handleRemoveArrayItem('triggers', index)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add trigger..."
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleAddArrayItem('triggers', e.currentTarget.value);
-                        e.currentTarget.value = '';
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>Symptoms</Label>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {editingEntry.symptoms.map((symptom, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {symptom}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 ml-1"
-                        onClick={() => handleRemoveArrayItem('symptoms', index)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add symptom..."
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleAddArrayItem('symptoms', e.currentTarget.value);
-                        e.currentTarget.value = '';
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveEntry}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </Button>
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+
+            <div>
+              <Label>Triggers</Label>
+              <div className="flex flex-wrap gap-1 mb-2">
+                {editingEntry.triggers.map((trigger, index) => (
+                  <Badge key={index} variant="outline" className="text-xs">
+                    {trigger}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-4 w-4 p-0 ml-1"
+                      onClick={() => handleRemoveArrayItem('triggers', index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add trigger..."
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddArrayItem('triggers', e.currentTarget.value);
+                      e.currentTarget.value = '';
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Symptoms</Label>
+              <div className="flex flex-wrap gap-1 mb-2">
+                {editingEntry.symptoms.map((symptom, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {symptom}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-4 w-4 p-0 ml-1"
+                      onClick={() => handleRemoveArrayItem('symptoms', index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add symptom..."
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddArrayItem('symptoms', e.currentTarget.value);
+                      e.currentTarget.value = '';
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </DrawerSheet>
     </div>
   );
 };
