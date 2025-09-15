@@ -354,6 +354,7 @@ export const InsightsSection = () => {
         {/* Pain Chart */}
         <ChartCard 
           title="Pain Levels Over Time"
+          chartType="line"
           heightSm={80}
           heightMd={120}
           heightLg={160}

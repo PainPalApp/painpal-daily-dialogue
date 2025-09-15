@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChartContainer } from "@/components/ui/chart"
 import { SectionHeader, type SectionHeaderProps } from "./SectionHeader"
+import { useChartTheme } from "@/hooks/useChartTheme"
 
 export interface ChartCardProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string
@@ -13,6 +14,7 @@ export interface ChartCardProps extends React.HTMLAttributes<HTMLDivElement> {
   heightLg?: number
   children: React.ReactElement
   config?: Record<string, any>
+  chartType?: 'line' | 'bar' | 'area' | 'sparkline'
 }
 
 const ChartCard = React.forwardRef<HTMLDivElement, ChartCardProps>(
@@ -26,13 +28,24 @@ const ChartCard = React.forwardRef<HTMLDivElement, ChartCardProps>(
     heightLg = 160,
     children,
     config = {},
+    chartType = 'line',
     ...props 
   }, ref) => {
+    // Use centralized chart theming
+    const { mobileHeights } = useChartTheme({ type: chartType })
+    
     const heightClasses = cn(
       `h-[${heightSm}px]`,
       `md:h-[${heightMd}px]`,
       `lg:h-[${heightLg}px]`
     )
+
+    // Clone child and inject chart theme if it's a Chart.js component
+    const childWithTheme = React.cloneElement(children, {
+      ...children.props,
+      // Pass chart type for theme customization
+      chartType,
+    })
 
     return (
       <Card ref={ref} className={cn("insights-card", className)} {...props}>
@@ -47,7 +60,7 @@ const ChartCard = React.forwardRef<HTMLDivElement, ChartCardProps>(
             config={config}
             className={cn("w-full", heightClasses)}
           >
-            {children}
+            {childWithTheme}
           </ChartContainer>
         </CardContent>
       </Card>

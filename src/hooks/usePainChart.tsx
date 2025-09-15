@@ -14,7 +14,7 @@ import {
   Filler
 } from 'chart.js';
 import 'chartjs-adapter-date-fns';
-import { CHART_COLORS, mergeChartJSOptions } from '@/lib/chartTheme';
+import { useChartTheme } from '@/hooks/useChartTheme';
 
 // Register all Chart.js components including LineController
 ChartJS.register(
@@ -48,157 +48,178 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
   const chartRef = useRef<ChartJS | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isChartReady, setIsChartReady] = useState(false);
+  
+  // Use centralized chart theming based on view mode
+  const { chartJsOptions, chartJsColors } = useChartTheme({ 
+    type: viewMode === 'today' ? 'sparkline' : 'line',
+    hideYAxisTitle: true,
+    maxXTicks: viewMode === 'today' ? 6 : 4,
+  });
+  
   const mutationObserverRef = useRef<MutationObserver | null>(null);
   const isInitializedRef = useRef(false);
 
-  const getTodayData = (data: PainEntry[]) => {
+  // Helper functions for data processing
+  const getTodayData = useCallback((entries: PainEntry[]) => {
     const today = new Date().toISOString().split('T')[0];
-    return data.filter(entry => 
-      entry.date === today && 
-      entry.painLevel !== null && 
-      entry.painLevel !== undefined &&
-      entry.painLevel > 0
-    ).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-  };
+    return entries.filter(entry => entry.date === today);
+  }, []);
 
-  const getWeekData = (data: PainEntry[]) => {
-    const chartData = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      
-      const dayData = data.find(entry => entry.date === dateStr);
-      chartData.push({
-        label: `${date.getMonth() + 1}/${date.getDate()}`,
-        pain: dayData?.painLevel || null
-      });
-    }
-    return chartData;
-  };
-
-  const getMonthData = (data: PainEntry[]) => {
-    const chartData = [];
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      
-      const dayData = data.find(entry => entry.date === dateStr);
-      chartData.push({
-        label: `${date.getMonth() + 1}/${date.getDate()}`,
-        pain: dayData?.painLevel || null
-      });
-    }
-    return chartData;
-  };
-
-  const getCustomData = (data: PainEntry[]) => {
-    // Group entries by date and calculate daily averages
-    const dateGroups: Record<string, PainEntry[]> = {};
-    
-    data.forEach(entry => {
-      if (entry.painLevel !== null && entry.painLevel !== undefined) {
-        if (!dateGroups[entry.date]) {
-          dateGroups[entry.date] = [];
-        }
-        dateGroups[entry.date].push(entry);
-      }
+  const getWeekData = useCallback((entries: PainEntry[]) => {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return entries.filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= weekAgo;
     });
-    
-    // Calculate daily averages and sort by date
-    const dailyAverages = Object.keys(dateGroups)
-      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-      .map(date => {
-        const entries = dateGroups[date];
-        const avgPain = entries.reduce((sum, entry) => sum + (entry.painLevel || 0), 0) / entries.length;
-        return {
-          date,
-          avgPain: Math.round(avgPain * 10) / 10, // Round to 1 decimal place
-          entryCount: entries.length
-        };
-      });
-    
-    return dailyAverages;
-  };
+  }, []);
 
-  // Memoize processed data to prevent unnecessary recalculations
+  const getMonthData = useCallback((entries: PainEntry[]) => {
+    const monthAgo = new Date();
+    monthAgo.setMonth(monthAgo.getMonth() - 1);
+    return entries.filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= monthAgo;
+    });
+  }, []);
+
+  const getCustomData = useCallback((entries: PainEntry[]) => {
+    return entries; // For custom range, assume data is already filtered
+  }, []);
+
+  // Process data based on view mode with memoization for performance
   const processedData = useMemo(() => {
+    let filteredEntries: PainEntry[];
+    
     switch (viewMode) {
       case 'today':
-        return getTodayData(painData);
+        filteredEntries = getTodayData(painData);
+        break;
       case 'week':
-        return getWeekData(painData);
+        filteredEntries = getWeekData(painData);
+        break;
       case 'month':
-        return getMonthData(painData);
+        filteredEntries = getMonthData(painData);
+        break;
       case 'custom':
-        return getCustomData(painData);
+        filteredEntries = getCustomData(painData);
+        break;
       default:
-        return [];
+        filteredEntries = painData;
     }
-  }, [painData, viewMode]);
+
+    // Sort by timestamp and filter out null pain levels
+    const validEntries = filteredEntries
+      .filter(entry => entry.painLevel !== null)
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+    if (viewMode === 'today') {
+      // For today view, show hourly timeline
+      return validEntries.map(entry => ({
+        x: new Date(entry.timestamp),
+        y: entry.painLevel,
+        label: new Date(entry.timestamp).toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit' 
+        }),
+        notes: entry.notes || ''
+      }));
+    } else if (viewMode === 'week') {
+      // For week view, group by day and average
+      const dailyData = validEntries.reduce((acc, entry) => {
+        const dateKey = entry.date;
+        if (!acc[dateKey]) {
+          acc[dateKey] = { sum: 0, count: 0, date: entry.date };
+        }
+        acc[dateKey].sum += entry.painLevel || 0;
+        acc[dateKey].count += 1;
+        return acc;
+      }, {} as Record<string, { sum: number; count: number; date: string }>);
+
+      return Object.values(dailyData).map(data => ({
+        date: data.date,
+        pain: data.sum / data.count,
+        label: new Date(data.date).toLocaleDateString('en-US', { 
+          weekday: 'short', 
+          month: 'short', 
+          day: 'numeric' 
+        })
+      }));
+    } else if (viewMode === 'month') {
+      // For month view, group by day and average
+      const dailyData = validEntries.reduce((acc, entry) => {
+        const dateKey = entry.date;
+        if (!acc[dateKey]) {
+          acc[dateKey] = { sum: 0, count: 0, date: entry.date };
+        }
+        acc[dateKey].sum += entry.painLevel || 0;
+        acc[dateKey].count += 1;
+        return acc;
+      }, {} as Record<string, { sum: number; count: number; date: string }>);
+
+      return Object.values(dailyData).map(data => ({
+        date: data.date,
+        pain: data.sum / data.count,
+        label: new Date(data.date).toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric' 
+        })
+      }));
+    } else {
+      // Custom view - group by day and calculate daily averages
+      const dailyData = validEntries.reduce((acc, entry) => {
+        const dateKey = entry.date;
+        if (!acc[dateKey]) {
+          acc[dateKey] = [];
+        }
+        acc[dateKey].push(entry.painLevel || 0);
+        return acc;
+      }, {} as Record<string, number[]>);
+
+      return Object.entries(dailyData)
+        .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+        .map(([date, levels]) => ({
+          date,
+          avgPain: levels.reduce((sum, level) => sum + level, 0) / levels.length,
+          maxPain: Math.max(...levels),
+          minPain: Math.min(...levels),
+          count: levels.length
+        }));
+    }
+  }, [painData, viewMode, getTodayData, getWeekData, getMonthData, getCustomData]);
 
   const createChart = useCallback(() => {
-    if (!canvasRef.current || !painData || !canvasRef.current.isConnected) return;
-
-    // Prevent multiple initializations
-    if (isInitializedRef.current && chartRef.current) {
+    if (!canvasRef.current || isInitializedRef.current) {
       return;
     }
 
-    // Clean up existing chart
-    if (chartRef.current) {
-      try {
+    try {
+      // Destroy existing chart if it exists
+      if (chartRef.current) {
         chartRef.current.destroy();
-      } catch (e) {
-        console.warn('Chart cleanup failed:', e);
-      }
-      chartRef.current = null;
-    }
-
-    // Clean up existing MutationObserver
-    if (mutationObserverRef.current) {
-      try {
-        mutationObserverRef.current.disconnect();
-      } catch (e) {
-        console.warn('MutationObserver cleanup failed:', e);
-      }
-      mutationObserverRef.current = null;
-    }
-
-    const ctx = canvasRef.current.getContext('2d');
-    if (!ctx) return;
-
-    setIsChartReady(false);
-
-    if (viewMode === 'today') {
-      const todayData = processedData as PainEntry[];
-      
-      if (todayData.length === 0) {
-        setIsChartReady(true);
-        isInitializedRef.current = true;
-        return;
+        chartRef.current = null;
       }
 
-      const timelineData = todayData.map(entry => ({
-        x: new Date(entry.timestamp).getTime(),
-        y: entry.painLevel,
-        location: entry.location?.join(', ') || 'general',
-        notes: entry.notes || ''
-      }));
+      const ctx = canvasRef.current.getContext('2d');
+      if (!ctx) return;
 
-      chartRef.current = new ChartJS(ctx, {
-        type: 'line',
-        data: {
+      let chartData: any;
+      let customOptions: any;
+
+      if (viewMode === 'today') {
+        // Today view: Timeline chart
+        const timelineData = processedData as any[];
+        
+        chartData = {
           datasets: [{
             label: 'Pain Level',
             data: timelineData,
-            borderColor: CHART_COLORS.line,
+            borderColor: chartJsColors.line,
             backgroundColor: 'transparent',
             borderWidth: 2,
             pointRadius: 4,
             pointHoverRadius: 6,
-            pointBackgroundColor: CHART_COLORS.point,
+            pointBackgroundColor: chartJsColors.point,
             pointBorderColor: 'transparent',
             pointBorderWidth: 0,
             pointHoverBorderWidth: 0,
@@ -207,74 +228,40 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
             tension: 0.3,
             cubicInterpolationMode: 'monotone' as const
           }]
-        },
-        options: mergeChartJSOptions({
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                title: function(context: any) {
-                  const dataPoint = context[0].raw;
-                  const time = new Date(dataPoint.x).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  });
-                  return time;
-                },
-                label: function(context: any) {
-                  const dataPoint = context.raw;
-                  return [
-                    `Pain Level: ${dataPoint.y}/10`,
-                    `Location: ${dataPoint.location}`,
-                    `Notes: ${dataPoint.notes}`
-                  ];
-                }
-              }
-            }
-          },
+        };
+        
+        customOptions = {
+          ...chartJsOptions,
           scales: {
+            ...chartJsOptions.scales,
             x: {
+              ...chartJsOptions.scales.x,
               type: 'time',
               time: {
                 unit: 'hour',
-                displayFormats: { hour: 'HH:mm' }
-              },
-              title: {
-                display: true,
-                text: 'Time Today',
-              },
-            },
-            y: {
-              min: 0,
-              max: 10,
-              title: {
-                display: true,
-                text: 'Pain Level',
-              },
-              ticks: { 
-                stepSize: 1,
-              },
+                displayFormats: {
+                  hour: 'HH:mm'
+                }
+              }
             }
           }
-        })
-      });
-    } else if (viewMode === 'week') {
-      // Week view - simplified line chart
-      const weekData = processedData as any[];
-      
-      chartRef.current = new ChartJS(ctx, {
-        type: 'line',
-        data: {
+        };
+
+      } else if (viewMode === 'week') {
+        // Week view: Daily averages
+        const weekData = processedData as any[];
+        
+        chartData = {
           labels: weekData.map(d => d.label),
           datasets: [{
             label: 'Pain Level',
             data: weekData.map(d => d.pain),
-            borderColor: CHART_COLORS.line,
+            borderColor: chartJsColors.line,
             backgroundColor: 'transparent',
             borderWidth: 2,
             pointRadius: 4,
             pointHoverRadius: 6,
-            pointBackgroundColor: CHART_COLORS.point,
+            pointBackgroundColor: chartJsColors.point,
             pointBorderColor: 'transparent',
             pointBorderWidth: 0,
             pointHoverBorderWidth: 0,
@@ -283,50 +270,25 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
             tension: 0.3,
             spanGaps: true
           }]
-        },
-        options: mergeChartJSOptions({
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (context: any) => {
-                  return context.raw ? `Pain: ${context.raw}/10` : 'No pain recorded';
-                }
-              }
-            }
-          },
-          scales: {
-            y: {
-              min: 0,
-              max: 10,
-              ticks: { 
-                stepSize: 1,
-              },
-              title: {
-                display: true,
-                text: 'Pain Level',
-              }
-            },
-          }
-        })
-      });
-    } else if (viewMode === 'month') {
-      // Month view - similar to week but with more data points
-      const monthData = processedData as any[];
-      
-      chartRef.current = new ChartJS(ctx, {
-        type: 'line',
-        data: {
+        };
+        
+        customOptions = chartJsOptions;
+
+      } else if (viewMode === 'month') {
+        // Month view: Daily averages with smaller points
+        const monthData = processedData as any[];
+        
+        chartData = {
           labels: monthData.map(d => d.label),
           datasets: [{
             label: 'Pain Level',
             data: monthData.map(d => d.pain),
-            borderColor: CHART_COLORS.line,
+            borderColor: chartJsColors.line,
             backgroundColor: 'transparent',
             borderWidth: 2,
             pointRadius: 2,
             pointHoverRadius: 4,
-            pointBackgroundColor: CHART_COLORS.point,
+            pointBackgroundColor: chartJsColors.point,
             pointBorderColor: 'transparent',
             pointBorderWidth: 0,
             pointHoverBorderWidth: 0,
@@ -335,66 +297,32 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
             tension: 0.3,
             spanGaps: true
           }]
-        },
-        options: mergeChartJSOptions({
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (context: any) => {
-                  return context.raw ? `Pain: ${context.raw}/10` : 'No pain recorded';
-                }
-              }
-            }
-          },
-          scales: {
-            y: {
-              min: 0,
-              max: 10,
-              ticks: { 
-                stepSize: 1,
-              },
-              title: {
-                display: true,
-                text: 'Pain Level',
-              }
-            },
-            x: {
-              ticks: { 
-                maxTicksLimit: 10
-              }
-            }
-          }
-        })
-      });
-    } else if (viewMode === 'custom') {
-      // Custom date range view - daily averages with purple theme
-      const customData = processedData as any[];
-      
-      if (customData.length === 0) {
-        setIsChartReady(true);
-        isInitializedRef.current = true;
-        return;
-      }
-      
-      const labels = customData.map(d => {
-        const date = new Date(d.date);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      });
-      
-      chartRef.current = new ChartJS(ctx, {
-        type: 'line',
-        data: {
+        };
+        
+        customOptions = chartJsOptions;
+
+      } else {
+        // Custom view: Daily averages
+        const customData = processedData as any[];
+        const labels = customData.map(d => {
+          const date = new Date(d.date);
+          return date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric' 
+          });
+        });
+        
+        chartData = {
           labels,
           datasets: [{
             label: 'Daily Average Pain',
             data: customData.map(d => d.avgPain),
-            borderColor: CHART_COLORS.line,
+            borderColor: chartJsColors.line,
             backgroundColor: 'transparent',
             borderWidth: 2,
             pointRadius: 4,
             pointHoverRadius: 6,
-            pointBackgroundColor: CHART_COLORS.point,
+            pointBackgroundColor: chartJsColors.point,
             pointBorderColor: 'transparent',
             pointBorderWidth: 0,
             pointHoverBorderWidth: 0,
@@ -403,158 +331,98 @@ export const usePainChart = (painData: PainEntry[], viewMode: 'today' | 'week' |
             tension: 0.3,
             spanGaps: false
           }]
-        },
-        options: mergeChartJSOptions({
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                title: (context: any) => {
-                  const index = context[0].dataIndex;
-                  const dataPoint = customData[index];
-                  return new Date(dataPoint.date).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  });
-                },
-                label: (context: any) => {
-                  const index = context.dataIndex;
-                  const dataPoint = customData[index];
-                  return [
-                    `Average Pain: ${dataPoint.avgPain}/10`,
-                    `${dataPoint.entryCount} ${dataPoint.entryCount === 1 ? 'entry' : 'entries'}`
-                  ];
-                }
-              }
-            }
-          },
-          scales: {
-            y: {
-              min: 0,
-              max: 10,
-              ticks: { 
-                stepSize: 1,
-              },
-              title: {
-                display: true,
-                text: 'Daily Average Pain Level',
-              },
-            },
-            x: {
-              ticks: { 
-                maxTicksLimit: 15,
-                maxRotation: 45
-              },
-            }
-          }
-        })
-      });
-    }
-
-    // Set up MutationObserver to watch for DOM changes only once
-    if (canvasRef.current && !mutationObserverRef.current) {
-      try {
-        mutationObserverRef.current = new MutationObserver(() => {
-          // Only reconnect chart if it was disconnected
-          if (chartRef.current && !canvasRef.current?.isConnected) {
-            console.log('Canvas disconnected, will recreate on next update');
-          }
-        });
+        };
         
-        mutationObserverRef.current.observe(canvasRef.current.parentNode as Node, {
-          childList: true,
-          subtree: true
-        });
-      } catch (e) {
-        console.warn('Failed to set up MutationObserver:', e);
+        customOptions = chartJsOptions;
       }
-    }
 
-    setIsChartReady(true);
-    isInitializedRef.current = true;
-  }, [painData, viewMode, processedData]);
+      chartRef.current = new ChartJS(ctx, {
+        type: 'line',
+        data: chartData,
+        options: customOptions,
+      });
+
+      isInitializedRef.current = true;
+      setIsChartReady(true);
+
+    } catch (error) {
+      console.error('Error creating chart:', error);
+      setIsChartReady(false);
+    }
+  }, [processedData, viewMode, chartJsOptions, chartJsColors]);
 
   const updateChart = useCallback(() => {
-    if (!chartRef.current || !isChartReady) {
+    if (!chartRef.current || !isInitializedRef.current) {
       return;
     }
 
     try {
       if (viewMode === 'today') {
-        const todayData = getTodayData(painData);
-        if (todayData.length > 0) {
-          const timelineData = todayData.map(entry => ({
-            x: new Date(entry.timestamp).getTime(),
-            y: entry.painLevel,
-            location: entry.location?.join(', ') || 'general',
-            notes: entry.notes || ''
-          }));
-          chartRef.current.data.datasets[0].data = timelineData;
+        const timelineData = processedData as any[];
+        chartRef.current.data.datasets[0].data = timelineData;
+      } else {
+        const chartData = processedData as any[];
+        if (viewMode === 'week' || viewMode === 'month') {
+          chartRef.current.data.labels = chartData.map(d => d.label);
+          chartRef.current.data.datasets[0].data = chartData.map(d => d.pain);
+        } else {
+          // Custom view
+          chartRef.current.data.labels = chartData.map(d => {
+            const date = new Date(d.date);
+            return date.toLocaleDateString('en-US', { 
+              month: 'short', 
+              day: 'numeric' 
+            });
+          });
+          chartRef.current.data.datasets[0].data = chartData.map(d => d.avgPain);
         }
-      } else if (viewMode === 'week') {
-        const weekData = getWeekData(painData);
-        chartRef.current.data.labels = weekData.map(d => d.label);
-        chartRef.current.data.datasets[0].data = weekData.map(d => d.pain);
-      } else if (viewMode === 'month') {
-        const monthData = getMonthData(painData);
-        chartRef.current.data.labels = monthData.map(d => d.label);
-        chartRef.current.data.datasets[0].data = monthData.map(d => d.pain);
-      } else if (viewMode === 'custom') {
-        const customData = getCustomData(painData);
-        const labels = customData.map(d => {
-          const date = new Date(d.date);
-          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        });
-        chartRef.current.data.labels = labels;
-        chartRef.current.data.datasets[0].data = customData.map(d => d.avgPain);
       }
-      
-      chartRef.current.update('none');
-    } catch (error) {
-      console.warn('Chart update failed, recreating:', error);
-      createChart();
-    }
-  }, [painData, viewMode, isChartReady, getTodayData, getWeekData, getMonthData]);
 
-  useEffect(() => {
-    // Only create chart once, then update data
-    if (!isInitializedRef.current) {
-      createChart();
+      chartRef.current.update('none'); // No animation for smoother updates
+    } catch (error) {
+      console.error('Error updating chart:', error);
     }
-    
+  }, [processedData, viewMode]);
+
+  // Effect to create chart when view mode changes
+  useEffect(() => {
+    if (viewMode) {
+      // Reset initialization when view mode changes
+      isInitializedRef.current = false;
+      setIsChartReady(false);
+      
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        createChart();
+      }, 50);
+
+      return () => clearTimeout(timer);
+    }
+  }, [viewMode, createChart]);
+
+  // Effect to update chart when data changes (but not view mode)
+  useEffect(() => {
+    if (isInitializedRef.current && chartRef.current) {
+      updateChart();
+    }
+  }, [painData, updateChart]);
+
+  // Cleanup effect
+  useEffect(() => {
     return () => {
       if (chartRef.current) {
-        try {
-          chartRef.current.destroy();
-        } catch (e) {
-          console.warn('Chart cleanup failed:', e);
-        }
+        chartRef.current.destroy();
         chartRef.current = null;
       }
-      
       if (mutationObserverRef.current) {
-        try {
-          mutationObserverRef.current.disconnect();
-        } catch (e) {
-          console.warn('MutationObserver cleanup failed:', e);
-        }
-        mutationObserverRef.current = null;
+        mutationObserverRef.current.disconnect();
       }
-      
       isInitializedRef.current = false;
     };
-  }, [viewMode]); // Only recreate when viewMode changes
+  }, []);
 
-  // Update chart data when painData changes (without recreating the entire chart)
-  useEffect(() => {
-    if (chartRef.current && isChartReady && isInitializedRef.current) {
-      updateChart();
-    } else if (!isInitializedRef.current) {
-      createChart();
-    }
-  }, [painData, updateChart, isChartReady, createChart]);
-
-  return { canvasRef, isChartReady };
+  return {
+    canvasRef,
+    isChartReady,
+  };
 };

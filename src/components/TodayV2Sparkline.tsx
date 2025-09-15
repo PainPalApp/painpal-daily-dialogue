@@ -9,7 +9,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { CHART_COLORS, mergeChartJSOptions } from '@/lib/chartTheme';
+import { useChartTheme } from '@/hooks/useChartTheme';
 
 ChartJS.register(
   CategoryScale,
@@ -29,9 +29,41 @@ interface SparklineData {
 interface TodayV2SparklineProps {
   savedData: SparklineData[];
   previewPoints: { ts: Date; pain_level: number }[];
+  chartType?: 'line' | 'bar' | 'area' | 'sparkline'; // Injected by ChartCard
 }
 
-export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineProps) => {
+export const TodayV2Sparkline = ({ savedData, previewPoints, chartType }: TodayV2SparklineProps) => {
+  // Use centralized chart theming
+  const { chartJsOptions, chartJsColors, mobileHeights } = useChartTheme({ 
+    type: 'sparkline',
+    hideXAxis: true,
+    hideYAxisTitle: true,
+    customOptions: {
+      plugins: {
+        legend: { display: false },
+      },
+      scales: {
+        y: {
+          display: true,
+          min: 0,
+          max: 10,
+          position: 'left' as const,
+          ticks: {
+            stepSize: 5,
+            font: { size: 10 },
+          },
+          grid: { display: false },
+          border: { display: false },
+        },
+      },
+      elements: {
+        line: {
+          borderJoinStyle: 'round' as const,
+        },
+      },
+    }
+  });
+
   const formatTime = (dateStr: string | Date) => {
     const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
     return date.toLocaleTimeString('en-US', { 
@@ -57,16 +89,16 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
           ...savedData.map(d => d.pain_level),
           ...previewPoints.map(p => p.pain_level)
         ],
-        borderColor: CHART_COLORS.line,
-        backgroundColor: CHART_COLORS.background,
+        borderColor: chartJsColors.line,
+        backgroundColor: chartJsColors.background,
         fill: false,
-        pointBackgroundColor: CHART_COLORS.point,
+        pointBackgroundColor: chartJsColors.point,
         pointBorderColor: 'transparent',
         pointBorderWidth: 0,
-        pointRadius: 4,
-        pointHoverRadius: 6,
+        pointRadius: 3, // Sparkline-specific smaller radius
+        pointHoverRadius: 5,
         pointHoverBorderWidth: 0,
-        pointHoverBackgroundColor: CHART_COLORS.point,
+        pointHoverBackgroundColor: chartJsColors.point,
         pointHitRadius: 12, // Touch-friendly hit area
         tension: 0.3,
         borderWidth: 2,
@@ -74,45 +106,9 @@ export const TodayV2Sparkline = ({ savedData, previewPoints }: TodayV2SparklineP
     ],
   };
 
-  const options = mergeChartJSOptions({
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-    scales: {
-      x: {
-        display: false,
-      },
-      y: {
-        display: true,
-        min: 0,
-        max: 10,
-        position: 'left' as const,
-        ticks: {
-          stepSize: 5,
-          font: {
-            size: 10,
-          },
-        },
-        grid: {
-          display: false,
-        },
-        border: {
-          display: false,
-        },
-      },
-    },
-    elements: {
-      line: {
-        borderJoinStyle: 'round' as const,
-      },
-    },
-  });
-
   return (
-    <div className="h-[72px] sm:h-20 w-full bg-transparent">
-      <Line data={data} options={options} />
+    <div className={`w-full bg-transparent ${mobileHeights.sm}`}>
+      <Line data={data} options={chartJsOptions} />
     </div>
   );
 };
