@@ -11,7 +11,7 @@ export function Navigation() {
   const navigate = useNavigate();
 
   const navItems = [
-    { id: "today", label: "Track", href: "/" },
+    { id: "today", label: "Track", href: "/track" },
     { id: "insights", label: "Insights", href: "/insights" },
     { id: "records", label: "Records", href: "/records" },
     { id: "profile", label: "Profile", href: "/profile" },
@@ -22,7 +22,7 @@ export function Navigation() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center h-14">
           {/* Logo */}
-          <NavLink to="/" className="flex-shrink-0 flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <NavLink to="/track" className="flex-shrink-0 flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Activity 
               className="h-4 w-4" 
               style={{ color: '#A78BFA' }}
