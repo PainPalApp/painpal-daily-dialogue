@@ -8,7 +8,7 @@ import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X, BarChar
 import { useToast } from '@/hooks/use-toast';
 import { PainChart } from '@/components/PainChart';
 import { DateRangePicker } from '@/components/DateRangePicker';
-import { ChartCard, StatBadge, ChipPill, DayGroupCard, EntryRow, EmptyState, DrawerSheet } from '@/components/lila';
+import { ChartContainer, StatBadge, ChipPill, DayGroupCard, EntryRow, EmptyState, DrawerSheet } from '@/components/lila';
 import { usePainLogs } from '@/hooks/usePainLogs';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from 'react-day-picker';
@@ -351,20 +351,23 @@ export const InsightsSection = () => {
         </div>
         
         {/* Pain Chart */}
-        <ChartCard 
-          title="Pain Levels Over Time"
-          chartType="line"
-          heightSm={80}
-          heightMd={120}
-          heightLg={160}
-          className="mb-6"
-        >
-          <PainChart 
-            painData={filteredPainData}
-            viewMode="custom"
-            isCompact={false}
-          />
-        </ChartCard>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-medium text-foreground">Pain Levels Over Time</h2>
+          </div>
+          <ChartContainer 
+            minHeightSm={120}
+            minHeightMd={160}
+            minHeightLg={200}
+            className="bg-card border rounded-lg p-4"
+          >
+            <PainChart 
+              painData={filteredPainData}
+              viewMode="custom"
+              isCompact={false}
+            />
+          </ChartContainer>
+        </div>
         
         <div className="space-y-6">
           {sortedDates.map((date) => {

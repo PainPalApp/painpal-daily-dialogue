@@ -25,14 +25,14 @@ const PainChartComponent = ({ painData, viewMode, isCompact = false }: PainChart
 
   if (painData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-20 text-muted-foreground text-sm">
+      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
         No pain data to display
       </div>
     );
   }
 
   return (
-    <div className="relative h-[72px] sm:h-48 md:h-64">
+    <div className="relative w-full h-full">
       <canvas 
         ref={canvasRef}
         className="w-full h-full"
