@@ -126,11 +126,17 @@ export function useChartTheme(options: UseChartThemeOptions = {}): ChartThemeCon
           bodyFont: { size: 11 },
         },
         legend: {
-          labels: {
-            color: CHART_COLORS.label,
-            font: { size: 11 },
-          },
+          display: false,
         },
+      },
+      
+      layout: {
+        padding: {
+          top: 8,
+          right: 8,
+          bottom: 16,
+          left: 28,
+        }
       },
       
       // Dataset defaults based on chart type
