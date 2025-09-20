@@ -66,9 +66,9 @@ export function useChartTheme(options: UseChartThemeOptions = {}): ChartThemeCon
         x: {
           display: !hideXAxis,
           ticks: {
-            color: CHART_COLORS.label,
-            font: { size: 11 },
-            maxTicksLimit: maxXTicks,
+            color: CHART_COLORS.label,    // #BDB8E6 labels
+            font: { size: 11 },          // Mobile-friendly size
+            maxTicksLimit: maxXTicks,     // ≤4 ticks on mobile
             callback: function(value: any, index: number) {
               // Short date format for mobile
               const label = this.getLabelForValue(value);
@@ -80,33 +80,33 @@ export function useChartTheme(options: UseChartThemeOptions = {}): ChartThemeCon
             },
           },
           grid: {
-            color: CHART_COLORS.gridOpacity,
+            color: CHART_COLORS.gridOpacity, // #232445 @ 60% opacity
             drawOnChartArea: true,
             drawTicks: true,
             lineWidth: 1,
           },
           border: {
-            color: CHART_COLORS.axis,
+            color: CHART_COLORS.axis,     // #232445 axis color
             width: 1,
           },
         },
         y: {
           display: !hideYAxis,
           title: {
-            display: !hideYAxisTitle,
+            display: !hideYAxisTitle,     // No Y-axis title on mobile
           },
           ticks: {
-            color: CHART_COLORS.label,
+            color: CHART_COLORS.label,    // #BDB8E6 labels
             font: { size: 11 },
           },
           grid: {
-            color: CHART_COLORS.gridOpacity,
+            color: CHART_COLORS.gridOpacity, // #232445 @ 60% opacity
             drawOnChartArea: true,
             drawTicks: true,
             lineWidth: 1,
           },
           border: {
-            color: CHART_COLORS.axis,
+            color: CHART_COLORS.axis,     // #232445 axis color
             width: 1,
           },
         },

@@ -2,14 +2,14 @@
 // Design tokens based on app theme
 
 export const CHART_COLORS = {
-  // Chart tokens as specified
-  line: '#8B5CF6',           // Primary line color
-  point: '#A78BFA',          // Point color - solid
+  // Explicit chart colors as requested
+  line: '#8B5CF6',           // Line color - 2px width
+  point: '#A78BFA',          // Point solid fill, no white center
   axis: '#232445',           // Axis lines
-  grid: '#232445',           // Grid base color
+  grid: '#232445',           // Grid base color  
   gridOpacity: 'rgba(35, 36, 69, 0.6)', // Grid at 60% opacity
   label: '#BDB8E6',          // Text labels
-  background: 'transparent',
+  background: 'transparent', // Transparent background
   
   // Legacy colors for compatibility
   border: '#232445',
@@ -120,22 +120,19 @@ export const getChartJSTheme = () => ({
   // Dataset defaults
   datasets: {
     line: {
-      borderColor: CHART_COLORS.line,
-      backgroundColor: CHART_COLORS.background,
-      borderWidth: 2,
-      pointBackgroundColor: CHART_COLORS.point,
-      pointBorderColor: 'transparent', // Solid points
-      pointBorderWidth: 0,
-      pointRadius: 4,
-      pointHoverRadius: 6, // Increased radius on hover
-      pointHoverBorderWidth: 0,
-      pointHoverBackgroundColor: CHART_COLORS.point,
-      pointHitRadius: 12, // Touch-friendly hit area (min 12px)
+      borderColor: CHART_COLORS.line,      // #8B5CF6
+      backgroundColor: CHART_COLORS.background, // transparent
+      borderWidth: 2,                       // 2px line width
+      pointBackgroundColor: CHART_COLORS.point, // #A78BFA solid fill
+      pointBorderColor: 'transparent',      // No white center
+      pointBorderWidth: 0,                  // No border
+      pointRadius: 4,                       // Base size
+      pointHoverRadius: 6,                  // +2px on hover
+      pointHoverBorderWidth: 0,            // No border on hover
+      pointHoverBackgroundColor: CHART_COLORS.point, // Same color on hover
+      pointHitRadius: 12,                  // Touch-friendly hit area
       fill: false,
       tension: 0.3,
-      // Add glow effect on hover via CSS class
-      pointHoverShadowColor: CHART_COLORS.pointGlow,
-      pointHoverShadowBlur: 8,
     },
     area: {
       borderColor: CHART_COLORS.line,
