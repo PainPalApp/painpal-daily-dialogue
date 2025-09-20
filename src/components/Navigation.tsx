@@ -11,7 +11,7 @@ export function Navigation() {
   const navigate = useNavigate();
 
   const navItems = [
-    { id: "today", label: "Today", href: "/" },
+    { id: "today", label: "Track", href: "/" },
     { id: "insights", label: "Insights", href: "/insights" },
     { id: "records", label: "Records", href: "/records" },
     { id: "profile", label: "Profile", href: "/profile" },

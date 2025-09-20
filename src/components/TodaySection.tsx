@@ -418,7 +418,7 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center gap-2">
           <BarChart3 className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-foreground">Today's Overview</h1>
+          <h1 className="text-3xl font-bold text-foreground">Track</h1>
         </div>
 
         {/* User Greeting */}
