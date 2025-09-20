@@ -466,11 +466,23 @@ export function RecordsSection() {
           open={editSheetOpen}
           onOpenChange={setEditSheetOpen}
           title="Edit Pain Log"
-          className="dark:bg-background/95"
+          description="Edit pain entry"
           footer={
-            <Button onClick={handleSaveEdit} className="w-full">
-              Save Changes
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setEditSheetOpen(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSaveEdit} 
+                className="flex-1 bg-[hsl(var(--accent-primary))] hover:bg-[hsl(var(--accent-hover))] text-[hsl(var(--background))]"
+              >
+                Save Changes
+              </Button>
+            </div>
           }
         >
           <div className="space-y-6">
@@ -578,7 +590,7 @@ export function RecordsSection() {
           open={daySheetOpen}
           onOpenChange={setDaySheetOpen}
           title={selectedDate ? format(selectedDate, 'MMMM d, yyyy') : ''}
-          className="dark:bg-background/95"
+          description="View pain logs for selected day"
         >
           <div className="space-y-4">
             {selectedDate && getDayLogs(selectedDate).map((log) => (

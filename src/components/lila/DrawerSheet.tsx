@@ -42,21 +42,21 @@ const DrawerSheet = React.forwardRef<HTMLDivElement, DrawerSheetProps>(
           className={cn(
             "h-[100dvh] w-full max-w-none rounded-none border-0",
             "sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-t-lg sm:border",
-            "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-            "dark:bg-background/95",
+            "bg-[hsl(var(--surface))] border-[hsl(var(--border))]",
+            "dark:bg-[hsl(var(--surface))] dark:border-[hsl(var(--border))]",
             "flex flex-col",
             className
           )}
           aria-describedby="drawer-desc"
           {...props}
         >
-          <p id="drawer-desc" className="sr-only">{title || "Drawer content"}</p>
+          <p id="drawer-desc" className="sr-only">{description || title || "Edit pain entry"}</p>
           {/* Header */}
           {(title || description) && (
-            <SheetHeader className="text-left p-6 pb-4 border-b border-border/50">
-              {title && <SheetTitle className="text-section">{title}</SheetTitle>}
+            <SheetHeader className="text-left p-6 pb-4 border-b border-[hsl(var(--border))]">
+              {title && <SheetTitle className="text-[hsl(var(--text-primary))]">{title}</SheetTitle>}
               {description && (
-                <SheetDescription className="text-body">
+                <SheetDescription className="text-[hsl(var(--text-secondary))]">
                   {description}
                 </SheetDescription>
               )}
@@ -70,7 +70,7 @@ const DrawerSheet = React.forwardRef<HTMLDivElement, DrawerSheetProps>(
           
           {/* Sticky Footer */}
           {footer && (
-            <div className="border-t border-border/50 p-6 pt-4 bg-background/80 backdrop-blur">
+            <div className="border-t border-[hsl(var(--border))] p-6 pt-4 bg-[hsl(var(--surface))] backdrop-blur sticky bottom-0">
               {footer}
             </div>
           )}
