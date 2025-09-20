@@ -277,7 +277,7 @@ const TodayV2 = () => {
       <div className="max-w-md mx-auto p-4 space-y-6">
         {/* Header */}
         <h1 className="text-[22px] leading-7 font-medium text-foreground">
-          Today
+          Track your pain
         </h1>
         
         {/* Authentication Status */}
