@@ -449,7 +449,8 @@ export function TodaySection({ onNavigateToInsights }: TodaySectionProps) {
             <div className="h-64">
               <PainChart 
                 painData={painData}
-                viewMode={activeTab as 'today' | 'week' | 'month'}
+                startDate={new Date()}
+                endDate={new Date()}
                 isCompact={false}
               />
             </div>

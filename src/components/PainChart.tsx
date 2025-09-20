@@ -1,4 +1,7 @@
-import { usePainChart } from '@/hooks/usePainChart';
+import { ChartContainer } from '@/components/lila';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Dot } from 'recharts';
+import { format, isSameDay } from 'date-fns';
+import { isSingleDay } from '@/lib/dateUtils';
 import { memo } from 'react';
 
 interface PainEntry {
@@ -16,16 +19,52 @@ interface PainEntry {
 
 interface PainChartProps {
   painData: PainEntry[];
-  viewMode: 'today' | 'week' | 'month' | 'custom';
+  startDate: Date;
+  endDate: Date;
   isCompact?: boolean;
-  width?: number;
-  height?: number;
 }
 
-const PainChartComponent = ({ painData, viewMode, isCompact = false, width, height }: PainChartProps) => {
-  const { canvasRef, isChartReady } = usePainChart(painData, viewMode);
+const PainChartComponent = ({ painData, startDate, endDate, isCompact = false }: PainChartProps) => {
+  // Determine if this is a single day (Today preset) or multi-day range
+  const isToday = isSingleDay(startDate, endDate);
+  
+  // Process data based on view type
+  const chartData = (() => {
+    const validEntries = painData
+      .filter(entry => entry.painLevel !== null)
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-  if (painData.length === 0) {
+    if (isToday) {
+      // Single day: plot each log (x=HH:mm, y=pain_level)
+      return validEntries.map(entry => ({
+        time: format(new Date(entry.timestamp), 'HH:mm'),
+        timestamp: new Date(entry.timestamp).getTime(),
+        painLevel: entry.painLevel,
+        notes: entry.notes || ''
+      }));
+    } else {
+      // Multi-day: plot daily averages
+      const dailyData = validEntries.reduce((acc, entry) => {
+        const dateKey = entry.date;
+        if (!acc[dateKey]) {
+          acc[dateKey] = { sum: 0, count: 0, date: entry.date };
+        }
+        acc[dateKey].sum += entry.painLevel || 0;
+        acc[dateKey].count += 1;
+        return acc;
+      }, {} as Record<string, { sum: number; count: number; date: string }>);
+
+      return Object.values(dailyData)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .map(data => ({
+          date: format(new Date(data.date), 'MMM d'),
+          timestamp: new Date(data.date).getTime(),
+          painLevel: Math.round((data.sum / data.count) * 10) / 10 // Round to 1 decimal
+        }));
+    }
+  })();
+
+  if (chartData.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
         No pain data to display
@@ -34,28 +73,60 @@ const PainChartComponent = ({ painData, viewMode, isCompact = false, width, heig
   }
 
   return (
-    <div className="relative w-full h-full">
-      <canvas 
-        ref={canvasRef}
-        className="w-full h-full"
-        style={{ 
-          display: 'block',
-          width: width ? `${width}px` : '100%',
-          height: height ? `${height}px` : '100%'
-        }}
-      />
-    </div>
+    <ChartContainer
+      minHeightSm={120}
+      minHeightMd={160}
+      minHeightLg={200}
+    >
+      {({ width, height, ready }) => 
+        ready ? (
+          <ResponsiveContainer width={width} height={height}>
+            <LineChart
+              data={chartData}
+              margin={{ top: 8, right: 8, bottom: 16, left: 28 }}
+            >
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke="hsl(var(--border))" 
+                opacity={0.6}
+              />
+              <XAxis
+                dataKey={isToday ? "time" : "date"}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12, fill: "hsl(var(--text-secondary))" }}
+              />
+              <YAxis
+                domain={[0, 10]}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12, fill: "hsl(var(--text-secondary))" }}
+                width={24}
+              />
+              <Line
+                type="monotone"
+                dataKey="painLevel"
+                stroke="hsl(var(--accent-primary))"
+                strokeWidth={2}
+                dot={{ r: 3, fill: "hsl(var(--accent-primary))", stroke: "none" }}
+                activeDot={{ r: 5, fill: "hsl(var(--accent-primary))", stroke: "none" }}
+                animationDuration={0}
+                connectNulls={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : null
+      }
+    </ChartContainer>
   );
 };
 
 // Memoize the component to prevent unnecessary re-renders
 export const PainChart = memo(PainChartComponent, (prevProps, nextProps) => {
-  // Custom comparison function to prevent re-renders when data hasn't actually changed
   return (
-    prevProps.viewMode === nextProps.viewMode &&
+    prevProps.startDate.getTime() === nextProps.startDate.getTime() &&
+    prevProps.endDate.getTime() === nextProps.endDate.getTime() &&
     prevProps.isCompact === nextProps.isCompact &&
-    prevProps.width === nextProps.width &&
-    prevProps.height === nextProps.height &&
     JSON.stringify(prevProps.painData) === JSON.stringify(nextProps.painData)
   );
 });
