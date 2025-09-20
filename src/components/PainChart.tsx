@@ -44,11 +44,6 @@ const PainChartComponent = ({ painData, viewMode, isCompact = false, width, heig
           height: height ? `${height}px` : '100%'
         }}
       />
-      {!isChartReady && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-          <div className="text-sm text-muted-foreground">Loading chart...</div>
-        </div>
-      )}
     </div>
   );
 };

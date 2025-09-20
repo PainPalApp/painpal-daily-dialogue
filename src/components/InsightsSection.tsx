@@ -437,7 +437,7 @@ export const InsightsSection = () => {
               minHeightLg={200}
               className="bg-card border rounded-lg p-4"
             >
-              {({ width, height, ready }) => ready ? (
+              {({ width, height, ready }) => ready && !isLoading ? (
                 <PainChart 
                   painData={filteredPainData}
                   viewMode="custom"
