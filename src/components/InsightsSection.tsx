@@ -22,15 +22,14 @@ import { format, subDays, isWithinInterval, startOfDay, endOfDay } from 'date-fn
 
 interface PainEntry {
   id: number;
-  date: string;
-  timestamp: string;
-  painLevel: number | null;
-  location: string[];
-  triggers: string[];
-  medications: any[];
-  notes: string;
-  symptoms: string[];
-  status: string;
+  logged_at: string;
+  pain_level: number | null;
+  location?: string[];
+  triggers?: string[];
+  medications?: any[];
+  notes?: string;
+  symptoms?: string[];
+  status?: string;
 }
 
 export const InsightsSection = () => {
@@ -177,9 +176,8 @@ export const InsightsSection = () => {
 
             const transformedData = (data || []).map(log => ({
               id: parseInt(log.id) || 0, // Convert to number
-              date: log.logged_at.split('T')[0],
-              timestamp: log.logged_at,
-              painLevel: log.pain_level,
+              logged_at: log.logged_at,
+              pain_level: log.pain_level,
               location: log.pain_locations || [],
               triggers: log.triggers || [],
               medications: log.medications || [],
@@ -245,7 +243,7 @@ export const InsightsSection = () => {
     if (!editingEntry) return;
 
     const updates = {
-      pain_level: editingEntry.painLevel,
+      pain_level: editingEntry.pain_level,
       pain_locations: editingEntry.location,
       triggers: editingEntry.triggers,
       medications: editingEntry.medications,
@@ -300,6 +298,22 @@ export const InsightsSection = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  // Transform data for components that still expect old interface
+  const transformToLegacyFormat = (data: PainEntry[]): any[] => {
+    return data.map(entry => ({
+      id: entry.id,
+      date: entry.logged_at.split('T')[0],
+      timestamp: entry.logged_at,
+      painLevel: entry.pain_level,
+      location: entry.location || [],
+      triggers: entry.triggers || [],
+      medications: entry.medications || [],
+      notes: entry.notes || '',
+      symptoms: entry.symptoms || [],
+      status: entry.status || 'active'
+    }));
   };
 
   if (filteredPainData.length === 0 && !isLoading) {
@@ -416,21 +430,21 @@ export const InsightsSection = () => {
         
         {/* Pain Patterns */}
         <PainPatternsCard 
-          painData={filteredPainData}
+          painData={transformToLegacyFormat(filteredPainData)}
           onUseLast7Days={handleUseLast7Days}
           onJumpToToday={handleJumpToToday}
         />
         
         {/* Functional Impact & Context */}
         <FunctionalImpactCard 
-          painData={filteredPainData}
+          painData={transformToLegacyFormat(filteredPainData)}
           onUseLast7Days={handleUseLast7Days}
           onJumpToToday={handleJumpToToday}
         />
         
         {/* Medications */}
         <MedicationsCard 
-          painData={filteredPainData}
+          painData={transformToLegacyFormat(filteredPainData)}
           onUseLast7Days={handleUseLast7Days}
           onJumpToToday={handleJumpToToday}
         />
@@ -458,14 +472,14 @@ export const InsightsSection = () => {
         {editingEntry && (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="painLevel">Pain Level (0-10)</Label>
+              <Label htmlFor="pain_level">Pain Level (0-10)</Label>
               <Input
-                id="painLevel"
+                id="pain_level"
                 type="number"
                 min="0"
                 max="10"
-                value={editingEntry.painLevel || ''}
-                onChange={(e) => handleEditInputChange('painLevel', e.target.value ? parseInt(e.target.value) : null)}
+                value={editingEntry.pain_level || ''}
+                onChange={(e) => handleEditInputChange('pain_level', e.target.value ? parseInt(e.target.value) : null)}
               />
             </div>
 
@@ -576,7 +590,7 @@ export const InsightsSection = () => {
       <DoctorSummaryDrawer
         open={isDoctorSummaryOpen}
         onOpenChange={setIsDoctorSummaryOpen}
-        painData={filteredPainData}
+        painData={transformToLegacyFormat(filteredPainData)}
         startDate={state.startDate}
         endDate={state.endDate}
       />

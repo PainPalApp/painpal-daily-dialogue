@@ -6,15 +6,14 @@ import { memo } from 'react';
 
 interface PainEntry {
   id: number;
-  date: string;
-  timestamp: string;
-  painLevel: number | null;
-  location: string[];
-  triggers: string[];
-  medications: any[];
-  notes: string;
-  symptoms: string[];
-  status: string;
+  logged_at: string;
+  pain_level: number | null;
+  location?: string[];
+  triggers?: string[];
+  medications?: any[];
+  notes?: string;
+  symptoms?: string[];
+  status?: string;
 }
 
 interface PainChartProps {
@@ -31,24 +30,24 @@ const PainChartComponent = ({ painData, startDate, endDate, isCompact = false }:
   // Process data based on view type
   const chartData = (() => {
     const validEntries = painData
-      .filter(entry => entry.painLevel !== null)
-      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      .filter(entry => entry.pain_level !== null)
+      .sort((a, b) => new Date(a.logged_at).getTime() - new Date(b.logged_at).getTime());
 
     if (isToday) {
-      // Single day: plot each log (x=HH:mm, y=pain_level)
+      // Single day: plot each log (x=time in p format, y=pain_level)
       return validEntries.map(entry => ({
-        x: format(new Date(entry.timestamp), 'HH:mm'),
-        y: entry.painLevel,
+        x: format(new Date(entry.logged_at), 'p'),
+        y: entry.pain_level,
         notes: entry.notes || ''
       }));
     } else {
       // Multi-day: plot daily averages
       const dailyData = validEntries.reduce((acc, entry) => {
-        const dateKey = entry.date;
+        const dateKey = format(new Date(entry.logged_at), 'yyyy-MM-dd');
         if (!acc[dateKey]) {
-          acc[dateKey] = { sum: 0, count: 0, date: entry.date };
+          acc[dateKey] = { sum: 0, count: 0, date: dateKey };
         }
-        acc[dateKey].sum += entry.painLevel || 0;
+        acc[dateKey].sum += entry.pain_level || 0;
         acc[dateKey].count += 1;
         return acc;
       }, {} as Record<string, { sum: number; count: number; date: string }>);
