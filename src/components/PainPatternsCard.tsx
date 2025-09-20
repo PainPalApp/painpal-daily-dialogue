@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useChartTheme } from '@/hooks/useChartTheme';
-import { ChartContainer, EmptyState } from '@/components/lila';
+import { ChartContainer, ChartCard, EmptyState } from '@/components/lila';
 import { Button } from '@/components/ui/button';
 import { subDays, startOfDay, endOfDay } from 'date-fns';
 import { Bar } from 'react-chartjs-2';
@@ -185,42 +185,30 @@ export const PainPatternsCard = ({ painData, onUseLast7Days, onJumpToToday }: Pa
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* By Weekday Chart */}
-        <div className="bg-card border rounded-lg p-4">
-          <h3 className="text-sm font-medium text-foreground mb-3">By weekday</h3>
-          <ChartContainer 
-            minHeightSm={120}
-            minHeightMd={160}
-            className="w-full"
-          >
-            {({ width, height, ready }) => ready ? (
-              <Bar
-                data={weekdayData}
-                options={chartOptions}
-                width={width}
-                height={height}
-              />
-            ) : null}
-          </ChartContainer>
-        </div>
+        <ChartCard 
+          title="By weekday"
+          heightSm={120}
+          heightMd={160}
+          chartType="bar"
+        >
+          <Bar
+            data={weekdayData}
+            options={chartOptions}
+          />
+        </ChartCard>
 
         {/* By Time of Day Chart */}
-        <div className="bg-card border rounded-lg p-4">
-          <h3 className="text-sm font-medium text-foreground mb-3">By time of day</h3>
-          <ChartContainer 
-            minHeightSm={120}
-            minHeightMd={160}
-            className="w-full"
-          >
-            {({ width, height, ready }) => ready ? (
-              <Bar
-                data={timeOfDayData}
-                options={chartOptions}
-                width={width}
-                height={height}
-              />
-            ) : null}
-          </ChartContainer>
-        </div>
+        <ChartCard 
+          title="By time of day"
+          heightSm={120}
+          heightMd={160}
+          chartType="bar"
+        >
+          <Bar
+            data={timeOfDayData}
+            options={chartOptions}
+          />
+        </ChartCard>
       </div>
     </div>
   );

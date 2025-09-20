@@ -12,7 +12,7 @@ import { FunctionalImpactCard } from '@/components/FunctionalImpactCard';
 import { MedicationsCard } from '@/components/MedicationsCard';
 import { DoctorSummaryDrawer } from '@/components/DoctorSummaryDrawer';
 import { DateRangePicker } from '@/components/DateRangePicker';
-import { ChartContainer, StatBadge, ChipPill, DayGroupCard, EntryRow, EmptyState, DrawerSheet } from '@/components/lila';
+import { ChartContainer, ChartCard, StatBadge, ChipPill, DayGroupCard, EntryRow, EmptyState, DrawerSheet } from '@/components/lila';
 import { usePainLogs } from '@/hooks/usePainLogs';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from 'react-day-picker';
@@ -439,40 +439,27 @@ export const InsightsSection = () => {
         </div>
         
         {/* Pain Chart */}
-        {isLoading ? (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-medium text-foreground">Pain Levels Over Time</h2>
-            </div>
-            <div className="bg-card border rounded-lg p-4 h-[120px] md:h-[160px] lg:h-[200px]">
+        <div className="mb-6">
+          <ChartCard 
+            title="Pain Levels Over Time"
+            heightSm={120}
+            heightMd={160}
+            heightLg={200}
+            chartType="line"
+          >
+            {isLoading ? (
               <div className="w-full h-full flex items-center justify-center">
                 <div className="w-full h-8 bg-muted rounded animate-pulse" />
               </div>
-            </div>
-          </div>
-        ) : (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-medium text-foreground">Pain Levels Over Time</h2>
-            </div>
-            <ChartContainer 
-              minHeightSm={120}
-              minHeightMd={160}
-              minHeightLg={200}
-              className="bg-card border rounded-lg p-4"
-            >
-              {({ width, height, ready }) => ready && !isLoading ? (
-                <PainChart 
-                  painData={filteredPainData}
-                  viewMode="custom"
-                  isCompact={false}
-                  width={width}
-                  height={height}
-                />
-              ) : null}
-            </ChartContainer>
-          </div>
-        )}
+            ) : (
+              <PainChart 
+                painData={filteredPainData}
+                viewMode="custom"
+                isCompact={false}
+              />
+            )}
+          </ChartCard>
+        </div>
         
         {/* Pain Patterns */}
         <PainPatternsCard 
