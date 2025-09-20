@@ -247,7 +247,8 @@ export function DateRangePicker({ value, onChange, className }: DateRangePickerP
           <SheetTrigger asChild>
             <div />
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-[80vh]">
+          <SheetContent side="bottom" className="h-[80vh]" aria-describedby="date-range-desc">
+            <p id="date-range-desc" className="sr-only">Select date range for filtering pain data</p>
             <SheetHeader>
               <SheetTitle>Select date range</SheetTitle>
             </SheetHeader>

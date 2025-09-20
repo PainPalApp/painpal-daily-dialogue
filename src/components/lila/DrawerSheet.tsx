@@ -47,8 +47,10 @@ const DrawerSheet = React.forwardRef<HTMLDivElement, DrawerSheetProps>(
             "flex flex-col",
             className
           )}
+          aria-describedby="drawer-desc"
           {...props}
         >
+          <p id="drawer-desc" className="sr-only">{title || "Drawer content"}</p>
           {/* Header */}
           {(title || description) && (
             <SheetHeader className="text-left p-6 pb-4 border-b border-border/50">

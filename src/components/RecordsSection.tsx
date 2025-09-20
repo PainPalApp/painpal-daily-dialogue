@@ -449,10 +449,11 @@ export function RecordsSection() {
 
         {/* Edit Sheet */}
         <Sheet open={editSheetOpen} onOpenChange={setEditSheetOpen}>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Edit Pain Log</SheetTitle>
-            </SheetHeader>
+        <SheetContent aria-describedby="edit-log-desc">
+          <p id="edit-log-desc" className="sr-only">Edit pain log entry</p>
+          <SheetHeader>
+            <SheetTitle>Edit Pain Log</SheetTitle>
+          </SheetHeader>
             <div className="space-y-6 mt-6">
               {/* Pain Level */}
               <div className="space-y-2">
@@ -560,12 +561,13 @@ export function RecordsSection() {
 
         {/* Day Details Sheet */}
         <Sheet open={daySheetOpen} onOpenChange={setDaySheetOpen}>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>
-                {selectedDate && format(selectedDate, 'MMMM d, yyyy')}
-              </SheetTitle>
-            </SheetHeader>
+        <SheetContent aria-describedby="day-details-desc">
+          <p id="day-details-desc" className="sr-only">View pain logs for selected day</p>
+          <SheetHeader>
+            <SheetTitle>
+              {selectedDate && format(selectedDate, 'MMMM d, yyyy')}
+            </SheetTitle>
+          </SheetHeader>
             <div className="space-y-4 mt-6">
               {selectedDate && getDayLogs(selectedDate).map((log) => (
                 <div key={log.id} className="bg-background border border-border rounded-lg p-4">

@@ -309,7 +309,8 @@ const TodayV2 = () => {
                     Resolve now
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="p-6 bg-card border-border">
+                <SheetContent className="p-6 bg-card border-border" aria-describedby="resolve-pain-desc">
+                  <p id="resolve-pain-desc" className="sr-only">End current pain session by logging final pain level</p>
                   <SheetHeader>
                     <SheetTitle className="text-foreground">End Pain Level</SheetTitle>
                   </SheetHeader>
@@ -675,7 +676,8 @@ const TodayV2 = () => {
 
         {/* Edit Entry Sheet */}
         <Sheet open={editSheetOpen} onOpenChange={setEditSheetOpen}>
-          <SheetContent className="p-6 bg-card border-border">
+          <SheetContent className="p-6 bg-card border-border" aria-describedby="edit-entry-desc">
+            <p id="edit-entry-desc" className="sr-only">Edit pain log entry details</p>
             <SheetHeader>
               <SheetTitle className="text-foreground">Edit Entry</SheetTitle>
             </SheetHeader>
