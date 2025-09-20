@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -85,17 +85,33 @@ export const InsightsSection = () => {
     }));
   };
 
-  // Handle date range selection
+  // Validate date range and provide fallback
+  const validateAndSetDateRange = useCallback((startDate: Date | null, endDate: Date | null) => {
+    // Validation: check if dates are valid and startDate <= endDate
+    if (!startDate || !endDate || startDate > endDate) {
+      // Fall back to Last 7 days
+      const fallbackState = {
+        startDate: subDays(new Date(), 7),
+        endDate: new Date(),
+      };
+      setState(fallbackState);
+      updateURL(fallbackState.startDate, fallbackState.endDate);
+      return fallbackState;
+    }
+    
+    const validState = { startDate, endDate };
+    setState(validState);
+    updateURL(validState.startDate, validState.endDate);
+    return validState;
+  }, []);
+
+  // Handle date range selection with validation
   const handleCustomDateChange = (range: DateRange | undefined) => {
     if (range?.from && range?.to) {
-      const newState = {
-        startDate: range.from,
-        endDate: range.to,
-      };
-      setState(newState);
-      
-      // Update URL
-      updateURL(newState.startDate, newState.endDate);
+      validateAndSetDateRange(range.from, range.to);
+    } else if (range?.from || range?.to) {
+      // Partial range - fall back to Last 7 days
+      validateAndSetDateRange(null, null);
     }
   };
   
@@ -108,40 +124,55 @@ export const InsightsSection = () => {
   };
 
 
+  // Debounced data loading function
+  const debouncedLoadPainData = useCallback(
+    (() => {
+      let timeoutId: NodeJS.Timeout;
+      
+      return (startDate: Date, endDate: Date) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(async () => {
+          try {
+            // Get current user
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+              setPainData([]);
+              return;
+            }
+
+            // Query pain logs filtered by user and date range
+            const { data: logs, error } = await supabase
+              .from('pain_logs')
+              .select('*')
+              .eq('user_id', user.id)
+              .gte('logged_at', startDate.toISOString())
+              .lte('logged_at', endDate.toISOString())
+              .order('logged_at', { ascending: true });
+
+            if (error) {
+              console.error('Error loading pain data:', error);
+              setPainData([]);
+              return;
+            }
+
+            const transformedData = transformSupabaseData(logs || []);
+            setPainData(transformedData);
+          } catch (error) {
+            console.error('Error loading pain data:', error);
+            setPainData([]);
+          }
+        }, 200); // 200ms debounce
+      };
+    })(),
+    []
+  );
+
   useEffect(() => {
-    const loadPainData = async () => {
-      try {
-        // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setPainData([]);
-          return;
-        }
-
-        // Query pain logs filtered by user and date range
-        const { data: logs, error } = await supabase
-          .from('pain_logs')
-          .select('*')
-          .eq('user_id', user.id)
-          .gte('logged_at', state.startDate.toISOString())
-          .lte('logged_at', state.endDate.toISOString())
-          .order('logged_at', { ascending: true });
-
-        if (error) {
-          console.error('Error loading pain data:', error);
-          setPainData([]);
-          return;
-        }
-
-        const transformedData = transformSupabaseData(logs || []);
-        setPainData(transformedData);
-      } catch (error) {
-        console.error('Error loading pain data:', error);
-        setPainData([]);
-      }
-    };
-
-    loadPainData();
+    // Validate current date range on mount and state changes
+    const validatedState = validateAndSetDateRange(state.startDate, state.endDate);
+    
+    // Load data with debouncing
+    debouncedLoadPainData(validatedState.startDate, validatedState.endDate);
 
     // Listen for real-time updates
     const channel = supabase
@@ -154,7 +185,8 @@ export const InsightsSection = () => {
           table: 'pain_logs'
         },
         () => {
-          loadPainData(); // Reload data when changes occur
+          // Reload data when changes occur (without debouncing for real-time updates)
+          debouncedLoadPainData(state.startDate, state.endDate);
         }
       )
       .subscribe();
@@ -162,7 +194,7 @@ export const InsightsSection = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [state.startDate, state.endDate]); // Reload when date range changes
+  }, [state.startDate, state.endDate, debouncedLoadPainData, validateAndSetDateRange]); // Reload when date range changes
 
   // Since we're now filtering at the database level, use all loaded data
   const filteredPainData = painData;
