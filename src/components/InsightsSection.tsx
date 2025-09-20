@@ -393,11 +393,13 @@ export const InsightsSection = () => {
             minHeightLg={200}
             className="bg-card border rounded-lg p-4"
           >
-            <PainChart 
-              painData={filteredPainData}
-              viewMode="custom"
-              isCompact={false}
-            />
+            {({ width, height, ready }) => ready ? (
+              <PainChart 
+                painData={filteredPainData}
+                viewMode="custom"
+                isCompact={false}
+              />
+            ) : null}
           </ChartContainer>
         </div>
         

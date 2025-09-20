@@ -2,11 +2,11 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 
-export interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface ChartContainerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
   minHeightSm?: number
   minHeightMd?: number
   minHeightLg?: number
-  children: React.ReactNode
+  children: ({ width, height, ready }: { width: number; height: number; ready: boolean }) => React.ReactNode
 }
 
 const ChartContainer = React.forwardRef<HTMLDivElement, ChartContainerProps>(
@@ -19,7 +19,9 @@ const ChartContainer = React.forwardRef<HTMLDivElement, ChartContainerProps>(
     ...props 
   }, ref) => {
     const containerRef = React.useRef<HTMLDivElement>(null)
-    const [width, setWidth] = React.useState(0)
+    const [dimensions, setDimensions] = React.useState({ width: 0, height: 0, ready: false })
+    const debounceTimeoutRef = React.useRef<NodeJS.Timeout>()
+    const lastWidthRef = React.useRef(0)
 
     // Combine refs
     React.useImperativeHandle(ref, () => containerRef.current!, [])
@@ -28,39 +30,66 @@ const ChartContainer = React.forwardRef<HTMLDivElement, ChartContainerProps>(
       const element = containerRef.current
       if (!element) return
 
-      const updateWidth = () => {
-        setWidth(element.offsetWidth)
+      const updateDimensions = (width: number, height: number) => {
+        // Ignore width changes < 4px to avoid loops
+        if (Math.abs(width - lastWidthRef.current) < 4 && lastWidthRef.current > 0) {
+          return
+        }
+        
+        lastWidthRef.current = width
+        
+        // Debounce updates by 100ms
+        if (debounceTimeoutRef.current) {
+          clearTimeout(debounceTimeoutRef.current)
+        }
+        
+        debounceTimeoutRef.current = setTimeout(() => {
+          setDimensions({
+            width,
+            height,
+            ready: width > 0
+          })
+        }, 100)
       }
 
       // Try ResizeObserver first
       if (typeof ResizeObserver !== 'undefined') {
         const resizeObserver = new ResizeObserver((entries) => {
           for (const entry of entries) {
-            setWidth(entry.contentRect.width)
+            const { width, height } = entry.contentRect
+            updateDimensions(width, height)
           }
         })
 
         resizeObserver.observe(element)
         
         // Initial measurement
-        updateWidth()
+        const { offsetWidth, offsetHeight } = element
+        updateDimensions(offsetWidth, offsetHeight)
 
         return () => {
           resizeObserver.disconnect()
+          if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current)
+          }
         }
       } else {
         // Fallback to window resize
         const handleResize = () => {
-          updateWidth()
+          const { offsetWidth, offsetHeight } = element
+          updateDimensions(offsetWidth, offsetHeight)
         }
 
         window.addEventListener('resize', handleResize)
         
         // Initial measurement
-        updateWidth()
+        handleResize()
 
         return () => {
           window.removeEventListener('resize', handleResize)
+          if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current)
+          }
         }
       }
     }, [])
@@ -81,8 +110,8 @@ const ChartContainer = React.forwardRef<HTMLDivElement, ChartContainerProps>(
         )}
         {...props}
       >
-        {width > 0 ? (
-          children
+        {dimensions.ready ? (
+          children(dimensions)
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <Skeleton className="w-full h-8 rounded-sm" />
