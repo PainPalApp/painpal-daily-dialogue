@@ -62,7 +62,7 @@ const ChartCard = React.forwardRef<HTMLDivElement, ChartCardProps>(
             minHeightLg={heightLg}
           >
             {({ width, height, ready }) =>
-              ready ? React.cloneElement(childWithTheme, { height }) : null
+              ready ? React.cloneElement(childWithTheme, { width, height }) : null
             }
           </ChartContainer>
         </CardContent>
