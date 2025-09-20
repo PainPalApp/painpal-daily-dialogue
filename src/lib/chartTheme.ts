@@ -246,7 +246,7 @@ export const mergeChartJSOptions = (customOptions: any = {}) => {
   return {
     responsive: true,
     maintainAspectRatio: false,
-    animation: { duration: 200 },
+    animation: { duration: 0 }, // Disable initial animation to avoid flicker
     ...theme,
     ...customOptions,
     scales: {

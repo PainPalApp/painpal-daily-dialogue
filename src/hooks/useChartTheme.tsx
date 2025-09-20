@@ -55,7 +55,7 @@ export function useChartTheme(options: UseChartThemeOptions = {}): ChartThemeCon
     const baseOptions = {
       responsive: true,
       maintainAspectRatio: false,
-      animation: { duration: 200 },
+      animation: { duration: 0 }, // Disable initial animation to avoid flicker
       
       // Global styling from design tokens
       color: CHART_COLORS.label,

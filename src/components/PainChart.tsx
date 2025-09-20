@@ -18,9 +18,11 @@ interface PainChartProps {
   painData: PainEntry[];
   viewMode: 'today' | 'week' | 'month' | 'custom';
   isCompact?: boolean;
+  width?: number;
+  height?: number;
 }
 
-const PainChartComponent = ({ painData, viewMode, isCompact = false }: PainChartProps) => {
+const PainChartComponent = ({ painData, viewMode, isCompact = false, width, height }: PainChartProps) => {
   const { canvasRef, isChartReady } = usePainChart(painData, viewMode);
 
   if (painData.length === 0) {
@@ -36,7 +38,11 @@ const PainChartComponent = ({ painData, viewMode, isCompact = false }: PainChart
       <canvas 
         ref={canvasRef}
         className="w-full h-full"
-        style={{ display: 'block' }}
+        style={{ 
+          display: 'block',
+          width: width ? `${width}px` : '100%',
+          height: height ? `${height}px` : '100%'
+        }}
       />
       {!isChartReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/80">
@@ -53,6 +59,8 @@ export const PainChart = memo(PainChartComponent, (prevProps, nextProps) => {
   return (
     prevProps.viewMode === nextProps.viewMode &&
     prevProps.isCompact === nextProps.isCompact &&
+    prevProps.width === nextProps.width &&
+    prevProps.height === nextProps.height &&
     JSON.stringify(prevProps.painData) === JSON.stringify(nextProps.painData)
   );
 });

@@ -398,6 +398,8 @@ export const InsightsSection = () => {
                 painData={filteredPainData}
                 viewMode="custom"
                 isCompact={false}
+                width={width}
+                height={height}
               />
             ) : null}
           </ChartContainer>
