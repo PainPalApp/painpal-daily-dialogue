@@ -8,6 +8,7 @@ import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X, BarChar
 import { useToast } from '@/hooks/use-toast';
 import { PainChart } from '@/components/PainChart';
 import { PainPatternsCard } from '@/components/PainPatternsCard';
+import { FunctionalImpactCard } from '@/components/FunctionalImpactCard';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import { ChartContainer, StatBadge, ChipPill, DayGroupCard, EntryRow, EmptyState, DrawerSheet } from '@/components/lila';
 import { usePainLogs } from '@/hooks/usePainLogs';
@@ -83,7 +84,10 @@ export const InsightsSection = () => {
       medications: entry.medications || [],
       notes: entry.notes || '',
       symptoms: [], // Not currently used in Supabase schema
-      status: 'active'
+      status: 'active',
+      // Include functional impact and tags for the new card
+      functional_impact: entry.functional_impact,
+      impact_tags: entry.impact_tags || []
     }));
   };
 
@@ -163,7 +167,7 @@ export const InsightsSection = () => {
             // Query pain logs filtered by user and date range
             const { data: logs, error } = await supabase
               .from('pain_logs')
-              .select('*')
+              .select('*, functional_impact, impact_tags')
               .eq('user_id', user.id)
               .gte('logged_at', startDate.toISOString())
               .lte('logged_at', endDate.toISOString())
@@ -453,6 +457,13 @@ export const InsightsSection = () => {
         
         {/* Pain Patterns */}
         <PainPatternsCard 
+          painData={filteredPainData}
+          onUseLast7Days={handleUseLast7Days}
+          onJumpToToday={handleJumpToToday}
+        />
+        
+        {/* Functional Impact & Context */}
+        <FunctionalImpactCard 
           painData={filteredPainData}
           onUseLast7Days={handleUseLast7Days}
           onJumpToToday={handleJumpToToday}
