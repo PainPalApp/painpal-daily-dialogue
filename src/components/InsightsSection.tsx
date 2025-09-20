@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X, BarChart3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PainChart } from '@/components/PainChart';
+import { PainPatternsCard } from '@/components/PainPatternsCard';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import { ChartContainer, StatBadge, ChipPill, DayGroupCard, EntryRow, EmptyState, DrawerSheet } from '@/components/lila';
 import { usePainLogs } from '@/hooks/usePainLogs';
@@ -449,6 +450,13 @@ export const InsightsSection = () => {
             </ChartContainer>
           </div>
         )}
+        
+        {/* Pain Patterns */}
+        <PainPatternsCard 
+          painData={filteredPainData}
+          onUseLast7Days={handleUseLast7Days}
+          onJumpToToday={handleJumpToToday}
+        />
         
         <div className="space-y-6">
           {sortedDates.map((date) => {
