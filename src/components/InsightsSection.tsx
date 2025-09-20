@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X, BarChart3, Stethoscope } from 'lucide-react';
+import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X, BarChart3, Stethoscope, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PainChart } from '@/components/PainChart';
 import { PainPatternsCard } from '@/components/PainPatternsCard';
@@ -32,6 +33,7 @@ interface PainEntry {
 }
 
 export const InsightsSection = () => {
+  const navigate = useNavigate();
   const [painData, setPainData] = useState<PainEntry[]>([]);
   const [editingEntry, setEditingEntry] = useState<PainEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -413,15 +415,25 @@ export const InsightsSection = () => {
             <BarChart3 className="h-8 w-8 text-primary" />
             <h1 style={{ fontSize: 'clamp(18px, 4.8vw, 22px)', fontWeight: 500 }} className="text-foreground">Insights</h1>
           </div>
-          <Button 
-            onClick={() => setIsDoctorSummaryOpen(true)}
-            variant="outline" 
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <Stethoscope className="h-4 w-4" />
-            <span className="hidden sm:inline">Doctor Summary</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={() => navigate('/records')}
+              variant="ghost" 
+              size="sm"
+              className="text-primary hover:text-primary"
+            >
+              View records <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+            <Button 
+              onClick={() => setIsDoctorSummaryOpen(true)}
+              variant="outline" 
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Stethoscope className="h-4 w-4" />
+              <span className="hidden sm:inline">Doctor Summary</span>
+            </Button>
+          </div>
         </div>
         
         <p className="text-sm text-muted-foreground mb-6" aria-live="polite">
@@ -481,95 +493,6 @@ export const InsightsSection = () => {
           onUseLast7Days={handleUseLast7Days}
           onJumpToToday={handleJumpToToday}
         />
-        
-        <div className="space-y-6">
-          {sortedDates.map((date) => {
-            const entries = groupedEntries[date];
-            const avgPain = entries
-              .filter(e => e.painLevel !== null)
-              .reduce((sum, e) => sum + (e.painLevel || 0), 0) / 
-              entries.filter(e => e.painLevel !== null).length;
-
-            return (
-              <DayGroupCard
-                key={date}
-                dateLabel={formatDate(date)}
-                entryCount={entries.length}
-                avgLabel={
-                  !isNaN(avgPain) ? `Avg: ${avgPain.toFixed(1)}/10` : undefined
-                }
-              >
-                <div className="space-y-0">
-                  {entries
-                    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-                    .map((entry) => (
-                      <EntryRow
-                        key={entry.id}
-                        time={formatTime(entry.timestamp)}
-                        painChip={
-                          entry.painLevel !== null ? (
-                            <StatBadge 
-                              size="sm" 
-                              colorScheme={entry.painLevel <= 3 ? 'good' : entry.painLevel <= 6 ? 'warn' : 'bad'}
-                            >
-                              Pain: {entry.painLevel}/10
-                            </StatBadge>
-                          ) : undefined
-                        }
-                        meta={
-                          <div className="space-y-1">
-                            {/* Location tags */}
-                            {entry.location && entry.location.length > 0 && (
-                              <div className="flex items-center gap-1 flex-wrap">
-                                <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                {entry.location.map((loc, i) => (
-                                  <ChipPill key={i} colorScheme="neutral">
-                                    {loc}
-                                  </ChipPill>
-                                ))}
-                              </div>
-                            )}
-                            
-                            {/* Trigger tags */}
-                            {entry.triggers && entry.triggers.length > 0 && (
-                              <div className="flex items-center gap-1 flex-wrap">
-                                <AlertTriangle className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                {entry.triggers.map((trigger, i) => (
-                                  <ChipPill key={i} colorScheme="warn">
-                                    {trigger}
-                                  </ChipPill>
-                                ))}
-                              </div>
-                            )}
-                            
-                            {/* Medication tags */}
-                            {entry.medications && entry.medications.length > 0 && (
-                              <div className="flex items-center gap-1 flex-wrap">
-                                <Pill className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                {entry.medications.map((med, i) => (
-                                  <ChipPill key={i} colorScheme="accent">
-                                    {typeof med === 'string' ? med : med.name || 'Medication'}
-                                  </ChipPill>
-                                ))}
-                              </div>
-                            )}
-                            
-                            {/* Notes */}
-                            {entry.notes && (
-                              <div className="bg-muted/50 rounded-lg p-2 mt-2">
-                                <p className="text-caption text-foreground">{entry.notes}</p>
-                              </div>
-                            )}
-                          </div>
-                        }
-                        onEdit={() => handleEditEntry(entry)}
-                      />
-                    ))}
-                </div>
-              </DayGroupCard>
-            );
-          })}
-        </div>
       </div>
 
       {/* Edit Drawer */}
