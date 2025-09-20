@@ -31,6 +31,7 @@ export const InsightsSection = () => {
   const [painData, setPainData] = useState<PainEntry[]>([]);
   const [editingEntry, setEditingEntry] = useState<PainEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Page state for date range
   const [state, setState] = useState<{
@@ -89,7 +90,7 @@ export const InsightsSection = () => {
   const validateAndSetDateRange = useCallback((startDate: Date | null, endDate: Date | null) => {
     // Validation: check if dates are valid and startDate <= endDate
     if (!startDate || !endDate || startDate > endDate) {
-      // Fall back to Last 7 days
+      // Fall back to Last 7 days and bail early
       const fallbackState = {
         startDate: subDays(new Date(), 7),
         endDate: new Date(),
@@ -124,19 +125,37 @@ export const InsightsSection = () => {
   };
 
 
-  // Debounced data loading function
+  // Debounced data loading function with AbortController
   const debouncedLoadPainData = useCallback(
     (() => {
       let timeoutId: NodeJS.Timeout;
+      let abortController: AbortController | null = null;
       
       return (startDate: Date, endDate: Date) => {
+        // Cancel any pending requests
+        if (abortController) {
+          abortController.abort();
+        }
+        
+        // Clear existing timeout
         clearTimeout(timeoutId);
+        
+        // Validate dates early and bail if invalid
+        if (!startDate || !endDate || startDate > endDate) {
+          console.warn('Invalid date range, skipping fetch');
+          return;
+        }
+        
         timeoutId = setTimeout(async () => {
+          setIsLoading(true);
+          abortController = new AbortController();
+          
           try {
             // Get current user
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
               setPainData([]);
+              setIsLoading(false);
               return;
             }
 
@@ -147,19 +166,32 @@ export const InsightsSection = () => {
               .eq('user_id', user.id)
               .gte('logged_at', startDate.toISOString())
               .lte('logged_at', endDate.toISOString())
-              .order('logged_at', { ascending: true });
+              .order('logged_at', { ascending: true })
+              .abortSignal(abortController.signal);
+
+            // Check if request was aborted
+            if (abortController.signal.aborted) {
+              return;
+            }
 
             if (error) {
               console.error('Error loading pain data:', error);
               setPainData([]);
+              setIsLoading(false);
               return;
             }
 
             const transformedData = transformSupabaseData(logs || []);
             setPainData(transformedData);
-          } catch (error) {
+            setIsLoading(false);
+          } catch (error: any) {
+            // Don't update state if request was aborted
+            if (error.name === 'AbortError') {
+              return;
+            }
             console.error('Error loading pain data:', error);
             setPainData([]);
+            setIsLoading(false);
           }
         }, 200); // 200ms debounce
       };
@@ -383,27 +415,40 @@ export const InsightsSection = () => {
         </div>
         
         {/* Pain Chart */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium text-foreground">Pain Levels Over Time</h2>
+        {isLoading ? (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-medium text-foreground">Pain Levels Over Time</h2>
+            </div>
+            <div className="bg-card border rounded-lg p-4 h-[120px] md:h-[160px] lg:h-[200px]">
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="w-full h-8 bg-muted rounded animate-pulse" />
+              </div>
+            </div>
           </div>
-          <ChartContainer 
-            minHeightSm={120}
-            minHeightMd={160}
-            minHeightLg={200}
-            className="bg-card border rounded-lg p-4"
-          >
-            {({ width, height, ready }) => ready ? (
-              <PainChart 
-                painData={filteredPainData}
-                viewMode="custom"
-                isCompact={false}
-                width={width}
-                height={height}
-              />
-            ) : null}
-          </ChartContainer>
-        </div>
+        ) : (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-medium text-foreground">Pain Levels Over Time</h2>
+            </div>
+            <ChartContainer 
+              minHeightSm={120}
+              minHeightMd={160}
+              minHeightLg={200}
+              className="bg-card border rounded-lg p-4"
+            >
+              {({ width, height, ready }) => ready ? (
+                <PainChart 
+                  painData={filteredPainData}
+                  viewMode="custom"
+                  isCompact={false}
+                  width={width}
+                  height={height}
+                />
+              ) : null}
+            </ChartContainer>
+          </div>
+        )}
         
         <div className="space-y-6">
           {sortedDates.map((date) => {
