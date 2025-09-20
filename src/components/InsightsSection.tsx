@@ -4,12 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X, BarChart3 } from 'lucide-react';
+import { Calendar, MapPin, Pill, FileText, AlertTriangle, Edit, Save, X, BarChart3, Stethoscope } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PainChart } from '@/components/PainChart';
 import { PainPatternsCard } from '@/components/PainPatternsCard';
 import { FunctionalImpactCard } from '@/components/FunctionalImpactCard';
 import { MedicationsCard } from '@/components/MedicationsCard';
+import { DoctorSummaryDrawer } from '@/components/DoctorSummaryDrawer';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import { ChartContainer, StatBadge, ChipPill, DayGroupCard, EntryRow, EmptyState, DrawerSheet } from '@/components/lila';
 import { usePainLogs } from '@/hooks/usePainLogs';
@@ -35,6 +36,7 @@ export const InsightsSection = () => {
   const [editingEntry, setEditingEntry] = useState<PainEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDoctorSummaryOpen, setIsDoctorSummaryOpen] = useState(false);
   
   // Page state for date range
   const [state, setState] = useState<{
@@ -362,10 +364,12 @@ export const InsightsSection = () => {
     return (
     <div className="flex-1 bg-background page-padding py-6">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
             <BarChart3 className="h-8 w-8 text-primary" />
             <h1 style={{ fontSize: 'clamp(18px, 4.8vw, 22px)', fontWeight: 500 }} className="text-foreground">Insights</h1>
           </div>
+        </div>
           
           <p className="text-sm text-muted-foreground mb-6" aria-live="polite">
             Showing {format(state.startDate, 'MMM d, yyyy')} → {format(state.endDate, 'MMM d, yyyy')}
@@ -404,9 +408,20 @@ export const InsightsSection = () => {
   return (
     <div className="flex-1 bg-background page-padding py-6">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-2 mb-2">
-          <BarChart3 className="h-8 w-8 text-primary" />
-          <h1 style={{ fontSize: 'clamp(18px, 4.8vw, 22px)', fontWeight: 500 }} className="text-foreground">Insights</h1>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-8 w-8 text-primary" />
+            <h1 style={{ fontSize: 'clamp(18px, 4.8vw, 22px)', fontWeight: 500 }} className="text-foreground">Insights</h1>
+          </div>
+          <Button 
+            onClick={() => setIsDoctorSummaryOpen(true)}
+            variant="outline" 
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Stethoscope className="h-4 w-4" />
+            <span className="hidden sm:inline">Doctor Summary</span>
+          </Button>
         </div>
         
         <p className="text-sm text-muted-foreground mb-6" aria-live="polite">
@@ -706,6 +721,15 @@ export const InsightsSection = () => {
           </div>
         )}
       </DrawerSheet>
+      
+      {/* Doctor Summary Drawer */}
+      <DoctorSummaryDrawer
+        open={isDoctorSummaryOpen}
+        onOpenChange={setIsDoctorSummaryOpen}
+        painData={filteredPainData}
+        startDate={state.startDate}
+        endDate={state.endDate}
+      />
     </div>
   );
 };
