@@ -4,7 +4,6 @@ import { usePainLogs } from "@/hooks/usePainLogs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, 
   AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -14,9 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, CalendarDays, Edit3, Trash2, Filter } from "lucide-react";
+import { Calendar, CalendarDays, Trash2, Filter } from "lucide-react";
 import { format, startOfWeek, startOfMonth, endOfMonth, isSameDay, getDay, addDays, parseISO } from "date-fns";
 import { PainIndicator } from './PainIndicator';
+import { DayGroupCard, EntryRow, StatBadge, ChipPill, DrawerSheet } from '@/components/lila';
 
 interface PainLog {
   id: string;
@@ -229,6 +229,38 @@ export function RecordsSection() {
     );
   };
 
+  // Group logs by day and calculate averages
+  const groupLogsByDay = () => {
+    const grouped = painLogs.reduce((acc, log) => {
+      const dateKey = format(parseISO(log.logged_at), 'yyyy-MM-dd');
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(log);
+      return acc;
+    }, {} as Record<string, PainLog[]>);
+
+    return Object.entries(grouped)
+      .map(([dateKey, logs]) => ({
+        date: dateKey,
+        dateLabel: format(parseISO(dateKey), 'MMMM d, yyyy'),
+        logs: logs.sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime()),
+        avgPainLevel: Math.round(logs.reduce((sum, log) => sum + log.pain_level, 0) / logs.length * 10) / 10,
+        entryCount: logs.length
+      }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+  };
+
+  const formatTime = (dateString: string) => {
+    return format(parseISO(dateString), 'h:mm a');
+  };
+
+  const getPainChipColorScheme = (painLevel: number) => {
+    if (painLevel >= 7) return 'bad';
+    if (painLevel >= 4) return 'warn';
+    return 'good';
+  };
+
   const handleDayClick = (date: Date) => {
     const dayLogs = getDayLogs(date);
     if (dayLogs.length > 0) {
@@ -326,76 +358,58 @@ export function RecordsSection() {
                   <p className="text-muted-foreground">No pain logs found for the selected period.</p>
                 </div>
               ) : (
-                painLogs.map((log) => (
-                  <div key={log.id} className="bg-card border border-border rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-4 mb-2">
-                          <span className="text-sm text-muted-foreground">
-                            {format(parseISO(log.logged_at), 'MMM d, yyyy h:mm a')}
-                          </span>
-                          <Badge variant={log.pain_level >= 7 ? "destructive" : log.pain_level >= 4 ? "default" : "secondary"}>
-                            Pain Level {log.pain_level}/10
-                          </Badge>
-                        </div>
-                        
-                        {log.activity && (
-                          <p className="text-sm mb-1">
-                            <span className="text-muted-foreground">Activity:</span> {log.activity}
-                          </p>
-                        )}
-                        
-                        {log.medications && log.medications.length > 0 && (
-                          <div className="mb-2">
-                            <span className="text-sm text-muted-foreground">Medications:</span>
-                            <div className="flex gap-1 mt-1 flex-wrap">
-                              {log.medications.map((med, idx) => (
-                                <Badge key={idx} variant="outline" className="text-xs">
-                                  {med}
-                                </Badge>
-                              ))}
-                            </div>
+                groupLogsByDay().map((dayGroup) => (
+                  <DayGroupCard
+                    key={dayGroup.date}
+                    dateLabel={dayGroup.dateLabel}
+                    entryCount={dayGroup.entryCount}
+                    avgLabel={`Avg ${dayGroup.avgPainLevel}/10`}
+                    className="p-3 md:p-4"
+                  >
+                    {dayGroup.logs.map((log) => (
+                      <EntryRow
+                        key={log.id}
+                        time={formatTime(log.logged_at)}
+                        painChip={
+                          <ChipPill
+                            colorScheme={getPainChipColorScheme(log.pain_level)}
+                            className="font-medium"
+                          >
+                            {log.pain_level}/10
+                          </ChipPill>
+                        }
+                        meta={
+                          <div className="space-y-1">
+                            {log.activity && (
+                              <div className="text-sm text-muted-foreground">
+                                Activity: {log.activity}
+                              </div>
+                            )}
+                            {log.medications && log.medications.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {log.medications.map((med, idx) => (
+                                  <ChipPill
+                                    key={idx}
+                                    variant="outlined"
+                                    colorScheme="neutral"
+                                    className="text-xs"
+                                  >
+                                    {med}
+                                  </ChipPill>
+                                ))}
+                              </div>
+                            )}
+                            {log.notes && (
+                              <div className="text-sm text-muted-foreground mt-1">
+                                {log.notes}
+                              </div>
+                            )}
                           </div>
-                        )}
-                        
-                        {log.notes && (
-                          <p className="text-sm text-muted-foreground mt-2">{log.notes}</p>
-                        )}
-                      </div>
-                      
-                      <div className="flex gap-2 ml-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(log)}
-                          className="text-icon-default hover:text-icon-active"
-                        >
-                          <Edit3 className="h-4 w-4 icon-default" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-icon-default hover:text-icon-active">
-                              <Trash2 className="h-4 w-4 icon-default" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Pain Log</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete this pain log? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(log.id)}>
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  </div>
+                        }
+                        onEdit={() => handleEdit(log)}
+                      />
+                    ))}
+                  </DayGroupCard>
                 ))
               )}
             </div>
@@ -447,208 +461,205 @@ export function RecordsSection() {
           </TabsContent>
         </Tabs>
 
-        {/* Edit Sheet */}
-        <Sheet open={editSheetOpen} onOpenChange={setEditSheetOpen}>
-        <SheetContent aria-describedby="edit-log-desc">
-          <p id="edit-log-desc" className="sr-only">Edit pain log entry</p>
-          <SheetHeader>
-            <SheetTitle>Edit Pain Log</SheetTitle>
-          </SheetHeader>
-            <div className="space-y-6 mt-6">
-              {/* Pain Level */}
-              <div className="space-y-2">
-                <Label>Pain Level (0-10)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="10"
-                  value={editPainLevel}
-                  onChange={(e) => setEditPainLevel(parseInt(e.target.value) || 0)}
-                />
-              </div>
+        {/* Edit DrawerSheet */}
+        <DrawerSheet
+          open={editSheetOpen}
+          onOpenChange={setEditSheetOpen}
+          title="Edit Pain Log"
+          className="dark:bg-background/95"
+          footer={
+            <Button onClick={handleSaveEdit} className="w-full">
+              Save Changes
+            </Button>
+          }
+        >
+          <div className="space-y-6">
+            {/* Pain Level */}
+            <div className="space-y-2">
+              <Label>Pain Level (0-10)</Label>
+              <Input
+                type="number"
+                min="0"
+                max="10"
+                value={editPainLevel}
+                onChange={(e) => setEditPainLevel(parseInt(e.target.value) || 0)}
+              />
+            </div>
 
-              {/* Activity */}
-              <div className="space-y-2">
-                <Label>Activity</Label>
-                <Input
-                  value={editActivity}
-                  onChange={(e) => setEditActivity(e.target.value)}
-                  placeholder="What were you doing?"
-                />
-              </div>
+            {/* Activity */}
+            <div className="space-y-2">
+              <Label>Activity</Label>
+              <Input
+                value={editActivity}
+                onChange={(e) => setEditActivity(e.target.value)}
+                placeholder="What were you doing?"
+              />
+            </div>
 
-              {/* Functional Impact */}
-              <div className="space-y-2">
-                <Label>Functional Impact</Label>
-                <Select value={editFunctionalImpact} onValueChange={setEditFunctionalImpact}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {functionalImpactOptions.map(option => (
-                      <SelectItem key={option} value={option}>
-                        {option.charAt(0).toUpperCase() + option.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Functional Impact */}
+            <div className="space-y-2">
+              <Label>Functional Impact</Label>
+              <Select value={editFunctionalImpact} onValueChange={setEditFunctionalImpact}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {functionalImpactOptions.map(option => (
+                    <SelectItem key={option} value={option}>
+                      {option.charAt(0).toUpperCase() + option.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              {/* Impact Tags */}
-              {editFunctionalImpact !== "none" && (
-                <div className="space-y-2">
-                  <Label>Affected Areas</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {functionalImpactOptions.slice(1).map(tag => (
-                      <Badge
-                        key={tag}
-                        variant={editImpactTags.includes(tag) ? "default" : "outline"}
-                        className="cursor-pointer"
-                        onClick={() => toggleImpactTag(tag)}
-                      >
-                        {tag.charAt(0).toUpperCase() + tag.slice(1)}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Medications */}
+            {/* Impact Tags */}
+            {editFunctionalImpact !== "none" && (
               <div className="space-y-2">
-                <Label>Medications Taken</Label>
+                <Label>Affected Areas</Label>
                 <div className="flex flex-wrap gap-2">
-                  {availableMedications.map(med => (
+                  {functionalImpactOptions.slice(1).map(tag => (
                     <Badge
-                      key={med}
-                      variant={editMeds.includes(med) ? "default" : "outline"}
+                      key={tag}
+                      variant={editImpactTags.includes(tag) ? "default" : "outline"}
                       className="cursor-pointer"
-                      onClick={() => toggleMedication(med)}
+                      onClick={() => toggleImpactTag(tag)}
                     >
-                      {med}
+                      {tag.charAt(0).toUpperCase() + tag.slice(1)}
                     </Badge>
                   ))}
                 </div>
               </div>
+            )}
 
-              {/* Side Effects */}
-              {editMeds.length > 0 && (
-                <div className="space-y-2">
-                  <Label>Side Effects (optional)</Label>
-                  <Textarea
-                    value={editSideEffects}
-                    onChange={(e) => setEditSideEffects(e.target.value)}
-                    placeholder="Any side effects from medications?"
-                  />
-                </div>
-              )}
+            {/* Medications */}
+            <div className="space-y-2">
+              <Label>Medications Taken</Label>
+              <div className="flex flex-wrap gap-2">
+                {availableMedications.map(med => (
+                  <Badge
+                    key={med}
+                    variant={editMeds.includes(med) ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => toggleMedication(med)}
+                  >
+                    {med}
+                  </Badge>
+                ))}
+              </div>
+            </div>
 
-              {/* Notes */}
+            {/* Side Effects */}
+            {editMeds.length > 0 && (
               <div className="space-y-2">
-                <Label>Notes</Label>
+                <Label>Side Effects (optional)</Label>
                 <Textarea
-                  value={editNotes}
-                  onChange={(e) => setEditNotes(e.target.value)}
-                  placeholder="Additional notes about this pain episode..."
+                  value={editSideEffects}
+                  onChange={(e) => setEditSideEffects(e.target.value)}
+                  placeholder="Any side effects from medications?"
                 />
               </div>
+            )}
 
-              <Button onClick={handleSaveEdit} className="w-full">
-                Save Changes
-              </Button>
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label>Notes</Label>
+              <Textarea
+                value={editNotes}
+                onChange={(e) => setEditNotes(e.target.value)}
+                placeholder="Additional notes about this pain episode..."
+              />
             </div>
-          </SheetContent>
-        </Sheet>
+          </div>
+        </DrawerSheet>
 
         {/* Day Details Sheet */}
-        <Sheet open={daySheetOpen} onOpenChange={setDaySheetOpen}>
-        <SheetContent aria-describedby="day-details-desc">
-          <p id="day-details-desc" className="sr-only">View pain logs for selected day</p>
-          <SheetHeader>
-            <SheetTitle>
-              {selectedDate && format(selectedDate, 'MMMM d, yyyy')}
-            </SheetTitle>
-          </SheetHeader>
-            <div className="space-y-4 mt-6">
-              {selectedDate && getDayLogs(selectedDate).map((log) => (
-                <div key={log.id} className="bg-background border border-border rounded-lg p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-4 mb-2">
-                        <span className="text-sm text-muted-foreground">
-                          {format(parseISO(log.logged_at), 'h:mm a')}
-                        </span>
-                        <Badge variant={log.pain_level >= 7 ? "destructive" : log.pain_level >= 4 ? "default" : "secondary"}>
-                          Pain Level {log.pain_level}/10
-                        </Badge>
-                      </div>
-                      
-                      {log.activity && (
-                        <p className="text-sm mb-1">
-                          <span className="text-muted-foreground">Activity:</span> {log.activity}
-                        </p>
-                      )}
-                      
-                      {log.medications && log.medications.length > 0 && (
-                        <div className="mb-2">
-                          <span className="text-sm text-muted-foreground">Medications:</span>
-                          <div className="flex gap-1 mt-1 flex-wrap">
-                            {log.medications.map((med, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs">
-                                {med}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {log.notes && (
-                        <p className="text-sm text-muted-foreground mt-2">{log.notes}</p>
-                      )}
+        <DrawerSheet
+          open={daySheetOpen}
+          onOpenChange={setDaySheetOpen}
+          title={selectedDate ? format(selectedDate, 'MMMM d, yyyy') : ''}
+          className="dark:bg-background/95"
+        >
+          <div className="space-y-4">
+            {selectedDate && getDayLogs(selectedDate).map((log) => (
+              <div key={log.id} className="bg-background border border-border rounded-lg p-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4 mb-2">
+                      <span className="text-sm text-muted-foreground">
+                        {format(parseISO(log.logged_at), 'h:mm a')}
+                      </span>
+                      <Badge variant={log.pain_level >= 7 ? "destructive" : log.pain_level >= 4 ? "default" : "secondary"}>
+                        Pain Level {log.pain_level}/10
+                      </Badge>
                     </div>
                     
-                    <div className="flex gap-2 ml-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setDaySheetOpen(false);
-                          handleEdit(log);
-                        }}
-                        className="text-icon-default hover:text-icon-active"
-                      >
-                        <Edit3 className="h-4 w-4 icon-default" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="sm" className="text-icon-default hover:text-icon-active">
-                            <Trash2 className="h-4 w-4 icon-default" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Pain Log</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete this pain log? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => {
-                              handleDelete(log.id);
-                              setDaySheetOpen(false);
-                            }}>
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                    {log.activity && (
+                      <p className="text-sm mb-1">
+                        <span className="text-muted-foreground">Activity:</span> {log.activity}
+                      </p>
+                    )}
+                    
+                    {log.medications && log.medications.length > 0 && (
+                      <div className="mb-2">
+                        <span className="text-sm text-muted-foreground">Medications:</span>
+                        <div className="flex gap-1 mt-1 flex-wrap">
+                          {log.medications.map((med, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {med}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {log.notes && (
+                      <p className="text-sm text-muted-foreground mt-2">{log.notes}</p>
+                    )}
+                  </div>
+                  
+                  <div className="flex gap-2 ml-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setDaySheetOpen(false);
+                        handleEdit(log);
+                      }}
+                      className="text-icon-default hover:text-icon-active"
+                    >
+                      <Trash2 className="h-4 w-4 icon-default" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-icon-default hover:text-icon-active">
+                          <Trash2 className="h-4 w-4 icon-default" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Pain Log</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this pain log? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => {
+                            handleDelete(log.id);
+                            setDaySheetOpen(false);
+                          }}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
-              ))}
-            </div>
-          </SheetContent>
-        </Sheet>
+              </div>
+            ))}
+          </div>
+        </DrawerSheet>
       </div>
     </div>
   );
