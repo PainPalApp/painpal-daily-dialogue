@@ -174,9 +174,9 @@ export function useChartTheme(options: UseChartThemeOptions = {}): ChartThemeCon
   }), [])
 
   const mobileHeights = useMemo(() => ({
-    sm: 'h-[72px]',
-    md: 'h-20 sm:h-24',
-    lg: 'h-24 sm:h-32 md:h-40',
+    sm: 'h-[120px]',  // Mobile height ~120px as requested
+    md: 'h-[160px]',   
+    lg: 'h-[200px]'    
   }), [])
 
   return {
