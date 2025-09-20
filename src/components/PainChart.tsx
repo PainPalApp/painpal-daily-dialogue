@@ -1,6 +1,6 @@
 import { ChartContainer } from '@/components/lila';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Dot } from 'recharts';
-import { format, isSameDay } from 'date-fns';
+import { PainLineChart } from '@/components/ui/chart';
+import { format } from 'date-fns';
 import { isSingleDay } from '@/lib/dateUtils';
 import { memo } from 'react';
 
@@ -37,9 +37,8 @@ const PainChartComponent = ({ painData, startDate, endDate, isCompact = false }:
     if (isToday) {
       // Single day: plot each log (x=HH:mm, y=pain_level)
       return validEntries.map(entry => ({
-        time: format(new Date(entry.timestamp), 'HH:mm'),
-        timestamp: new Date(entry.timestamp).getTime(),
-        painLevel: entry.painLevel,
+        x: format(new Date(entry.timestamp), 'HH:mm'),
+        y: entry.painLevel,
         notes: entry.notes || ''
       }));
     } else {
@@ -57,9 +56,8 @@ const PainChartComponent = ({ painData, startDate, endDate, isCompact = false }:
       return Object.values(dailyData)
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
         .map(data => ({
-          date: format(new Date(data.date), 'MMM d'),
-          timestamp: new Date(data.date).getTime(),
-          painLevel: Math.round((data.sum / data.count) * 10) / 10 // Round to 1 decimal
+          x: format(new Date(data.date), 'MMM d'),
+          y: Math.round((data.sum / data.count) * 10) / 10 // Round to 1 decimal
         }));
     }
   })();
@@ -79,43 +77,7 @@ const PainChartComponent = ({ painData, startDate, endDate, isCompact = false }:
       minHeightLg={200}
     >
       {({ width, height, ready }) => 
-        ready ? (
-          <ResponsiveContainer width={width} height={height}>
-            <LineChart
-              data={chartData}
-              margin={{ top: 8, right: 8, bottom: 16, left: 28 }}
-            >
-              <CartesianGrid 
-                strokeDasharray="3 3" 
-                stroke="hsl(var(--border))" 
-                opacity={0.6}
-              />
-              <XAxis
-                dataKey={isToday ? "time" : "date"}
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 12, fill: "hsl(var(--text-secondary))" }}
-              />
-              <YAxis
-                domain={[0, 10]}
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 12, fill: "hsl(var(--text-secondary))" }}
-                width={24}
-              />
-              <Line
-                type="monotone"
-                dataKey="painLevel"
-                stroke="hsl(var(--accent-primary))"
-                strokeWidth={2}
-                dot={{ r: 3, fill: "hsl(var(--accent-primary))", stroke: "none" }}
-                activeDot={{ r: 5, fill: "hsl(var(--accent-primary))", stroke: "none" }}
-                animationDuration={0}
-                connectNulls={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : null
+        ready ? <PainLineChart data={chartData} height={height} /> : null
       }
     </ChartContainer>
   );

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
-import { ChartContainer } from "@/components/ui/chart"
+import { ChartContainer } from "@/components/lila"
 import { SectionHeader, type SectionHeaderProps } from "./SectionHeader"
 import { useChartTheme } from "@/hooks/useChartTheme"
 
@@ -57,10 +57,13 @@ const ChartCard = React.forwardRef<HTMLDivElement, ChartCardProps>(
           />
           
           <ChartContainer 
-            config={config}
-            className={cn("w-full", heightClasses)}
+            minHeightSm={heightSm}
+            minHeightMd={heightMd}
+            minHeightLg={heightLg}
           >
-            {childWithTheme}
+            {({ width, height, ready }) =>
+              ready ? React.cloneElement(childWithTheme, { height }) : null
+            }
           </ChartContainer>
         </CardContent>
       </Card>
