@@ -13,10 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, CalendarDays, Trash2, Filter } from "lucide-react";
+import { Calendar, CalendarDays, Trash2, Filter, FileText } from "lucide-react";
 import { format, startOfWeek, startOfMonth, endOfMonth, isSameDay, getDay, addDays, parseISO } from "date-fns";
 import { PainIndicator } from './PainIndicator';
 import { DayGroupCard, EntryRow, StatBadge, ChipPill, DrawerSheet, EmptyState } from '@/components/lila';
+import { DoctorSummaryDrawer } from './DoctorSummaryDrawer';
 
 interface PainLog {
   id: string;
@@ -47,6 +48,7 @@ export function RecordsSection() {
   const [editingEntry, setEditingEntry] = useState<PainLog | null>(null);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [daySheetOpen, setDaySheetOpen] = useState(false);
+  const [doctorSummaryOpen, setDoctorSummaryOpen] = useState(false);
 
   // Edit form state
   const [editPainLevel, setEditPainLevel] = useState(0);
@@ -269,6 +271,48 @@ export function RecordsSection() {
     }
   };
 
+  // Calculate current date range based on filter
+  const getCurrentDateRange = () => {
+    const now = new Date();
+    let startDate: Date;
+    let endDate = new Date();
+
+    if (filterPeriod === "week") {
+      startDate = startOfWeek(now, { weekStartsOn: 0 });
+    } else if (filterPeriod === "month") {
+      startDate = startOfMonth(now);
+      endDate = endOfMonth(now);
+    } else if (filterPeriod === "custom" && customStartDate && customEndDate) {
+      startDate = new Date(customStartDate);
+      endDate = new Date(customEndDate);
+    } else {
+      startDate = startOfMonth(now);
+      endDate = endOfMonth(now);
+    }
+
+    return { startDate, endDate };
+  };
+
+  // Convert PainLog format to PainEntry format for DoctorSummaryDrawer
+  const convertToSummaryData = () => {
+    return painLogs.map(log => ({
+      id: parseInt(log.id),
+      date: format(parseISO(log.logged_at), 'yyyy-MM-dd'),
+      timestamp: log.logged_at,
+      painLevel: log.pain_level,
+      location: [], // Records don't have location data in this format
+      triggers: [], // Records don't have triggers in this format
+      medications: log.medications || [],
+      notes: log.notes || '',
+      symptoms: [], // Records don't have symptoms in this format
+      status: 'active',
+      functional_impact: log.functional_impact,
+      impact_tags: log.impact_tags,
+      side_effects: log.side_effects,
+      rx_taken: log.rx_taken,
+    }));
+  };
+
   if (loading) {
     return (
       <div className="flex-1 bg-background flex items-center justify-center">
@@ -284,9 +328,19 @@ export function RecordsSection() {
     <div className="flex-1 bg-background">
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Pain Records</h1>
-          <p className="text-muted-foreground">Track and review your pain history</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Pain Records</h1>
+            <p className="text-muted-foreground">Track and review your pain history</p>
+          </div>
+          <Button
+            onClick={() => setDoctorSummaryOpen(true)}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            Doctor Summary
+          </Button>
         </div>
 
         {/* Filters */}
@@ -682,6 +736,15 @@ export function RecordsSection() {
             ))}
           </div>
         </DrawerSheet>
+
+        {/* Doctor Summary Drawer */}
+        <DoctorSummaryDrawer
+          open={doctorSummaryOpen}
+          onOpenChange={setDoctorSummaryOpen}
+          painData={convertToSummaryData()}
+          startDate={getCurrentDateRange().startDate}
+          endDate={getCurrentDateRange().endDate}
+        />
       </div>
     </div>
   );
