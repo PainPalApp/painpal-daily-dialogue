@@ -18,7 +18,8 @@ import { DateRangePicker } from '@/components/DateRangePicker';
 import { ChartContainer, ChartCard, StatBadge, ChipPill, DayGroupCard, EntryRow, EmptyState, DrawerSheet } from '@/components/lila';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from 'react-day-picker';
-import { format, subDays, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { getLocalTodayUtcRangeISO, isSingleDay } from '@/lib/dateUtils';
 
 interface PainEntry {
   id: number;
@@ -32,184 +33,199 @@ interface PainEntry {
   status?: string;
 }
 
+interface DateRangeState {
+  startISO: string;
+  endISO: string;
+  preset: 'today' | 'last7' | 'last30' | 'last60' | 'last90' | 'custom';
+}
+
 export const InsightsSection = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { updatePainLog } = usePainLogs();
   const { toast } = useToast();
+  
+  // State
   const [painData, setPainData] = useState<PainEntry[]>([]);
   const [editingEntry, setEditingEntry] = useState<PainEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDoctorSummaryOpen, setIsDoctorSummaryOpen] = useState(false);
   
-  // AbortController ref for canceling requests
-  const abortControllerRef = useRef<AbortController | null>(null);
-  
-  // Page state for date range
-  const [state, setState] = useState<{
-    startDate: Date;
-    endDate: Date;
-  }>(() => {
-    // Initialize with URL params if available
+  // Single source of truth for date range
+  const [range, setRange] = useState<DateRangeState>(() => {
+    // Initialize with URL params or default to last 7 days
     const urlParams = new URLSearchParams(window.location.search);
     const startParam = urlParams.get('start');
     const endParam = urlParams.get('end');
     
-    let initialStartDate: Date;
-    let initialEndDate: Date;
-    
     if (startParam && endParam) {
       try {
-        initialStartDate = new Date(startParam);
-        initialEndDate = new Date(endParam);
+        const startDate = new Date(startParam);
+        const endDate = new Date(endParam);
         
-        // Validate the dates
-        if (isNaN(initialStartDate.getTime()) || isNaN(initialEndDate.getTime())) {
-          throw new Error('Invalid dates');
+        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+          return {
+            startISO: startOfDay(startDate).toISOString(),
+            endISO: endOfDay(endDate).toISOString(),
+            preset: 'custom'
+          };
         }
       } catch {
-        // Fall back to last 7 days if URL params are invalid
-        initialEndDate = new Date();
-        initialStartDate = subDays(initialEndDate, 6);
+        // Fall through to default
       }
-    } else {
-      // Default to last 7 days
-      initialEndDate = new Date();
-      initialStartDate = subDays(initialEndDate, 6);
     }
     
+    // Default to last 7 days
+    const endDate = new Date();
+    const startDate = subDays(endDate, 6);
     return {
-      startDate: initialStartDate,
-      endDate: initialEndDate
+      startISO: startOfDay(startDate).toISOString(),
+      endISO: endOfDay(endDate).toISOString(),
+      preset: 'last7'
     };
   });
   
-  // Validation function for date ranges
-  const validateAndSetDateRange = useCallback((startDate: Date | null, endDate: Date | null) => {
-    let validStartDate: Date;
-    let validEndDate: Date;
+  // AbortController ref for canceling requests
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Handle preset changes
+  const handlePresetChange = useCallback((preset: DateRangeState['preset']) => {
+    let newRange: DateRangeState;
     
-    if (!startDate || !endDate || startDate > endDate) {
-      // Fall back to last 7 days if invalid range
-      validEndDate = new Date();
-      validStartDate = subDays(validEndDate, 6);
-    } else {
-      validStartDate = startOfDay(startDate);
-      validEndDate = endOfDay(endDate);
-    }
-    
-    const newState = {
-      startDate: validStartDate,
-      endDate: validEndDate
-    };
-    
-    setState(newState);
-    return newState;
-  }, []);
-  
-  // Handle date range changes from DateRangePicker
-  const handleCustomDateChange = (range: DateRange | undefined) => {
-    if (range?.from && range?.to) {
-      validateAndSetDateRange(range.from, range.to);
-    } else if (range?.from || range?.to) {
-      // Partial range - fall back to Last 7 days
-      validateAndSetDateRange(null, null);
-    }
-  };
-  
-  // Function to update URL without page reload
-  const updateURL = (startDate: Date, endDate: Date) => {
-    const url = new URL(window.location.href);
-    url.searchParams.set('start', format(startDate, 'yyyy-MM-dd'));
-    url.searchParams.set('end', format(endDate, 'yyyy-MM-dd'));
-    window.history.replaceState({}, '', url.toString());
-  };
-
-  // Function to jump to today's date
-  const handleJumpToToday = () => {
-    const today = new Date();
-    const newState = validateAndSetDateRange(today, today);
-    updateURL(newState.startDate, newState.endDate);
-  };
-
-  // Function to use last 7 days
-  const handleUseLast7Days = () => {
-    const endDate = new Date();
-    const startDate = subDays(endDate, 6); // 7 days inclusive
-    const newState = validateAndSetDateRange(startDate, endDate);
-    updateURL(newState.startDate, newState.endDate);
-  };
-
-  // Debounced data loading function with AbortController
-  const debouncedLoadPainData = useCallback(
-    (() => {
-      let timeoutId: NodeJS.Timeout;
-      let abortController: AbortController | null = null;
-      
-      return async (startDate: Date, endDate: Date) => {
-        clearTimeout(timeoutId);
-        
-        timeoutId = setTimeout(async () => {
-          if (!user?.id) return;
-          
-          try {
-            setIsLoading(true);
-            
-            // Cancel previous request
-            if (abortController) {
-              abortController.abort();
-            }
-            abortController = new AbortController();
-            abortControllerRef.current = abortController;
-
-            const { data, error } = await supabase
-              .from('pain_logs')
-              .select('*')
-              .eq('user_id', user.id)
-              .gte('logged_at', startDate.toISOString())
-              .lt('logged_at', endDate.toISOString()) // Use lt for [start, end) range
-              .order('logged_at', { ascending: true })
-              .abortSignal(abortController.signal);
-
-            if (error) throw error;
-
-            const transformedData = (data || []).map(log => ({
-              id: parseInt(log.id) || 0, // Convert to number
-              logged_at: log.logged_at,
-              pain_level: log.pain_level,
-              location: log.pain_locations || [],
-              triggers: log.triggers || [],
-              medications: log.medications || [],
-              notes: log.notes || '',
-              symptoms: [],
-              status: 'active'
-            }));
-
-            setPainData(transformedData);
-          } catch (error: any) {
-            if (error.name === 'AbortError') {
-              return;
-            }
-            console.error('Error loading pain data:', error);
-            setPainData([]);
-          } finally {
-            setIsLoading(false);
-          }
-        }, 200); // 200ms debounce
+    if (preset === 'today') {
+      const { startISO, endISO } = getLocalTodayUtcRangeISO();
+      newRange = { startISO, endISO, preset: 'today' };
+    } else if (preset === 'last7') {
+      const endDate = new Date();
+      const startDate = subDays(endDate, 6);
+      newRange = {
+        startISO: startOfDay(startDate).toISOString(),
+        endISO: endOfDay(endDate).toISOString(),
+        preset: 'last7'
       };
-    })(),
-    [user]
-  );
-
-  useEffect(() => {
-    // Validate current date range on mount and state changes
-    const validatedState = validateAndSetDateRange(state.startDate, state.endDate);
+    } else if (preset === 'last30') {
+      const endDate = new Date();
+      const startDate = subDays(endDate, 29);
+      newRange = {
+        startISO: startOfDay(startDate).toISOString(),
+        endISO: endOfDay(endDate).toISOString(),
+        preset: 'last30'
+      };
+    } else if (preset === 'last60') {
+      const endDate = new Date();
+      const startDate = subDays(endDate, 59);
+      newRange = {
+        startISO: startOfDay(startDate).toISOString(),
+        endISO: endOfDay(endDate).toISOString(),
+        preset: 'last60'
+      };
+    } else if (preset === 'last90') {
+      const endDate = new Date();
+      const startDate = subDays(endDate, 89);
+      newRange = {
+        startISO: startOfDay(startDate).toISOString(),
+        endISO: endOfDay(endDate).toISOString(),
+        preset: 'last90'
+      };
+    } else {
+      return; // Custom handled separately
+    }
     
-    // Load data with debouncing
-    debouncedLoadPainData(validatedState.startDate, validatedState.endDate);
+    setRange(newRange);
+    
+    // Clear URL params and push clean route
+    navigate('/insights', { replace: true });
+  }, [navigate]);
 
-    // Listen for real-time updates
+  // Handle custom date range changes
+  const handleCustomDateChange = useCallback((dateRange: DateRange | undefined) => {
+    if (dateRange?.from && dateRange?.to) {
+      const newRange: DateRangeState = {
+        startISO: startOfDay(dateRange.from).toISOString(),
+        endISO: endOfDay(dateRange.to).toISOString(),
+        preset: 'custom'
+      };
+      setRange(newRange);
+      
+      // Clear URL params and push clean route
+      navigate('/insights', { replace: true });
+    }
+  }, [navigate]);
+
+  // Data fetching with AbortController
+  const fetchPainData = useCallback(async (startISO: string, endISO: string, userId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Cancel previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      // Create new AbortController
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
+      console.debug('[Insights] user', userId, 'range', startISO, endISO);
+
+      const { data, error } = await supabase
+        .from('pain_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .gte('logged_at', startISO)
+        .lt('logged_at', endISO)
+        .order('logged_at', { ascending: true })
+        .abortSignal(abortController.signal);
+
+      if (error) throw error;
+
+      const transformedData = (data || []).map(log => ({
+        id: parseInt(log.id) || 0,
+        logged_at: log.logged_at,
+        pain_level: log.pain_level,
+        location: log.pain_locations || [],
+        triggers: log.triggers || [],
+        medications: log.medications || [],
+        notes: log.notes || '',
+        symptoms: [],
+        status: 'active'
+      }));
+
+      setPainData(transformedData);
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        return;
+      }
+      console.error('Error loading pain data:', error);
+      setPainData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Effect to fetch data when range or user changes
+  useEffect(() => {
+    // Auth-ready guard
+    if (!user?.id) {
+      console.debug('[Insights] Waiting for user auth...');
+      return;
+    }
+
+    fetchPainData(range.startISO, range.endISO, user.id);
+
+    // Cleanup
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [range.startISO, range.endISO, user?.id, fetchPainData]);
+
+  // Real-time updates
+  useEffect(() => {
+    if (!user?.id) return;
+
     const channel = supabase
       .channel('pain_logs_changes')
       .on(
@@ -220,8 +236,7 @@ export const InsightsSection = () => {
           table: 'pain_logs'
         },
         () => {
-          // Reload data when changes occur (without debouncing for real-time updates)
-          debouncedLoadPainData(state.startDate, state.endDate);
+          fetchPainData(range.startISO, range.endISO, user.id);
         }
       )
       .subscribe();
@@ -229,11 +244,59 @@ export const InsightsSection = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [state.startDate, state.endDate, debouncedLoadPainData, validateAndSetDateRange]); // Reload when date range changes
+  }, [range.startISO, range.endISO, user?.id, fetchPainData]);
 
-  // Since we're now filtering at the database level, use all loaded data
-  const filteredPainData = painData;
+  // Auth loading state
+  if (!user?.id) {
+    return (
+      <div className="flex-1 bg-background flex items-center justify-center">
+        <div className="text-sm text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
+  // Convert date range for DateRangePicker
+  const datePickerValue = {
+    from: new Date(range.startISO),
+    to: new Date(range.endISO)
+  };
+
+  // Prepare data for chart - handle single-day vs multi-day
+  const chartData = (() => {
+    if (painData.length === 0) return [];
+    
+    const startDate = new Date(range.startISO);
+    const endDate = new Date(range.endISO);
+    
+    if (isSingleDay(startDate, endDate)) {
+      // Single-day: per-log series { x: HH:mm, y: pain_level }
+      return painData.map(entry => ({
+        x: format(new Date(entry.logged_at), 'HH:mm'),
+        y: entry.pain_level
+      }));
+    } else {
+      // Multi-day: daily averages
+      const dailyGroups = painData.reduce((acc, entry) => {
+        const date = format(new Date(entry.logged_at), 'yyyy-MM-dd');
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(entry.pain_level);
+        return acc;
+      }, {} as Record<string, (number | null)[]>);
+
+      return Object.entries(dailyGroups).map(([date, levels]) => {
+        const validLevels = levels.filter(level => level !== null) as number[];
+        const avg = validLevels.length > 0 
+          ? validLevels.reduce((sum, level) => sum + level, 0) / validLevels.length 
+          : 0;
+        return {
+          x: format(new Date(date), 'MMM d'),
+          y: Math.round(avg * 10) / 10 // Round to 1 decimal
+        };
+      });
+    }
+  })();
+
+  // Handle edit operations
   const handleEditEntry = (entry: PainEntry) => {
     setEditingEntry({ ...entry });
     setIsEditDialogOpen(true);
@@ -289,18 +352,7 @@ export const InsightsSection = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'EEEE, MMMM d, yyyy');
-  };
-
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  // Transform data for components that still expect old interface
+  // Transform data for legacy components
   const transformToLegacyFormat = (data: PainEntry[]): any[] => {
     return data.map(entry => ({
       id: entry.id,
@@ -316,7 +368,7 @@ export const InsightsSection = () => {
     }));
   };
 
-  if (filteredPainData.length === 0 && !isLoading) {
+  if (painData.length === 0 && !isLoading) {
     return (
       <div className="flex-1 bg-background page-padding py-6">
         <div className="max-w-4xl mx-auto">
@@ -327,39 +379,39 @@ export const InsightsSection = () => {
             </div>
           </div>
             
-            <p className="text-sm text-muted-foreground mb-6" aria-live="polite">
-              Showing {format(state.startDate, 'MMM d, yyyy')} → {format(state.endDate, 'MMM d, yyyy')}
-            </p>
+          <p className="text-sm text-muted-foreground mb-6" aria-live="polite">
+            Showing {format(new Date(range.startISO), 'MMM d, yyyy')} → {format(new Date(range.endISO), 'MMM d, yyyy')}
+          </p>
             
-            {/* Date Range Picker */}
-            <div className="mb-6 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-              <div style={{ whiteSpace: 'nowrap', gap: '8px' }}>
-                <DateRangePicker
-                  value={{ from: state.startDate, to: state.endDate }}
-                  onChange={handleCustomDateChange}
-                />
-              </div>
+          {/* Date Range Picker */}
+          <div className="mb-6 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div style={{ whiteSpace: 'nowrap', gap: '8px' }}>
+              <DateRangePicker
+                value={datePickerValue}
+                onChange={handleCustomDateChange}
+              />
             </div>
-            
-            <EmptyState 
-              icon={<FileText className="h-12 w-12 text-muted-foreground" />}
-              title="No Entries in Selected Range"
-              description="Try adjusting your date range to see insights."
-              actions={
-                <div className="flex gap-2 justify-center overflow-x-auto scrollbar-hide lg:justify-center lg:overflow-visible" style={{ WebkitOverflowScrolling: 'touch' }}>
-                  <Button onClick={handleUseLast7Days} variant="outline" className="min-h-[44px] min-w-[44px] whitespace-nowrap flex-shrink-0">
-                    Use Last 7 days
-                  </Button>
-                  <Button onClick={handleJumpToToday} variant="outline" className="min-h-[44px] min-w-[44px] whitespace-nowrap flex-shrink-0">
-                    Jump to Today
-                  </Button>
-                </div>
-              }
-            />
           </div>
+            
+          <EmptyState 
+            icon={<FileText className="h-12 w-12 text-muted-foreground" />}
+            title="No Entries in Selected Range"
+            description="Try adjusting your date range to see insights."
+            actions={
+              <div className="flex gap-2 justify-center overflow-x-auto scrollbar-hide lg:justify-center lg:overflow-visible" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <Button onClick={() => handlePresetChange('last7')} variant="outline" className="min-h-[44px] min-w-[44px] whitespace-nowrap flex-shrink-0">
+                  Use Last 7 days
+                </Button>
+                <Button onClick={() => handlePresetChange('today')} variant="outline" className="min-h-[44px] min-w-[44px] whitespace-nowrap flex-shrink-0">
+                  Jump to Today
+                </Button>
+              </div>
+            }
+          />
         </div>
-      );
-    }
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-background page-padding py-6">
@@ -391,14 +443,14 @@ export const InsightsSection = () => {
         </div>
         
         <p className="text-sm text-muted-foreground mb-6" aria-live="polite">
-          Showing {format(state.startDate, 'MMM d, yyyy')} → {format(state.endDate, 'MMM d, yyyy')}
+          Showing {format(new Date(range.startISO), 'MMM d, yyyy')} → {format(new Date(range.endISO), 'MMM d, yyyy')}
         </p>
         
         {/* Date Range Picker */}
         <div className="mb-6 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div style={{ whiteSpace: 'nowrap', gap: '8px' }}>
             <DateRangePicker
-              value={{ from: state.startDate, to: state.endDate }}
+              value={datePickerValue}
               onChange={handleCustomDateChange}
             />
           </div>
@@ -419,9 +471,9 @@ export const InsightsSection = () => {
               </div>
             ) : (
               <PainChart 
-                painData={filteredPainData}
-                startDate={state.startDate}
-                endDate={state.endDate}
+                painData={painData}
+                startDate={new Date(range.startISO)}
+                endDate={new Date(range.endISO)}
                 isCompact={false}
               />
             )}
@@ -430,23 +482,23 @@ export const InsightsSection = () => {
         
         {/* Pain Patterns */}
         <PainPatternsCard 
-          painData={transformToLegacyFormat(filteredPainData)}
-          onUseLast7Days={handleUseLast7Days}
-          onJumpToToday={handleJumpToToday}
+          painData={transformToLegacyFormat(painData)}
+          onUseLast7Days={() => handlePresetChange('last7')}
+          onJumpToToday={() => handlePresetChange('today')}
         />
         
         {/* Functional Impact & Context */}
         <FunctionalImpactCard 
-          painData={transformToLegacyFormat(filteredPainData)}
-          onUseLast7Days={handleUseLast7Days}
-          onJumpToToday={handleJumpToToday}
+          painData={transformToLegacyFormat(painData)}
+          onUseLast7Days={() => handlePresetChange('last7')}
+          onJumpToToday={() => handlePresetChange('today')}
         />
         
         {/* Medications */}
         <MedicationsCard 
-          painData={transformToLegacyFormat(filteredPainData)}
-          onUseLast7Days={handleUseLast7Days}
-          onJumpToToday={handleJumpToToday}
+          painData={transformToLegacyFormat(painData)}
+          onUseLast7Days={() => handlePresetChange('last7')}
+          onJumpToToday={() => handlePresetChange('today')}
         />
       </div>
 
@@ -495,104 +547,63 @@ export const InsightsSection = () => {
 
             <div>
               <Label>Pain Locations</Label>
-              <div className="flex flex-wrap gap-1 mb-2">
-                {editingEntry.location.map((loc, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {loc}
+              <div className="space-y-2">
+                {editingEntry.location?.map((location, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Badge variant="secondary">{location}</Badge>
                     <Button
+                      type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-4 w-4 p-0 ml-1"
                       onClick={() => handleRemoveArrayItem('location', index)}
                     >
-                      <X className="h-3 w-3" />
+                      <X className="h-4 w-4" />
                     </Button>
-                  </Badge>
+                  </div>
                 ))}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Add location..."
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleAddArrayItem('location', e.currentTarget.value);
-                      e.currentTarget.value = '';
-                    }
-                  }}
-                />
               </div>
             </div>
 
             <div>
               <Label>Triggers</Label>
-              <div className="flex flex-wrap gap-1 mb-2">
-                {editingEntry.triggers.map((trigger, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {trigger}
+              <div className="space-y-2">
+                {editingEntry.triggers?.map((trigger, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Badge variant="secondary">{trigger}</Badge>
                     <Button
+                      type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-4 w-4 p-0 ml-1"
                       onClick={() => handleRemoveArrayItem('triggers', index)}
                     >
-                      <X className="h-3 w-3" />
+                      <X className="h-4 w-4" />
                     </Button>
-                  </Badge>
+                  </div>
                 ))}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Add trigger..."
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleAddArrayItem('triggers', e.currentTarget.value);
-                      e.currentTarget.value = '';
-                    }
-                  }}
-                />
               </div>
             </div>
 
             <div>
-              <Label>Symptoms</Label>
-              <div className="flex flex-wrap gap-1 mb-2">
-                {editingEntry.symptoms.map((symptom, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {symptom}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-4 w-4 p-0 ml-1"
-                      onClick={() => handleRemoveArrayItem('symptoms', index)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </Badge>
+              <Label>Medications</Label>
+              <div className="space-y-2">
+                {editingEntry.medications?.map((med, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Badge variant="secondary">{typeof med === 'string' ? med : med.name || 'Unknown'}</Badge>
+                  </div>
                 ))}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Add symptom..."
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleAddArrayItem('symptoms', e.currentTarget.value);
-                      e.currentTarget.value = '';
-                    }
-                  }}
-                />
               </div>
             </div>
           </div>
         )}
       </DrawerSheet>
-      
+
       {/* Doctor Summary Drawer */}
       <DoctorSummaryDrawer
         open={isDoctorSummaryOpen}
         onOpenChange={setIsDoctorSummaryOpen}
-        painData={transformToLegacyFormat(filteredPainData)}
-        startDate={state.startDate}
-        endDate={state.endDate}
+        painData={transformToLegacyFormat(painData)}
+        startDate={new Date(range.startISO)}
+        endDate={new Date(range.endISO)}
       />
     </div>
   );

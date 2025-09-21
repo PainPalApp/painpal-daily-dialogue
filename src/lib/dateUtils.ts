@@ -13,6 +13,18 @@ export function getLocalTodayUtcRange(): [Date, Date] {
 }
 
 /**
+ * Get UTC range for local today in ISO format for database queries
+ * Returns startISO (inclusive) and endISO (exclusive) for consistent filtering
+ */
+export function getLocalTodayUtcRangeISO(): { startISO: string; endISO: string } {
+  const [start, end] = getLocalTodayUtcRange();
+  return {
+    startISO: start.toISOString(),
+    endISO: end.toISOString()
+  };
+}
+
+/**
  * Check if a date range represents a single day
  */
 export function isSingleDay(startDate: Date, endDate: Date): boolean {
