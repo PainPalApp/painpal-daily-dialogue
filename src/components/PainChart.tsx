@@ -30,34 +30,62 @@ const PainChartComponent = ({ painData, startDate, endDate, isCompact = false }:
   // Process data based on view type
   const chartData = (() => {
     const validEntries = painData
-      .filter(entry => entry.pain_level !== null)
+      .filter(entry => {
+        // Validate pain_level and logged_at
+        if (entry.pain_level === null || entry.pain_level === undefined) return false;
+        if (!entry.logged_at) return false;
+        
+        // Try to create a valid Date object
+        const date = new Date(entry.logged_at);
+        return !isNaN(date.getTime());
+      })
       .sort((a, b) => new Date(a.logged_at).getTime() - new Date(b.logged_at).getTime());
 
     if (isToday) {
       // Single day: plot each log (x=time in p format, y=pain_level)
-      return validEntries.map(entry => ({
-        x: format(new Date(entry.logged_at), 'p'),
-        y: entry.pain_level,
-        notes: entry.notes || ''
-      }));
+      return validEntries.map(entry => {
+        try {
+          return {
+            x: format(new Date(entry.logged_at), 'p'),
+            y: entry.pain_level,
+            notes: entry.notes || ''
+          };
+        } catch (error) {
+          console.error('Error formatting date for entry:', entry, error);
+          return null;
+        }
+      }).filter(Boolean);
     } else {
       // Multi-day: plot daily averages
       const dailyData = validEntries.reduce((acc, entry) => {
-        const dateKey = format(new Date(entry.logged_at), 'yyyy-MM-dd');
-        if (!acc[dateKey]) {
-          acc[dateKey] = { sum: 0, count: 0, date: dateKey };
+        try {
+          const dateKey = format(new Date(entry.logged_at), 'yyyy-MM-dd');
+          if (!acc[dateKey]) {
+            acc[dateKey] = { sum: 0, count: 0, date: dateKey };
+          }
+          acc[dateKey].sum += entry.pain_level || 0;
+          acc[dateKey].count += 1;
+          return acc;
+        } catch (error) {
+          console.error('Error processing entry for daily data:', entry, error);
+          return acc;
         }
-        acc[dateKey].sum += entry.pain_level || 0;
-        acc[dateKey].count += 1;
-        return acc;
       }, {} as Record<string, { sum: number; count: number; date: string }>);
 
       return Object.values(dailyData)
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .map(data => ({
-          x: format(new Date(data.date), 'MMM d'),
-          y: Math.round((data.sum / data.count) * 10) / 10 // Round to 1 decimal
-        }));
+        .map(data => {
+          try {
+            return {
+              x: format(new Date(data.date), 'MMM d'),
+              y: Math.round((data.sum / data.count) * 10) / 10 // Round to 1 decimal
+            };
+          } catch (error) {
+            console.error('Error formatting date for daily data:', data, error);
+            return null;
+          }
+        })
+        .filter(Boolean);
     }
   })();
 
