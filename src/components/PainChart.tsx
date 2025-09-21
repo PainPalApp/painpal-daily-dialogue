@@ -89,22 +89,14 @@ const PainChartComponent = ({ painData, startDate, endDate, isCompact = false }:
     }
   })();
 
-  if (chartData.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-        No pain data to display
-      </div>
-    );
-  }
-
   return (
-    <ChartContainer
-      minHeightSm={120}
-      minHeightMd={160}
-      minHeightLg={200}
-    >
-      {({ width, height, ready }) => 
-        ready ? <PainLineChart data={chartData} height={height} /> : null
+    <ChartContainer minHeightSm={120} minHeightMd={160} minHeightLg={200}>
+      {({ height, ready }) =>
+        ready && chartData.length > 0 ? (
+          <PainLineChart data={chartData} height={height} />
+        ) : ready ? (
+          <div className="text-muted-foreground text-sm">No entries for this range.</div>
+        ) : null
       }
     </ChartContainer>
   );
