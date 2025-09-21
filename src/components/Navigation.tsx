@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +11,7 @@ export function Navigation() {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const pathname = location.pathname;
 
   const navItems = [
     { id: "track", label: "Track", href: "/track" },
@@ -19,7 +22,7 @@ export function Navigation() {
 
   return (
     <header className="bg-background/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14">
           {/* Logo */}
           <NavLink to="/track" className="flex-shrink-0 flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -40,8 +43,8 @@ export function Navigation() {
                 <NavLink
                   key={item.id}
                   to={item.href}
-                  className={({ isActive }) =>
-                    `nav-button ${isActive ? "nav-button-active" : ""}`
+                  className={
+                    `nav-button ${pathname.startsWith(item.href) ? "nav-button-active" : ""}`
                   }
                 >
                   {item.label}
@@ -113,8 +116,8 @@ export function Navigation() {
                 <NavLink
                   key={item.id}
                   to={item.href}
-                  className={({ isActive }) =>
-                    `block w-full text-left nav-button ${isActive ? "nav-button-active" : ""}`
+                  className={
+                    `block w-full text-left nav-button ${pathname.startsWith(item.href) ? "nav-button-active" : ""}`
                   }
                   onClick={() => setIsMenuOpen(false)}
                 >
