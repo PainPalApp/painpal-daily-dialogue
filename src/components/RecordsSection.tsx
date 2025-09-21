@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, CalendarDays, Trash2, Filter } from "lucide-react";
 import { format, startOfWeek, startOfMonth, endOfMonth, isSameDay, getDay, addDays, parseISO } from "date-fns";
 import { PainIndicator } from './PainIndicator';
-import { DayGroupCard, EntryRow, StatBadge, ChipPill, DrawerSheet } from '@/components/lila';
+import { DayGroupCard, EntryRow, StatBadge, ChipPill, DrawerSheet, EmptyState } from '@/components/lila';
 
 interface PainLog {
   id: string;
@@ -354,9 +354,11 @@ export function RecordsSection() {
             {/* Timeline View */}
             <div className="space-y-4">
               {painLogs.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">No pain logs found for the selected period.</p>
-                </div>
+                <EmptyState
+                  icon={<CalendarDays className="h-12 w-12" />}
+                  title="No entries yet"
+                  description="Start tracking your pain to see your history here"
+                />
               ) : (
                 groupLogsByDay().map((dayGroup) => (
                   <DayGroupCard
@@ -417,15 +419,22 @@ export function RecordsSection() {
 
           <TabsContent value="calendar">
             {/* Calendar View */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <div className="mb-4">
-                <h3 className="text-lg font-medium">
-                  {format(new Date(getCurrentMonth().year, getCurrentMonth().month), 'MMMM yyyy')}
-                </h3>
-              </div>
-              
-              {/* Calendar Grid */}
-              <div className="grid grid-cols-7 gap-1">
+            {painLogs.length === 0 ? (
+              <EmptyState
+                icon={<Calendar className="h-12 w-12" />}
+                title="No entries this month"
+                description="Add pain entries to see them in the calendar view"
+              />
+            ) : (
+              <div className="bg-card border border-border rounded-lg p-6">
+                <div className="mb-4">
+                  <h3 className="text-lg font-medium">
+                    {format(new Date(getCurrentMonth().year, getCurrentMonth().month), 'MMMM yyyy')}
+                  </h3>
+                </div>
+                
+                {/* Calendar Grid */}
+                <div className="grid grid-cols-7 gap-1">
                 {/* Header */}
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                   <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
@@ -454,10 +463,11 @@ export function RecordsSection() {
                          <PainIndicator painLevel={painLevel} />
                        )}
                     </div>
-                  );
-                })}
+                   );
+                 })}
+               </div>
               </div>
-            </div>
+            )}
           </TabsContent>
         </Tabs>
 
